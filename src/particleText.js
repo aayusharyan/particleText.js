@@ -1,3 +1,5 @@
+"use strict"
+
 let ww = window.innerWidth;
 let wh = window.innerHeight;
 
