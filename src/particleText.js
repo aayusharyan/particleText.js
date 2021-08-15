@@ -1,11 +1,13 @@
 let ww = window.innerWidth;
 let wh = window.innerHeight;
 
+//Cannot use class because I wish to support Internet Explorer.
 function initParticleJS(elementSelector, customConfigObject) {
 
   //The main Object which will be returned exposing the Properties and Methods
   let particleJS = {
     'isAnimating': false,
+    'particleList': [],
   };
 
   //Validation assert which will stop further execution of the script.
@@ -18,8 +20,9 @@ function initParticleJS(elementSelector, customConfigObject) {
     }
   };
 
-  let calculateExplosionRadius = function(configObject) {
-    let defaultExplosionRadius = prepareDefaultConfig().explosionRadius;
+  //Calculate the Explosion Radius of the Particles on mouse hover / on Touch Input
+  let getExplosionRadius = function(configObject) {
+    let defaultExplosionRadius = getDefaultConfig().explosionRadius;
     let configExplosionRadius  = configObject.explosionRadius;
     let radius = defaultExplosionRadius.xxxs;
     let lastDefinedConfigExplosionRadius = "";
@@ -114,11 +117,183 @@ function initParticleJS(elementSelector, customConfigObject) {
     }
 
     return radius;
-
   };
 
+  //This function is to calculate the radius of a single particle. This also handles the randomness part.
+  let getParticleRadius = function(configObject) {
+    let configParticleRadius  = configObject.particleRadius;
+    if(typeof configParticleRadius === "function") {
+      return configParticleRadius();
+    }
+    let defaultParticleRadius = getDefaultConfig().particleRadius;
+    let radiusBase = defaultParticleRadius.xxxs.base;
+    let radiusRand = defaultParticleRadius.xxxs.rand;
+    let lastDefinedParticleRadius = "";
+    if(ww <= 170) { //This is XXXS
+      if(configParticleRadius.xxxs !== undefined) {
+        radiusBase = configParticleRadius.xxxs.base;
+        radiusRand = configParticleRadius.xxxs.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else {
+        radiusBase = defaultParticleRadius.base;
+        radiusRand = defaultParticleRadius.rand;
+      }
+    }
+    if(ww >= 320) { //This ix XXS
+      if(configParticleRadius.xxs !== undefined) {
+        radiusBase = configParticleRadius.xxs.base;
+        radiusRand = configParticleRadius.xxs.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.xxs.radiusBase;
+        radiusRand = defaultParticleRadius.xxs.radiusRand;
+      }
+    }
+    if(ww >= 375) { //This is XS
+      if(configParticleRadius.xs !== undefined) {
+        radiusBase = configParticleRadius.xs.base;
+        radiusRand = configParticleRadius.xs.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.xs.radiusBase;
+        radiusRand = defaultParticleRadius.xs.radiusRand;
+      }
+    }
+    if(ww >= 768) { //This is SM
+      if(configParticleRadius.sm !== undefined) {
+        radiusBase = configParticleRadius.sm.base;
+        radiusRand = configParticleRadius.sm.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.sm.radiusBase;
+        radiusRand = defaultParticleRadius.sm.radiusRand;
+      }
+    }
+    if(ww >= 1024) { //This is MD
+      if(configParticleRadius.md !== undefined) {
+        radiusBase = configParticleRadius.md.base;
+        radiusRand = configParticleRadius.md.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.md.radiusBase;
+        radiusRand = defaultParticleRadius.md.radiusRand;
+      }
+    }
+    if(ww >= 1440) { //This is LG
+      if(configParticleRadius.lg !== undefined) {
+        radiusBase = configParticleRadius.lg.base;
+        radiusRand = configParticleRadius.lg.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.lg.radiusBase;
+        radiusRand = defaultParticleRadius.lg.radiusRand;
+      }
+    }
+    if(ww >= 2560) { //This is XL
+      if(configParticleRadius.xl !== undefined) {
+        radiusBase = configParticleRadius.xl.base;
+        radiusRand = configParticleRadius.xl.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.xl.radiusBase;
+        radiusRand = defaultParticleRadius.xl.radiusRand;
+      }
+    }
+    if(ww >= 3440) { //This is XXL
+      if(configParticleRadius.xxl !== undefined) {
+        radiusBase = configParticleRadius.xxl.base;
+        radiusRand = configParticleRadius.xxl.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.xxl.radiusBase;
+        radiusRand = defaultParticleRadius.xxl.radiusRand;
+      }
+    }
+    if(ww >= 3840) { //This is XXXL
+      if(configParticleRadius.xxxl !== undefined) {
+        radiusBase = configParticleRadius.xxxl.base;
+        radiusRand = configParticleRadius.xxxl.rand;
+        lastDefinedParticleRadius = {
+          'base': radiusBase,
+          'rand': radiusRand,
+        };
+      } else if(lastDefinedParticleRadius !== "") {
+        radiusBase = lastDefinedParticleRadius.base;
+        radiusRand = lastDefinedParticleRadius.rand;
+      } else {
+        radiusBase = defaultParticleRadius.xxxl.radiusBase;
+        radiusRand = defaultParticleRadius.xxxl.radiusRand;
+      }
+    }
+    let particleRadius = (Math.random() * radiusRand) + radiusBase;
+    return particleRadius;
+  }
+
+  //This function is used to calculate the friction of a single particle. This also handles the randomness part.
+  let getFriction = function(configObject) {
+    let configFriction = configObject.friction;
+    if(typeof configFriction === "function") {
+      return configFriction();
+    }
+    let defaultFriction = getDefaultConfig().friction;
+    let frictionBase = defaultFriction.base;
+    let frictionRand = defaultFriction.rand;
+    if(configFriction !== undefined) {
+      frictionBase = configFriction.base;
+      frictionRand = configFriction.rand;
+    }
+
+    let friction = (Math.random() * frictionRand) + frictionBase;
+    return friction;
+  }
+
   //The default config parameters.
-  let prepareDefaultConfig = function(element) {
+  let getDefaultConfig = function(element) {
     let config = {
       'colors': ["#000000"],
       'fontWeight': 'bold',
@@ -179,6 +354,9 @@ function initParticleJS(elementSelector, customConfigObject) {
         'base': 0.9,
         'rand': 0.05
       },
+      'supportSlowBrowsers': false,
+      'slowBrowserDetected': function() {},
+      'renderTimeThreshold': 15,
     };
 
     if(element !== undefined) {
@@ -188,11 +366,17 @@ function initParticleJS(elementSelector, customConfigObject) {
     return config;
   }
 
+  //This is used to validate the config object and throw console erorr if any invalid configuration is found.
+  let validateConfig = function (configObject) {
+    //Validate that the particleRadius has breakpoint and if it has that breakpoint, then it should have base and rand, otherwise it should be a function.
+    //Validate if the friction contains base and rand properties, or otherwise is a function.
+  }
+
 
   let element = document.querySelector(elementSelector);
   assertStop(element.tagName.toUpperCase() === "CANVAS", "Required element Canvas, found " + element.tagName + ".");
 
-  let configObject = prepareDefaultConfig(element);
+  let configObject = getDefaultConfig(element);
   for (const key in customConfigObject) {
     configObject[key] = customConfigObject[key];
   }
@@ -222,7 +406,7 @@ function initParticleJS(elementSelector, customConfigObject) {
   let amount      = 0;
   let mouse       = {x: -9999, y: -9999};
 
-  let radius      = calculateExplosionRadius(configObject);
+  let radius      = getExplosionRadius(configObject);
   console.log(radius)
 
   //Main Particle Class
@@ -245,7 +429,7 @@ function initParticleJS(elementSelector, customConfigObject) {
       // } else {
       //     this.r = (rand * 4) + 6;
       // }
-      this.r = (rand * 2) + 1;
+      this.r = getParticleRadius(configObject);
 
       if(slowBrowser) {
           if (ww <= 2048) {
@@ -260,7 +444,7 @@ function initParticleJS(elementSelector, customConfigObject) {
 
       this.accX = 0;
       this.accY = 0;
-      this.friction = Math.random() * 0.05 + 0.9;
+      this.friction = getFriction(configObject);
       if(slowBrowser) {
           this.friction /= 1.1;
       }
@@ -388,7 +572,7 @@ function initParticleJS(elementSelector, customConfigObject) {
     let t1 = 0;
     if(!isTested) {
       t1 = performance.now();
-      if(t1-t0>15) {
+      if(t1 - t0 > configObject.renderTimeThreshold) {
         slowBrowser = true;
         browserIsSlow();
       }
@@ -419,7 +603,10 @@ function initParticleJS(elementSelector, customConfigObject) {
       else if(ww <= 2048) { radius = 140/(scaleToFit*2); }
 
       // document.getElementById('slowBrowserMessage').style.display = "initial";
-
+      //This check can be removed once the custom config object validation is in place
+      if(typeof configObject.slowBrowserDetected === "function") {
+        configObject.slowBrowserDetected();
+      }
       initScene();
     }
   }
@@ -440,6 +627,10 @@ function initParticleJS(elementSelector, customConfigObject) {
       particleJS.isAnimating = true;
       requestAnimationFrame(render);
     }
+  }
+
+  particleJS.forceRequestAnimationFrame = function() {
+    requestAnimationFrame(render);
   }
   
 
