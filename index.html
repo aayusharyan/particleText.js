@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            h1 {
+                text-align: center;
+            }
+            #main_canvas {
+                width: 800px;
+                height: 400px;
+                margin: auto;
+                display: block;
+            }
+            button {
+                display: block;
+                margin: auto;
+            }
+        </style>
+
+    </head>
+    <body>
+        <h1>ParticleText.JS</h1>
+        <canvas id="main_canvas" width="800px" height="400px"></canvas>
+        <button onClick="start();">Let's Animate</button>
+
+        <script src="particleText.js"></script>
+        <script>
+            let particleRef = initParticleJS('#main_canvas', {
+                'text': 'YAY!',
+                'colors': ["#695aa6","#ABC121", "#9370DB","#BA55D3"],
+                'autoAnimate': false,
+                'explosionRadius': {
+                    'xxxs': 15,
+                    'xxs':  15,
+                    'xs':   20,
+                    'sm':   40,
+                    'md':   50,
+                    'lg':   75,
+                    'xl':   100,
+                    'xxl':  150,
+                    'xxxl': 150,
+                }
+            });
+            function start() {
+                particleRef.startAnimation();
+                console.log(particleRef);
+            }
+        </script>
+    </body>
+</html>
