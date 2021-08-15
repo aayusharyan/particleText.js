@@ -407,9 +407,7 @@ function initParticleJS(elementSelector, customConfigObject) {
   let particles   = [];
   let amount      = 0;
   let mouse       = {x: -9999, y: -9999};
-
   let radius      = getExplosionRadius(configObject);
-  console.log(radius)
 
   //Main Particle Class
   class Particle {
