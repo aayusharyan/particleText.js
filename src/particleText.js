@@ -175,6 +175,10 @@ function initParticleJS(elementSelector, customConfigObject) {
         'xxxl': 150,
       },
       'autoAnimate': true,
+      'friction': {
+        'base': 0.9,
+        'rand': 0.05
+      },
     };
 
     if(element !== undefined) {

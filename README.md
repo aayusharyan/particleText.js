@@ -22,6 +22,7 @@ It seems that the width and height attributes determine the width or height of t
 7. textAlign - center
 8. autoAnimate - This is used to decide whether the loading of snimation will start automatically or not. Default true.
 If set to false, then the animation needs to be manually started by calling the startAnimation method.
+9. Friction - This will determine the speed of each of the particles, this has base and rand.
 
 
 Breakpoints:
