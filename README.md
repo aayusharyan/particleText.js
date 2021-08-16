@@ -12,12 +12,21 @@ This library is written in Vanilla JS and is compatible with Various Browsers (E
 
 Just import and initialize to get started out of the box.
 
-## Import the Script
+## Import the Script - Release Version ✅
 
 To import this library, you can either download [this release](https://github.com/aayusharyan/particleText.js/releases/tag/v0.1.0) and use the `particleText.js` file inside the src directory or use the CDN.
 
 ```
 <script src="https://cdn.jsdelivr.net/gh/aayusharyan/particleText.js@0.1.0/src/particleText.js"></script>
+```
+*Note - Minified version coming soon, code coverage and size information + integrity information also coming soon, hopefully!*
+
+## Import the Script - Development Version
+
+To import this library, you can either download [this file](https://raw.githubusercontent.com/aayusharyan/particleText.js/main/src/particleText.js) and use it directly or use the CDN.
+
+```
+<script src="https://cdn.jsdelivr.net/gh/aayusharyan/particleText.js/src/particleText.js"></script>
 ```
 *Note - Minified version coming soon, code coverage and size information + integrity information also coming soon, hopefully!*
 
@@ -85,6 +94,12 @@ This is the default breakpoint structure being used. This can be customized by o
 | XL | 2560px <= `ww` < 3440px |
 | XXL | 3440px <= `ww` < 3840px |
 | XXXL | 3840px <= `ww` < ∞ px
+
+
+When using breakpoints in configuration object. The less than condition is not checked, which means, if you pass value for XXXS, then that same value will be applied for all breakpoints having higher value, unless you specifically mention. If you specify minimum as something other than XXXS, then the default value upto that breakpoint will be used. 
+
+For example, if you pass value 1 for XS and value 2 for LG. Then the following will be applied, XXXS/XXS -> Default; XS/SM/MD -> Value 1, LG/XL/XXL/XXXL -> Value 2.
+
 
 <br />
 
