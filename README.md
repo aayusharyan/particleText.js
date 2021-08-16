@@ -21,9 +21,9 @@ To import this library, you can either download [this release](https://github.co
 ```
 *Note - Minified version coming soon, code coverage and size information + integrity information also coming soon, hopefully!*
 
-## Import the Script - Development Version
+## Import the Script - Development Version ⚠
 
-To import this library, you can either download [this file](https://raw.githubusercontent.com/aayusharyan/particleText.js/main/src/particleText.js) and use it directly or use the CDN.
+Using development version does not ensure stability and might introduce bugs in an unexpected way. But hey, you do you. To import this library, you can either download [this file](https://raw.githubusercontent.com/aayusharyan/particleText.js/main/src/particleText.js) and use it directly or use the CDN.
 
 ```
 <script src="https://cdn.jsdelivr.net/gh/aayusharyan/particleText.js/src/particleText.js"></script>
