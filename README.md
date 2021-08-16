@@ -75,7 +75,11 @@ TODO
 
 # Helper Functions
 
-1. getCurrentBreakpoint - This function is used to get the Current Breakpoint value of the viewport. This function can also be overwritten to define custom breakpoint widths.
+In order to call these functions, the reference of the initiated object needs to be used. That reference is sent as a result when calling the `initParticleJS` function.
+
+1. `getCurrentBreakpoint` - This function will return breakpoint based on the current viewport width. The return type will be a string of the breakpoint value. This function can also be overwritten to define custom breakpoints.
+2. `startAnimation` - When the `autoAnimate` configuration is set as false, then this function needs to be called in order to start the animation. Subsequent calls to this function will yeild nothing.
+3. `forceRequestAnimationFrame` - This function is used to force re-rendering of the frame at that point of execution.
 
 <br />
 
