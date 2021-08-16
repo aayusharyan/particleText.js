@@ -10,6 +10,8 @@ This library is written in Vanilla JS and is compatible with Various Browsers (E
 
 # Getting Started
 
+Just import and initialize to get started out of the box.
+
 ## Import the Script
 
 To import this library, you can either download [this release](https://github.com/aayusharyan/particleText.js/releases/tag/v0.1.0) and use the `particleText.js` file inside the src directory or use the CDN.
@@ -38,23 +40,21 @@ The text data can be set using the `data-text` attribute of the canvas element o
 # Configuration
 
 This is a JSON object, which can contain the following properties:
-
-1. `text` - This is the text which will be created using particles. If provided, this will override the `data-text` attribute of the canvas element. This is a string.
-2. `colors` - This needs to be in the form of HEX and this id dynamic number of colors. Can be in an array format or single color
-3. Breakpoints - xxxs, xxs, xs, sm, md, lg, xl, xxl, xxxl
-4. fontSize - In absolute pixel number
-
-5. give width and height in attribute.
-It seems that the width and height attributes determine the width or height of the canvas's coordinate system, whereas the CSS properties just determine the size of the box in which it will be shown.
-6. fontWeight - normal|bold
-7. textAlign - center
-8. autoAnimate - This is used to decide whether the loading of snimation will start automatically or not. Default true.
-9. particleRadius - This is a nreakpoint scoped value of what the radius of each particle will be. It requires two properties, base and rand. Or it can also be a function.
-If set to false, then the animation needs to be manually started by calling the startAnimation method.
-9. Friction - This will determine the speed of each of the particles, this has base and rand.
-10. supportSlowBrowsers - Default false. On slow browsers, the animation might lag and jitter, in order to fix this, the quality of pixel will be reduced and the number of particles on screen will be reduced. This will be achieved by scaling so as to not make it smaller.
-11. slowBrowserDetected - This is a callback function which will be triggered when a slow browser is detected.
-12. renderTimeThreshold - This is the threshold time whithin which the browser should be able to render the first animated frame, if the browser is not able to render within this threshold time, then it is treated as slow browser. This value is in milliseconds.
+| Name | Type | Description |
+| --- | --- | --- |
+| `text` | `String` | This is the text which will be created using particles. If provided, this will override the `data-text` attribute of the canvas element. |
+| `colors` | `String \| Array` | This is the color of each particle (Given randomly). The color value needs to be in a valid HEX format |
+| `fontSize` | `Number` | This is the pixel number of the size of the text that will be displayed. Support for function coming soon. |
+| `width` | `Number` | The width of the canvas in pixel values. |
+| `height` | `Number` | The height of the canvas in pixel values. |
+| `fontWeight` | `String` | Currently supported value only `bold`, other types coming soon. |
+| `textAlign` | `String` | Currently supported type only `center` aligned, other types coming soon. |
+| `autoAnimate` | `Boolean` | This is used to check whether the animation needs to be started automatically on page loan or not. If not starting automatically, then the `startAnimation` method needs to be called. |
+| `particleRadius` | `Object \| Function` | This is the radius of each of the particles. The format of this Object should be following the structure, `{'<breakpoint_nm>': {'base': <number>, 'rand': number}}`. The base is the minimum pixel radius each particle will have and rand is the randomness factor. So, each particle will have radius between base and base + rand. More detail about breakpoints and how they work in the breakpoint section. If given function, the function will be called each time a new particle has to be created and that function should return the pixel value in Number format only. For easy reference, the breakpoint name will also be passed as a parameter to the function. But that is a future enhancement. |
+| `friction` | `Object \| Function` | This is the friction that each particle will face during the animation. Less friction means faster speed, but also means lesser drag, that gives it an effect of going ahead and then coming back to the destination. (Something like a swinging pendulum). The object needs to follow this structure, `{'base': <number>, 'rand': <number>}`. The friction of each particle will be between base and base + rand. This property also accepts a function which will be called every time to decide the friction value for a new particle. In that case, the function should return a Number value. |
+| `supportSlowBrowsers` | `Boolean` | On slow browsers, the animation might lag and jitter because they simply are not able to call the render method in a smooth 60fps framerate. in order to fix this, the quality of pixel will be reduced and the number of particles on screen will be reduced which might make it look small and that will be fixed by artificial scaling. Set this to `true` if you want to support slow browsers. (Smooth experience not guaranteed, ¯\\_(ツ)_/¯) |
+| `slowBrowserDetected` | `Function` | This is a callback function which will be triggered in the case when a slow browser is detected. One of the usecase is to show some sort of message on the screen or stop the animation completely. |
+| `renderTimeThreshold` | `Number` | This is the threshold for deeciding whether the browser is slow or not. This is the time (in milliseconds) a browser should take to render the first animation frame. If the browser is able to render that, then well and good, otherwise it is considered as a slow browser. For ideal 60pfs, the browser should be able to render each frame within `15` milliseconds. |
 
 <br />
 
@@ -63,6 +63,8 @@ If set to false, then the animation needs to be manually started by calling the 
 <br />
 
 # Helper Functions
+
+1. getCurrentBreakpoint - This function is used to get the Current Breakpoint value of the viewport. This function can also be overwritten to define custom breakpoint widths.
 
 <br />
 
