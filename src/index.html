@@ -6,7 +6,7 @@
                 text-align: center;
             }
             #main_canvas {
-                width: 800px;
+                /* width: 800px; */
                 height: 400px;
                 margin: auto;
                 display: block;
@@ -20,13 +20,13 @@
     </head>
     <body>
         <h1>ParticleText.JS</h1>
-        <canvas id="main_canvas" width="800px" height="400px"></canvas>
+        <canvas id="main_canvas" width="2000px" data-text="YAY!" height="400px"></canvas>
         <button onClick="start();">Let's Animate</button>
 
         <script src="particleText.js"></script>
         <script>
             let particleRef = initParticleJS('#main_canvas', {
-                'text': 'YAY!',
+                'text': 'ParticleText.JS',
                 'colors': ["#695aa6","#ABC121", "#9370DB","#BA55D3"],
                 'autoAnimate': false,
                 'explosionRadius': {
@@ -39,6 +39,12 @@
                     'xl':   100,
                     'xxl':  150,
                     'xxxl': 150,
+                },
+                'particleRadius': {
+                    'xs': {
+                        'base': 3,
+                        'rand': 3
+                    }
                 }
             });
             function start() {

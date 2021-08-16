@@ -14,13 +14,32 @@ function initParticleJS(elementSelector, customConfigObject) {
 
   //Validation assert which will stop further execution of the script.
   let assertStop = function(cond, text, dontThrow) {
-    if (cond)  return;
-    if (dontThrow) {
+    if(cond) { return; }
+    if(dontThrow) {
       debugger;
     } else {
-      throw new Error(text || "Assertion failed!");
+      throw new Error(text || "Something failed!");
     }
   };
+
+  //This method will return the current breakpoint for better responsive handling.
+  let getCurrentBreakpoint = function() {
+    let ww = window.innerWidth;
+    let breakPoint = "xxxs";
+
+    if(ww >= 320)  { breakPoint = "xxs";  }
+    if(ww >= 375)  { breakPoint = "xs";   }
+    if(ww >= 768)  { breakPoint = "sm";   }
+    if(ww >= 1024) { breakPoint = "md";   }
+    if(ww >= 1440) { breakPoint = "lg"    }
+    if(ww >= 2560) { breakPoint = "xl";   }
+    if(ww >= 3440) { breakPoint = "xxl";  }
+    if(ww >= 3840) { breakPoint = "xxxl"; }
+
+    return breakPoint;
+  }
+  //This method can also be exposed using the main object which can be customized and overwritten.
+  particleJS.getCurrentBreakpoint = getCurrentBreakpoint;
 
   //Calculate the Explosion Radius of the Particles on mouse hover / on Touch Input
   let getExplosionRadius = function(configObject) {
@@ -29,6 +48,8 @@ function initParticleJS(elementSelector, customConfigObject) {
     let radius = defaultExplosionRadius.xxxs;
     let lastDefinedConfigExplosionRadius = "";
     
+    //TODO: Fix edge case when the device width is greater than 170 but less than 320px.
+    //Need to check this edge case in other calculate functions as well.
     if(ww <= 170) { //This is XXXS
       if(configExplosionRadius.xxxs !== undefined) {
         radius = configExplosionRadius.xxxs;
