@@ -70,12 +70,28 @@ This is a JSON object, which can contain the following properties:
 
 # Breakpoints
 
-1. xxxs  | <= 
-2. xxs   | <=  =>
-3. xs    | <=  =>
-4. sm    | <=  =>
-5. md    | <=  =>
-6. lg    | <=  =>
-7. xl    | <=  =>
-8. xxl   | <=  =>
-9. xxxl  | <=  =>
+This is the default breakpoint structure being used. This can be customized by overriding the `getCurrentBreakpoint` method. It checks the width of the viewport and then based on the following conditions it assigns the breakpoint value which is then checked by other parts of this library. (Let's call this value as `ww` for references in the following table). 
+
+| Breakpoint Name | Size Value |
+| :-: | :-: |
+| XXXS | 000px <= `ww` < 320px |
+| XXS | 320px <= `ww` < 375px |
+| XS | 375px <= `ww` < 768px |
+| SM | 768px <= `ww` < 1024px |
+| MD | 1024px <= `ww` < 440px |
+| LG | 1440px <= `ww` < 2560px |
+| XL | 2560px <= `ww` < 3440px |
+| XXL | 3440px <= `ww` < 3840px |
+| XXXL | 3840px <= `ww` < ∞ px
+
+<br />
+
+# Contribution
+
+Wohoo, OpenSource, Hactoberfest, blah blah. Still needs planning about this.
+
+Need to work on getting License as well
+
+
+---
+<p align="center">That's all folks!</p>
