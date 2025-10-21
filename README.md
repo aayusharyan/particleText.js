@@ -93,11 +93,11 @@ This is the default breakpoint structure being used. This can be customized by o
 | XXS | 320px <= `ww` < 375px |
 | XS | 375px <= `ww` < 768px |
 | SM | 768px <= `ww` < 1024px |
-| MD | 1024px <= `ww` < 440px |
+| MD | 1024px <= `ww` < 1440px |
 | LG | 1440px <= `ww` < 2560px |
 | XL | 2560px <= `ww` < 3440px |
 | XXL | 3440px <= `ww` < 3840px |
-| XXXL | 3840px <= `ww` < ∞ px
+| XXXL | 3840px <= `ww` < ∞ px |
 
 
 When using breakpoints in configuration object. The less than condition is not checked, which means, if you pass value for XXXS, then that same value will be applied for all breakpoints having higher value, unless you specifically mention. If you specify minimum as something other than XXXS, then the default value upto that breakpoint will be used. 
@@ -109,9 +109,11 @@ For example, if you pass value 1 for XS and value 2 for LG. Then the following w
 
 # Contribution
 
-Wohoo, OpenSource, Hactoberfest, blah blah. Still needs planning about this.
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
-Need to work on getting License as well
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
 ---
