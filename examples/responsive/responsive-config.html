@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Configuration - ParticleText.js Examples</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+    .description { color: #666; margin-bottom: 30px; line-height: 1.6; }
+    .canvas-wrapper { background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+    canvas { display: block; width: 100%; height: auto; }
+    .breakpoint-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .breakpoint-name {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .breakpoint-desc {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .resize-instruction {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      color: #856404;
+    }
+    .info {
+      background: #f8f9fa;
+      border-left: 4px solid #695aa6;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .info h3 { color: #333; margin-bottom: 10px; font-size: 18px; }
+    .code-block {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .code-comment { color: #5c6370; }
+    .code-function { color: #61afef; }
+    .code-string { color: #98c379; }
+    .breakpoint-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    .breakpoint-table th,
+    .breakpoint-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .breakpoint-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+    }
+    .breakpoint-table td {
+      color: #555;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .nav-links {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .nav-links a {
+      color: #695aa6;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: 500;
+    }
+    .nav-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Responsive Configuration</h1>
+    <p class="description">
+      ParticleText.js supports responsive breakpoint-based configurations. This allows you to adjust
+      particle size, explosion radius, and other parameters based on screen size. The library uses
+      9 breakpoints from mobile (xxxs) to 4K displays (xxxl).
+    </p>
+
+    <div class="resize-instruction">
+      <strong>📱 Try This:</strong> Resize your browser window and watch the breakpoint indicator
+      update! Notice how the particles might change size as you cross breakpoint thresholds.
+    </div>
+
+    <div class="breakpoint-display">
+      <div class="breakpoint-name" id="breakpoint-name">Loading...</div>
+      <div class="breakpoint-desc" id="breakpoint-desc">Current responsive breakpoint</div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="1800" height="400" data-text="RESPONSIVE"></canvas>
+    </div>
+
+    <div class="info">
+      <h3>Breakpoint System:</h3>
+      <table class="breakpoint-table">
+        <thead>
+          <tr>
+            <th>Breakpoint</th>
+            <th>Screen Width</th>
+            <th>Typical Devices</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>XXXS</td><td>0px - 319px</td><td>Very small phones</td></tr>
+          <tr><td>XXS</td><td>320px - 374px</td><td>Small phones (iPhone SE)</td></tr>
+          <tr><td>XS</td><td>375px - 767px</td><td>Standard phones</td></tr>
+          <tr><td>SM</td><td>768px - 1023px</td><td>Tablets (portrait)</td></tr>
+          <tr><td>MD</td><td>1024px - 1439px</td><td>Tablets (landscape), small laptops</td></tr>
+          <tr><td>LG</td><td>1440px - 2559px</td><td>Desktop/laptop</td></tr>
+          <tr><td>XL</td><td>2560px - 3439px</td><td>Large monitors</td></tr>
+          <tr><td>XXL</td><td>3440px - 3839px</td><td>Ultra-wide monitors</td></tr>
+          <tr><td>XXXL</td><td>3840px+</td><td>4K+ displays</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info" style="margin-top: 20px;">
+      <h3>Configuration:</h3>
+      <div class="code-block"><span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas'</span>, {
+  text: <span class="code-string">'RESPONSIVE'</span>,
+  colors: [<span class="code-string">'#695aa6'</span>, <span class="code-string">'#ABC121'</span>],
+
+  <span class="code-comment">// Responsive particle sizes</span>
+  particleRadius: {
+    <span class="code-string">'xxxs'</span>: { base: 1, rand: 0.5 },   <span class="code-comment">// Tiny for small screens</span>
+    <span class="code-string">'xs'</span>: { base: 1.5, rand: 1 },     <span class="code-comment">// Small for phones</span>
+    <span class="code-string">'md'</span>: { base: 2, rand: 1 },       <span class="code-comment">// Medium for tablets</span>
+    <span class="code-string">'lg'</span>: { base: 3, rand: 2 },       <span class="code-comment">// Larger for desktops</span>
+    <span class="code-string">'xxxl'</span>: { base: 4, rand: 2 }      <span class="code-comment">// Largest for 4K displays</span>
+  },
+
+  <span class="code-comment">// Responsive explosion radius</span>
+  explosionRadius: {
+    <span class="code-string">'xxxs'</span>: 15,   <span class="code-comment">// Small touch zone for tiny screens</span>
+    <span class="code-string">'xs'</span>: 20,     <span class="code-comment">// Phone-friendly</span>
+    <span class="code-string">'md'</span>: 50,     <span class="code-comment">// Tablet size</span>
+    <span class="code-string">'lg'</span>: 100,    <span class="code-comment">// Desktop with mouse</span>
+    <span class="code-string">'xxxl'</span>: 200   <span class="code-comment">// Large displays</span>
+  }
+});</div>
+    </div>
+
+    <div class="info" style="margin-top: 20px; background: #e8f5e9; border-left-color: #4caf50;">
+      <h3>💡 Best Practices:</h3>
+      <ul style="color: #555; line-height: 1.8; margin-left: 20px; margin-top: 10px;">
+        <li><strong>Breakpoint Inheritance:</strong> You don't need to specify all breakpoints - larger screens inherit from smaller ones</li>
+        <li><strong>Mobile First:</strong> Start with 'xs' or 'sm' configuration and override for larger screens</li>
+        <li><strong>Performance:</strong> Use smaller particles and lower explosion radius on mobile to maintain smooth FPS</li>
+        <li><strong>Touch vs Mouse:</strong> Smaller explosion radius works better for touch interfaces</li>
+      </ul>
+    </div>
+
+    <div class="nav-links">
+      <a href="../index.html">← Back to Examples</a>
+      <a href="../particles/friction-effects.html">← Previous: Friction Effects</a>
+      <a href="../advanced/manual-control.html">Next: Manual Control →</a>
+    </div>
+  </div>
+
+  <script src="../../src/particleText.js"></script>
+  <script>
+    var particleText = initParticleJS('#canvas', {
+      text: 'RESPONSIVE',
+      colors: ['#695aa6', '#ABC121'],
+      particleRadius: {
+        'xxxs': { base: 1, rand: 0.5 },
+        'xs': { base: 1.5, rand: 1 },
+        'md': { base: 2, rand: 1 },
+        'lg': { base: 3, rand: 2 },
+        'xxxl': { base: 4, rand: 2 }
+      },
+      explosionRadius: {
+        'xxxs': 15,
+        'xs': 20,
+        'md': 50,
+        'lg': 100,
+        'xxxl': 200
+      }
+    });
+
+    // Display current breakpoint
+    function updateBreakpointDisplay() {
+      var breakpoint = particleText.getCurrentBreakpoint();
+      document.getElementById('breakpoint-name').textContent = breakpoint.toUpperCase();
+
+      var width = window.innerWidth;
+      document.getElementById('breakpoint-desc').textContent =
+        'Window width: ' + width + 'px';
+    }
+
+    // Update on load
+    updateBreakpointDisplay();
+
+    // Update on resize
+    window.addEventListener('resize', function() {
+      updateBreakpointDisplay();
+    });
+
+    console.log('Current breakpoint:', particleText.getCurrentBreakpoint());
+  </script>
+</body>
+</html>

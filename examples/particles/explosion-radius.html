@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explosion Radius - ParticleText.js Examples</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+    .description { color: #666; margin-bottom: 30px; line-height: 1.6; }
+    .comparison-section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .section-desc {
+      color: #666;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+    .canvas-wrapper { background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
+    canvas { display: block; width: 100%; height: auto; }
+    .info {
+      background: #f8f9fa;
+      border-left: 4px solid #695aa6;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .info h3 { color: #333; margin-bottom: 10px; font-size: 18px; }
+    .code-block {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .code-comment { color: #5c6370; }
+    .code-function { color: #61afef; }
+    .code-string { color: #98c379; }
+    .nav-links {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .nav-links a {
+      color: #695aa6;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: 500;
+    }
+    .nav-links a:hover { text-decoration: underline; }
+    .radius-indicator {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #695aa6;
+      color: white;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💥 Explosion Radius</h1>
+    <p class="description">
+      The explosion radius determines how far from your mouse cursor particles will be repelled.
+      A larger radius creates a bigger "bubble" of interaction, while a smaller radius requires
+      precise mouse positioning. Try moving your mouse over each text to feel the difference!
+    </p>
+
+    <div class="comparison-section">
+      <h2 class="section-title">
+        1. Small Explosion
+        <span class="radius-indicator">50px radius</span>
+      </h2>
+      <p class="section-desc">Tight explosion - particles only react when mouse is very close</p>
+      <div class="canvas-wrapper">
+        <canvas id="canvas1" width="1400" height="250" data-text="SMALL"></canvas>
+      </div>
+    </div>
+
+    <div class="comparison-section">
+      <h2 class="section-title">
+        2. Medium Explosion
+        <span class="radius-indicator" style="background: #FF6B6B;">150px radius</span>
+      </h2>
+      <p class="section-desc">Standard explosion - balanced interaction zone (default)</p>
+      <div class="canvas-wrapper">
+        <canvas id="canvas2" width="1400" height="250" data-text="MEDIUM"></canvas>
+      </div>
+    </div>
+
+    <div class="comparison-section">
+      <h2 class="section-title">
+        3. Large Explosion
+        <span class="radius-indicator" style="background: #E74C3C;">300px radius</span>
+      </h2>
+      <p class="section-desc">Wide explosion - particles react from far away</p>
+      <div class="canvas-wrapper">
+        <canvas id="canvas3" width="1400" height="250" data-text="LARGE"></canvas>
+      </div>
+    </div>
+
+    <div class="info">
+      <h3>Configurations:</h3>
+      <div class="code-block"><span class="code-comment">// Small Explosion (50px)</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas1'</span>, {
+  text: <span class="code-string">'SMALL'</span>,
+  explosionRadius: { <span class="code-string">'xs'</span>: 50, <span class="code-string">'lg'</span>: 50 },
+  colors: [<span class="code-string">'#695aa6'</span>]
+});
+
+<span class="code-comment">// Medium Explosion (150px)</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas2'</span>, {
+  text: <span class="code-string">'MEDIUM'</span>,
+  explosionRadius: { <span class="code-string">'xs'</span>: 150, <span class="code-string">'lg'</span>: 150 },
+  colors: [<span class="code-string">'#FF6B6B'</span>]
+});
+
+<span class="code-comment">// Large Explosion (300px)</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas3'</span>, {
+  text: <span class="code-string">'LARGE'</span>,
+  explosionRadius: { <span class="code-string">'xs'</span>: 300, <span class="code-string">'lg'</span>: 300 },
+  colors: [<span class="code-string">'#E74C3C'</span>]
+});</div>
+    </div>
+
+    <div class="info" style="margin-top: 20px; background: #fff3cd; border-left-color: #ffc107;">
+      <h3>💡 Choosing Explosion Radius:</h3>
+      <ul style="color: #555; line-height: 1.8; margin-left: 20px; margin-top: 10px;">
+        <li><strong>Small (30-70px):</strong> Precise interaction, mobile-friendly, subtle effect</li>
+        <li><strong>Medium (100-200px):</strong> Balanced, works for most screens, easy to trigger</li>
+        <li><strong>Large (250-400px):</strong> Dramatic effect, desktop displays, artistic projects</li>
+        <li><strong>Tip:</strong> Use responsive breakpoints to adjust radius based on screen size</li>
+      </ul>
+    </div>
+
+    <div class="nav-links">
+      <a href="../index.html">← Back to Examples</a>
+      <a href="particle-density.html">← Previous: Particle Density</a>
+      <a href="friction-effects.html">Next: Friction Effects →</a>
+    </div>
+  </div>
+
+  <script src="../../src/particleText.js"></script>
+  <script>
+    // Small Explosion
+    initParticleJS('#canvas1', {
+      text: 'SMALL',
+      explosionRadius: { 'xs': 50, 'lg': 50 },
+      colors: ['#695aa6'],
+      fontSize: 80
+    });
+
+    // Medium Explosion
+    initParticleJS('#canvas2', {
+      text: 'MEDIUM',
+      explosionRadius: { 'xs': 150, 'lg': 150 },
+      colors: ['#FF6B6B'],
+      fontSize: 80
+    });
+
+    // Large Explosion
+    initParticleJS('#canvas3', {
+      text: 'LARGE',
+      explosionRadius: { 'xs': 300, 'lg': 300 },
+      colors: ['#E74C3C'],
+      fontSize: 80
+    });
+  </script>
+</body>
+</html>

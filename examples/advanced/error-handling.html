@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Handling - ParticleText.js</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 10px; }
+    .description { color: #666; margin-bottom: 30px; line-height: 1.6; }
+    .canvas-wrapper { background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+    canvas { display: block; width: 100%; height: auto; }
+    .error-log {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .error-log h3 { color: #856404; margin-bottom: 15px; }
+    .error-item {
+      background: white;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      border-left: 4px solid #f44336;
+      font-family: monospace;
+      font-size: 12px;
+      color: #721c24;
+    }
+    .empty-log { color: #856404; font-style: italic; }
+    .info {background: #f8f9fa; border-left: 4px solid #695aa6; padding: 15px; margin-top: 20px; border-radius: 4px;}
+    .code-block { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 4px; overflow-x: auto; margin: 10px 0; font-family: monospace; font-size: 13px; }
+    .code-comment { color: #5c6370; }
+    .code-function { color: #61afef; }
+    .code-string { color: #98c379; }
+    .nav-links { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    .nav-links a { color: #695aa6; text-decoration: none; margin-right: 15px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚠️ Error Handling</h1>
+    <p class="description">
+      This example demonstrates the onError callback for handling runtime errors gracefully. Errors are caught and logged instead of breaking the page.
+    </p>
+
+    <div class="error-log">
+      <h3>📋 Error Log:</h3>
+      <div id="error-container">
+        <div class="empty-log">No errors logged yet. The animation is running smoothly!</div>
+      </div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="1800" height="400" data-text="ERROR TEST"></canvas>
+    </div>
+
+    <div class="info">
+      <h3>Configuration:</h3>
+      <div class="code-block"><span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas'</span>, {
+  text: <span class="code-string">'ERROR TEST'</span>,
+  colors: [<span class="code-string">'#695aa6'</span>],
+  onError: <span class="code-keyword">function</span>(error) {
+    <span class="code-comment">// Custom error handling</span>
+    <span class="code-keyword">console</span>.<span class="code-function">error</span>(<span class="code-string">'ParticleText Error:'</span>, error);
+    <span class="code-comment">// Display error to user</span>
+    <span class="code-function">displayError</span>(error.message);
+  }
+});</div>
+    </div>
+
+    <div class="nav-links">
+      <a href="../index.html">← Back</a>
+      <a href="custom-breakpoints.html">← Previous</a>
+      <a href="slow-browser.html">Next →</a>
+    </div>
+  </div>
+
+  <script src="../../src/particleText.js"></script>
+  <script>
+    var errorCount = 0;
+
+    function displayError(message) {
+      errorCount++;
+      var container = document.getElementById('error-container');
+      if (errorCount === 1) {
+        container.innerHTML = '';
+      }
+      var errorDiv = document.createElement('div');
+      errorDiv.className = 'error-item';
+      errorDiv.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+      container.appendChild(errorDiv);
+    }
+
+    initParticleJS('#canvas', {
+      text: 'ERROR TEST',
+      colors: ['#695aa6', '#E74C3C'],
+      onError: function(error) {
+        console.error('ParticleText Error:', error);
+        displayError(error.message);
+      }
+    });
+  </script>
+</body>
+</html>

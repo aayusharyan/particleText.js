@@ -182,6 +182,7 @@ function initParticleJS(elementSelector, customConfigObject) {
       slowBrowserDetected() {},
       renderTimeThreshold: 15,
       maxParticles: 5000,
+      trackCursorOnlyInsideCanvas: false,
     };
 
     if (element !== undefined) {
@@ -300,6 +301,14 @@ function initParticleJS(elementSelector, customConfigObject) {
       typeof configObject.renderTimeThreshold !== 'number'
     ) {
       errors.push("'renderTimeThreshold' must be a number");
+    }
+
+    // Validate trackCursorOnlyInsideCanvas
+    if (
+      configObject.trackCursorOnlyInsideCanvas !== undefined &&
+      typeof configObject.trackCursorOnlyInsideCanvas !== 'boolean'
+    ) {
+      errors.push("'trackCursorOnlyInsideCanvas' must be a boolean");
     }
 
     // Report errors
@@ -440,8 +449,21 @@ function initParticleJS(elementSelector, customConfigObject) {
 
   // Change mouse pointers on mouse movement
   function onMouseMove(e) {
-    mouse.x = e.clientX - element.offsetLeft;
-    mouse.y = e.clientY - element.offsetTop;
+    const rect = element.getBoundingClientRect();
+    const relativeX = e.clientX - rect.left;
+    const relativeY = e.clientY - rect.top;
+
+    // Check if cursor tracking should be restricted to canvas bounds
+    if (configObject.trackCursorOnlyInsideCanvas) {
+      if (relativeX < 0 || relativeX > rect.width || relativeY < 0 || relativeY > rect.height) {
+        mouse.x = -9999;
+        mouse.y = -9999;
+        return;
+      }
+    }
+
+    mouse.x = relativeX * (element.width / rect.width);
+    mouse.y = relativeY * (element.height / rect.height);
     if (slowBrowser) {
       mouse.x /= scaleToFit;
       mouse.y /= scaleToFit;
@@ -451,8 +473,21 @@ function initParticleJS(elementSelector, customConfigObject) {
   // Handling for touch inputs. Take only first touch. (For multi touch devices)
   function onTouchMove(e) {
     if (e.touches.length > 0) {
-      mouse.x = e.touches[0].clientX;
-      mouse.y = e.touches[0].clientY;
+      const rect = element.getBoundingClientRect();
+      const relativeX = e.touches[0].clientX - rect.left;
+      const relativeY = e.touches[0].clientY - rect.top;
+
+      // Check if cursor tracking should be restricted to canvas bounds
+      if (configObject.trackCursorOnlyInsideCanvas) {
+        if (relativeX < 0 || relativeX > rect.width || relativeY < 0 || relativeY > rect.height) {
+          mouse.x = -9999;
+          mouse.y = -9999;
+          return;
+        }
+      }
+
+      mouse.x = relativeX * (element.width / rect.width);
+      mouse.y = relativeY * (element.height / rect.height);
       if (slowBrowser) {
         mouse.x /= scaleToFit;
         mouse.y /= scaleToFit;

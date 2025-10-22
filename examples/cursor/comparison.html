@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Tracking Comparison - Restricted vs Unrestricted</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .canvas-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.3s;
+        }
+
+        .canvas-section:hover {
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .canvas-section h2 {
+            margin-top: 0;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .unrestricted h2 {
+            color: #4facfe;
+        }
+
+        .restricted h2 {
+            color: #f093fb;
+        }
+
+        .canvas-description {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .unrestricted .canvas-description {
+            border-left-color: #4facfe;
+        }
+
+        .restricted .canvas-description {
+            border-left-color: #f093fb;
+        }
+
+        .canvas-description h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .canvas-description ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: crosshair;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .unrestricted .status-indicator {
+            background: rgba(79, 172, 254, 0.2);
+            color: #4facfe;
+        }
+
+        .restricted .status-indicator {
+            background: rgba(240, 147, 251, 0.2);
+            color: #f093fb;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.7);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .explanation {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .explanation h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .explanation p {
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .code-block {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-block code {
+            color: #58a6ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+
+        .highlight {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cursor Tracking Comparison</h1>
+        <p class="subtitle">Move your cursor around both canvases to see the difference</p>
+
+        <div class="controls">
+            <button onclick="startBoth()">Start Both Animations</button>
+        </div>
+
+        <div class="comparison-grid">
+            <!-- Unrestricted Canvas -->
+            <div class="canvas-section unrestricted">
+                <h2>🌊 Unrestricted (Default)</h2>
+                <div class="canvas-description">
+                    <h3>trackCursorOnlyInsideCanvas: false</h3>
+                    <ul>
+                        <li>Particles react to cursor anywhere on the page</li>
+                        <li>Smooth transitions as you approach the canvas</li>
+                        <li>Creates anticipation and fluid experience</li>
+                    </ul>
+                </div>
+                <canvas id="unrestricted_canvas" width="1200" height="300"></canvas>
+                <div class="status-indicator">Always Tracking Cursor</div>
+            </div>
+
+            <!-- Restricted Canvas -->
+            <div class="canvas-section restricted">
+                <h2>🎯 Restricted</h2>
+                <div class="canvas-description">
+                    <h3>trackCursorOnlyInsideCanvas: true</h3>
+                    <ul>
+                        <li>Particles only react when cursor is inside</li>
+                        <li>Clear boundaries for interaction zones</li>
+                        <li>Prevents interference with other elements</li>
+                    </ul>
+                </div>
+                <canvas id="restricted_canvas" width="1200" height="300"></canvas>
+                <div class="status-indicator">Only Tracking Inside Canvas</div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h2>Understanding the Difference</h2>
+            <p>
+                The <span class="highlight">trackCursorOnlyInsideCanvas</span> option gives you control over when particles should react to cursor movement.
+            </p>
+
+            <h3>Unrestricted Mode (Left/Top - Default)</h3>
+            <div class="code-block">
+                <code>trackCursorOnlyInsideCanvas: false  // Default behavior</code>
+            </div>
+            <p>
+                Particles track your cursor position globally. Even when your cursor is outside the canvas, particles calculate distance and react accordingly.
+                This creates a smooth, fluid experience as particles begin responding before you even enter the canvas area.
+            </p>
+
+            <h3>Restricted Mode (Right/Bottom)</h3>
+            <div class="code-block">
+                <code>trackCursorOnlyInsideCanvas: true   // Restricted tracking</code>
+            </div>
+            <p>
+                Particles only track cursor when it's within canvas boundaries. When your cursor leaves the canvas, the mouse position is reset to (-9999, -9999),
+                causing all particles to immediately return to their rest positions. This provides clear visual feedback about interaction zones.
+            </p>
+
+            <h3>Use Case Examples</h3>
+            <ul>
+                <li><strong>Multiple Canvas Instances:</strong> Use restricted mode to prevent one canvas from affecting particles in another</li>
+                <li><strong>Header/Footer Effects:</strong> Use unrestricted for seamless integration with page scrolling</li>
+                <li><strong>Interactive Galleries:</strong> Use restricted to clearly define which element the user is interacting with</li>
+                <li><strong>Performance Optimization:</strong> Restricted mode can reduce calculations when cursor is far from canvas</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../../src/particleText.js"></script>
+    <script>
+        // Unrestricted Canvas (default behavior)
+        const unrestrictedEffect = window.ParticleText.init('#unrestricted_canvas', {
+            text: 'ANYWHERE',
+            colors: ['#4facfe', '#00f2fe', '#43e97b', '#38f9d7'],
+            autoAnimate: false,
+            fontSize: 140,
+            trackCursorOnlyInsideCanvas: false, // Default - tracks everywhere
+            explosionRadius: {
+                xxxs: 80,
+                xxs: 80,
+                xs: 100,
+                sm: 120,
+                md: 150,
+                lg: 180,
+                xl: 200,
+                xxl: 200,
+                xxxl: 200,
+            },
+            particleRadius: {
+                xxxs: { base: 2, rand: 2 },
+                xs: { base: 3, rand: 2 },
+                md: { base: 3, rand: 2 }
+            }
+        });
+
+        // Restricted Canvas
+        const restrictedEffect = window.ParticleText.init('#restricted_canvas', {
+            text: 'INSIDE',
+            colors: ['#f093fb', '#f5576c', '#fa709a', '#fee140'],
+            autoAnimate: false,
+            fontSize: 140,
+            trackCursorOnlyInsideCanvas: true, // Only tracks inside canvas
+            explosionRadius: {
+                xxxs: 80,
+                xxs: 80,
+                xs: 100,
+                sm: 120,
+                md: 150,
+                lg: 180,
+                xl: 200,
+                xxl: 200,
+                xxxl: 200,
+            },
+            particleRadius: {
+                xxxs: { base: 2, rand: 2 },
+                xs: { base: 3, rand: 2 },
+                md: { base: 3, rand: 2 }
+            }
+        });
+
+        function startBoth() {
+            unrestrictedEffect.startAnimation();
+            restrictedEffect.startAnimation();
+            console.log('Both animations started!');
+            console.log('Try moving your cursor in and out of each canvas to see the difference.');
+        }
+
+        // Auto-start both animations
+        window.addEventListener('load', function() {
+            setTimeout(startBoth, 500);
+        });
+    </script>
+</body>
+</html>

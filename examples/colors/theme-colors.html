@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Colors - ParticleText.js Examples</title>
+  <!-- ParticleText.js v0.1.0 Example -->
+  <!-- Last Updated: 2025-10-22 -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .description {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .theme-section {
+      margin-bottom: 40px;
+    }
+
+    .theme-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .theme-title {
+      font-size: 22px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 8px;
+    }
+
+    .color-swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      border: 2px solid #ddd;
+    }
+
+    .canvas-wrapper {
+      background: #000;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .theme-description {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .info {
+      background: #f8f9fa;
+      border-left: 4px solid #695aa6;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+
+    .info h3 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .code-block {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .code-comment {
+      color: #5c6370;
+    }
+
+    .code-function {
+      color: #61afef;
+    }
+
+    .code-string {
+      color: #98c379;
+    }
+
+    .nav-links {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .nav-links a {
+      color: #695aa6;
+      text-decoration: none;
+      margin-right: 15px;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎭 Theme Colors</h1>
+    <p class="description">
+      This example demonstrates how to use coordinated color palettes to match your brand or design theme.
+      Each theme below uses 4 carefully selected colors that work well together, creating a
+      professional and cohesive visual appearance.
+    </p>
+
+    <!-- Brand Blue Theme -->
+    <div class="theme-section">
+      <div class="theme-header">
+        <h2 class="theme-title">💼 Brand Blue Theme</h2>
+        <div class="color-palette">
+          <span class="color-swatch" style="background: #0066CC;"></span>
+          <span class="color-swatch" style="background: #004999;"></span>
+          <span class="color-swatch" style="background: #3385D6;"></span>
+          <span class="color-swatch" style="background: #0052A3;"></span>
+        </div>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="canvas1" width="1600" height="300" data-text="BRAND BLUE"></canvas>
+      </div>
+      <div class="theme-description">
+        <strong>Use Case:</strong> Corporate websites, tech companies, professional services.
+        This palette conveys trust, stability, and professionalism. Perfect for business applications.
+      </div>
+    </div>
+
+    <!-- Sunset Theme -->
+    <div class="theme-section">
+      <div class="theme-header">
+        <h2 class="theme-title">🌅 Sunset Theme</h2>
+        <div class="color-palette">
+          <span class="color-swatch" style="background: #FF6F61;"></span>
+          <span class="color-swatch" style="background: #FFB88C;"></span>
+          <span class="color-swatch" style="background: #FF8C42;"></span>
+          <span class="color-swatch" style="background: #DE5D83;"></span>
+        </div>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="canvas2" width="1600" height="300" data-text="SUNSET GLOW"></canvas>
+      </div>
+      <div class="theme-description">
+        <strong>Use Case:</strong> Creative portfolios, lifestyle brands, entertainment.
+        Warm and energetic colors that evoke emotion and creativity. Great for making a bold statement.
+      </div>
+    </div>
+
+    <!-- Forest Theme -->
+    <div class="theme-section">
+      <div class="theme-header">
+        <h2 class="theme-title">🌲 Forest Theme</h2>
+        <div class="color-palette">
+          <span class="color-swatch" style="background: #2D5016;"></span>
+          <span class="color-swatch" style="background: #4E7128;"></span>
+          <span class="color-swatch" style="background: #7A9A5A;"></span>
+          <span class="color-swatch" style="background: #A4C28E;"></span>
+        </div>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="canvas3" width="1600" height="300" data-text="FOREST GREEN"></canvas>
+      </div>
+      <div class="theme-description">
+        <strong>Use Case:</strong> Environmental organizations, health & wellness, organic products.
+        Natural, earthy tones that suggest growth, sustainability, and harmony with nature.
+      </div>
+    </div>
+
+    <div class="info">
+      <h3>Configuration Examples:</h3>
+      <div class="code-block"><span class="code-comment">// Brand Blue Theme</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas1'</span>, {
+  text: <span class="code-string">'BRAND BLUE'</span>,
+  colors: [<span class="code-string">'#0066CC'</span>, <span class="code-string">'#004999'</span>, <span class="code-string">'#3385D6'</span>, <span class="code-string">'#0052A3'</span>],
+  fontSize: 85
+});
+
+<span class="code-comment">// Sunset Theme</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas2'</span>, {
+  text: <span class="code-string">'SUNSET GLOW'</span>,
+  colors: [<span class="code-string">'#FF6F61'</span>, <span class="code-string">'#FFB88C'</span>, <span class="code-string">'#FF8C42'</span>, <span class="code-string">'#DE5D83'</span>],
+  fontSize: 85
+});
+
+<span class="code-comment">// Forest Theme</span>
+<span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas3'</span>, {
+  text: <span class="code-string">'FOREST GREEN'</span>,
+  colors: [<span class="code-string">'#2D5016'</span>, <span class="code-string">'#4E7128'</span>, <span class="code-string">'#7A9A5A'</span>, <span class="code-string">'#A4C28E'</span>],
+  fontSize: 85
+});</div>
+    </div>
+
+    <div class="info" style="margin-top: 20px; background: #fff3cd; border-left-color: #ffc107;">
+      <h3>💡 Creating Your Own Theme:</h3>
+      <p style="color: #555; line-height: 1.6; margin-bottom: 10px;">
+        <strong>Tips for choosing theme colors:</strong>
+      </p>
+      <ul style="color: #555; line-height: 1.8; margin-left: 20px;">
+        <li>Use 3-4 colors from the same color family for cohesion</li>
+        <li>Include variations in brightness (light and dark shades)</li>
+        <li>Test colors on both light and dark backgrounds</li>
+        <li>Use online tools like Adobe Color or Coolors.co for palette creation</li>
+        <li>Consider color psychology and your brand identity</li>
+        <li>Ensure sufficient contrast for visibility</li>
+      </ul>
+    </div>
+
+    <div class="nav-links">
+      <a href="../index.html">← Back to Examples</a>
+      <a href="multi-color.html">← Previous: Multi-Color</a>
+      <a href="../sizing/small-text.html">Next: Small Text →</a>
+      <a href="https://github.com/aayusharyan/particleText.js" target="_blank">GitHub</a>
+    </div>
+  </div>
+
+  <script src="../../src/particleText.js"></script>
+  <script>
+    // Brand Blue Theme
+    initParticleJS('#canvas1', {
+      text: 'BRAND BLUE',
+      colors: ['#0066CC', '#004999', '#3385D6', '#0052A3'],
+      fontSize: 85
+    });
+
+    // Sunset Theme
+    initParticleJS('#canvas2', {
+      text: 'SUNSET GLOW',
+      colors: ['#FF6F61', '#FFB88C', '#FF8C42', '#DE5D83'],
+      fontSize: 85
+    });
+
+    // Forest Theme
+    initParticleJS('#canvas3', {
+      text: 'FOREST GREEN',
+      colors: ['#2D5016', '#4E7128', '#7A9A5A', '#A4C28E'],
+      fontSize: 85
+    });
+
+    console.log('All three themes initialized successfully!');
+  </script>
+</body>
+</html>

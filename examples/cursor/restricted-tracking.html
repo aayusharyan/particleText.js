@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Tracking - Restricted to Canvas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+            color: #856404;
+        }
+
+        .feature-highlight {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .feature-highlight strong {
+            color: #0c5460;
+        }
+
+        #particle_canvas {
+            display: block;
+            margin: 30px auto;
+            background: #f8f9fa;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: crosshair;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .use-case {
+            background: #e7f3ff;
+            border-left: 5px solid #2196F3;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 5px;
+        }
+
+        .use-case h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+
+        .use-case p {
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Restricted Cursor Tracking</h1>
+        <p class="subtitle">Particles only react when cursor is inside the canvas</p>
+
+        <div class="info-box">
+            <h3>Configuration Used:</h3>
+            <ul>
+                <li><code>trackCursorOnlyInsideCanvas: true</code></li>
+                <li>Particles will ONLY explode when your cursor is inside the canvas boundaries</li>
+                <li>When cursor moves outside, particles immediately return to their original positions</li>
+            </ul>
+        </div>
+
+        <div class="feature-highlight">
+            <strong>Try it:</strong> Move your cursor outside the canvas boundaries and watch the particles snap back to their positions instantly!
+        </div>
+
+        <canvas id="particle_canvas" width="1200" height="300"></canvas>
+
+        <div class="controls">
+            <button onclick="startAnimation()">Start Animation</button>
+        </div>
+
+        <div class="use-case">
+            <h3>When to Use This Setting?</h3>
+            <p>
+                <strong>Enable <code>trackCursorOnlyInsideCanvas: true</code> when:</strong>
+            </p>
+            <ul>
+                <li><strong>Multiple canvas elements:</strong> Prevent interference between adjacent particle effects</li>
+                <li><strong>Page with interactive elements:</strong> Users might interact with buttons/links near the canvas</li>
+                <li><strong>Defined interaction zones:</strong> You want clear boundaries for where the effect is active</li>
+                <li><strong>Performance concerns:</strong> Reduce unnecessary particle calculations when cursor is far away</li>
+                <li><strong>UI/UX clarity:</strong> Make it explicit that the effect only works within the canvas area</li>
+            </ul>
+            <p>
+                <strong>Keep default (<code>false</code>) when:</strong>
+            </p>
+            <ul>
+                <li><strong>Smooth experience:</strong> You want seamless transitions as cursor approaches the canvas</li>
+                <li><strong>Single large canvas:</strong> The canvas takes up most of the viewport</li>
+                <li><strong>Creative effects:</strong> Particles reacting before cursor enters creates anticipation</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../../src/particleText.js"></script>
+    <script>
+        const particleEffect = window.ParticleText.init('#particle_canvas', {
+            text: 'RESTRICTED',
+            colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
+            autoAnimate: false,
+            fontSize: 140,
+            trackCursorOnlyInsideCanvas: true, // This is the key setting!
+            explosionRadius: {
+                xxxs: 80,
+                xxs: 80,
+                xs: 100,
+                sm: 120,
+                md: 150,
+                lg: 180,
+                xl: 200,
+                xxl: 200,
+                xxxl: 200,
+            },
+            particleRadius: {
+                xxxs: { base: 2, rand: 2 },
+                xs: { base: 3, rand: 2 },
+                md: { base: 3, rand: 2 }
+            }
+        });
+
+        function startAnimation() {
+            particleEffect.startAnimation();
+            console.log('Restricted cursor tracking enabled!');
+        }
+
+        // Auto-start after a short delay
+        window.addEventListener('load', function() {
+            setTimeout(startAnimation, 500);
+        });
+    </script>
+</body>
+</html>

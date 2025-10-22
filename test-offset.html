@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ParticleText.js - Offset Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .spacer {
+            height: 800px;
+            background: linear-gradient(to bottom, #fff, #ddd);
+            padding: 20px;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #main_canvas {
+            display: block;
+            margin: 30px auto;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            /* CSS width is smaller than canvas width to test scaling */
+            width: 600px;
+        }
+
+        #scaled_canvas {
+            display: block;
+            margin: 30px auto;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            /* Extreme scaling test */
+            width: 400px;
+        }
+
+        .instructions {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+        }
+
+        .test-info {
+            background: #fffacd;
+            padding: 15px;
+            border-left: 4px solid #ffeb3b;
+            margin: 20px 0;
+        }
+
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #695aa6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #554488;
+        }
+    </style>
+</head>
+<body>
+    <div class="spacer">
+        <h1>Scroll down to test offset handling!</h1>
+        <p style="text-align: center; font-size: 18px;">
+            This spacer creates vertical scroll to test if mouse position is correctly calculated
+            with respect to the canvas element, not the viewport.
+        </p>
+    </div>
+
+    <div class="container">
+        <h1>ParticleText.js Offset Test</h1>
+
+        <div class="test-info">
+            <strong>Test Scenario 1 - Moderate Scaling:</strong>
+            <ul>
+                <li>Canvas drawing area: 2000x400 pixels</li>
+                <li>CSS display size: 600x400 pixels</li>
+                <li>Scaling factor: 2000/600 = 3.33x</li>
+            </ul>
+            <strong>Expected Behavior:</strong> Particles should explode exactly where your cursor is!
+        </div>
+
+        <canvas id="main_canvas" width="2000" height="400" data-text="OFFSET TEST"></canvas>
+
+        <div class="instructions">
+            <p>Click the button to start, then hover over the canvas.</p>
+            <p>The explosion circle should be centered on your cursor!</p>
+        </div>
+
+        <button onclick="start()">Start Both Animations</button>
+
+        <hr style="margin: 50px 0; border: 1px solid #ddd;">
+
+        <div class="test-info">
+            <strong>Test Scenario 2 - Extreme Scaling:</strong>
+            <ul>
+                <li>Canvas drawing area: 1600x300 pixels</li>
+                <li>CSS display size: 400x300 pixels</li>
+                <li>Scaling factor: 1600/400 = 4x</li>
+            </ul>
+            <strong>Expected Behavior:</strong> Even with extreme scaling, cursor position should be accurate!
+        </div>
+
+        <canvas id="scaled_canvas" width="1600" height="300" data-text="SCALED"></canvas>
+    </div>
+
+    <div class="spacer" style="margin-top: 50px;">
+        <h2 style="text-align: center;">More content below for testing scroll</h2>
+        <p style="text-align: center;">Scroll back up to interact with the canvas!</p>
+    </div>
+
+    <script src="src/particleText.js"></script>
+    <script>
+        let particleRef1 = initParticleJS('#main_canvas', {
+            'text': 'SCALING FIX',
+            'colors': ["#695aa6", "#ABC121", "#9370DB", "#BA55D3"],
+            'autoAnimate': false,
+            'fontSize': 180,
+            'explosionRadius': {
+                'xxxs': 100,
+                'xxs': 100,
+                'xs': 100,
+                'sm': 150,
+                'md': 200,
+                'lg': 250,
+                'xl': 300,
+                'xxl': 300,
+                'xxxl': 300,
+            },
+            'particleRadius': {
+                'xxxs': { 'base': 3, 'rand': 3 },
+                'xs': { 'base': 4, 'rand': 3 },
+                'md': { 'base': 4, 'rand': 3 }
+            }
+        });
+
+        let particleRef2 = initParticleJS('#scaled_canvas', {
+            'text': 'EXTREME',
+            'colors': ["#ff6b6b", "#4ecdc4", "#45b7d1", "#f9ca24"],
+            'autoAnimate': false,
+            'fontSize': 140,
+            'explosionRadius': {
+                'xxxs': 80,
+                'xxs': 80,
+                'xs': 80,
+                'sm': 120,
+                'md': 160,
+                'lg': 200,
+                'xl': 240,
+                'xxl': 240,
+                'xxxl': 240,
+            },
+            'particleRadius': {
+                'xxxs': { 'base': 2, 'rand': 2 },
+                'xs': { 'base': 3, 'rand': 2 },
+                'md': { 'base': 3, 'rand': 2 }
+            }
+        });
+
+        function start() {
+            particleRef1.startAnimation();
+            particleRef2.startAnimation();
+            console.log('Animations started!', particleRef1, particleRef2);
+        }
+
+        // Optional: Auto-start for easier testing
+        // Uncomment the line below to auto-start
+        // window.addEventListener('load', () => setTimeout(start, 500));
+    </script>
+</body>
+</html>
