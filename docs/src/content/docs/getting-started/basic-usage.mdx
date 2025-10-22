@@ -1,0 +1,289 @@
+---
+title: Basic Usage
+description: Learn the fundamentals of using ParticleText.js
+---
+
+import CanvasExample from '../../../components/CanvasExample.astro';
+import CodePreview from '../../../components/CodePreview.astro';
+
+After installing ParticleText.js, you're ready to create your first particle text animation! This guide covers the fundamental concepts you need to know.
+
+## Essential Requirements
+
+ParticleText.js requires:
+1. **HTML5 Canvas element** - The library renders particles on a canvas (it won't create one for you)
+2. **Text content** - Specified via `data-text` attribute or configuration
+3. **Canvas dimensions** - Width and height must be set as HTML attributes (not CSS)
+
+## Basic Structure
+
+Here's the minimal HTML structure needed:
+
+<CodePreview
+  code={`<!DOCTYPE html>
+<html>
+<head>
+  <title>ParticleText Example</title>
+</head>
+<body>
+  <!-- Canvas element with required attributes -->
+  <canvas
+    id="myCanvas"
+    data-text="Hello World"
+    width="1200"
+    height="400">
+  </canvas>
+
+  <!-- Include ParticleText.js -->
+  <script src="particleText.js"></script>
+
+  <!-- Initialize -->
+  <script>
+    initParticleJS('#myCanvas', {
+      colors: ['#695aa6']
+    });
+  </script>
+</body>
+</html>`}
+  language="html"
+/>
+
+<CanvasExample
+  title="Basic Particle Text"
+  config={{
+    text: 'Hello World',
+    colors: ['#695aa6'],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+## Understanding the Canvas
+
+### Why HTML Attributes?
+
+Canvas dimensions **must** be set as HTML attributes, not CSS:
+
+```html
+<!-- ✅ Correct - HTML attributes -->
+<canvas width="1200" height="400"></canvas>
+
+<!-- ❌ Wrong - CSS styling -->
+<canvas style="width: 1200px; height: 400px;"></canvas>
+```
+
+**Why?** The canvas drawing surface size (HTML attributes) is different from its display size (CSS). Using CSS can cause blurry or distorted particles.
+
+### Specifying Text
+
+You can specify text in two ways:
+
+#### 1. Via data-text Attribute (Recommended)
+
+```html
+<canvas id="canvas" data-text="ParticleText.js"></canvas>
+```
+
+#### 2. Via Configuration Object
+
+```javascript
+initParticleJS('#canvas', {
+  text: 'ParticleText.js'  // Overrides data-text
+});
+```
+
+## Configuration Basics
+
+The configuration object accepts numerous options. Here are the most common:
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  // Text to display (overrides data-text)
+  text: 'ParticleText',
+
+  // Particle colors (hex format, randomly assigned)
+  colors: ['#695aa6', '#8b7bb8', '#a89bc9'],
+
+  // Font size in pixels
+  fontSize: 100,
+
+  // Canvas dimensions (can also use HTML attributes)
+  width: 1200,
+  height: 400,
+
+  // Start animation automatically
+  autoAnimate: true,
+
+  // Maximum number of particles
+  maxParticles: 5000
+});`}
+/>
+
+## Working with Multiple Canvases
+
+You can have multiple particle text animations on the same page:
+
+<CodePreview
+  code={`<!-- First canvas -->
+<canvas id="header" data-text="Welcome"></canvas>
+
+<!-- Second canvas -->
+<canvas id="footer" data-text="Thank You"></canvas>
+
+<script>
+  // Initialize first canvas
+  const header = initParticleJS('#header', {
+    colors: ['#FF6B6B'],
+    fontSize: 80
+  });
+
+  // Initialize second canvas
+  const footer = initParticleJS('#footer', {
+    colors: ['#4ECDC4'],
+    fontSize: 60
+  });
+</script>`}
+/>
+
+## Interaction
+
+By default, particles explode away from your mouse cursor (or touch on mobile):
+
+- **Desktop**: Move your mouse near the text
+- **Mobile**: Touch the canvas
+- **Explosion Radius**: Particles within ~150px react (responsive, adjusts by screen size)
+- **Return Animation**: Particles smoothly return to their original positions
+
+### Controlling Cursor Tracking
+
+By default, particles track your cursor anywhere on the page:
+
+<CodePreview
+  code={`// Track cursor only inside canvas
+initParticleJS('#canvas', {
+  trackCursorOnlyInsideCanvas: true
+});`}
+/>
+
+When `true`, particles only react when your cursor is inside the canvas boundaries.
+
+## Controlling Animation
+
+### Auto-Start (Default)
+
+By default, animation starts automatically:
+
+<CodePreview
+  code={`// Starts automatically
+initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});`}
+/>
+
+### Manual Start
+
+Disable auto-start and control when animation begins:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't start automatically
+});
+
+// Start when a button is clicked
+document.getElementById('startBtn').addEventListener('click', () => {
+  particle.startAnimation();
+});`}
+/>
+
+## Checking Animation State
+
+You can check if animation is running:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+console.log(particle.isAnimating);  // true (if autoAnimate is true)
+console.log(particle.particleList.length);  // Number of particles`}
+/>
+
+## Responsive Behavior
+
+ParticleText.js automatically adapts to different screen sizes using breakpoints:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Check current breakpoint
+console.log(particle.getCurrentBreakpoint());
+// Returns: 'xs', 'sm', 'md', 'lg', 'xl', etc.`}
+/>
+
+Particle size and explosion radius automatically adjust based on the viewport width. See the [Breakpoint System](/guides/breakpoint-system/) guide for details.
+
+## Common Use Cases
+
+### Hero Section
+
+<CodePreview
+  code={`<!-- Large text for hero sections -->
+<canvas id="hero" width="2000" height="600"></canvas>
+
+<script>
+  initParticleJS('#hero', {
+    text: 'Welcome',
+    colors: ['#695aa6', '#8b7bb8'],
+    fontSize: 200
+  });
+</script>`}
+/>
+
+### Navigation Brand
+
+<CodePreview
+  code={`<!-- Smaller text for navigation -->
+<canvas id="brand" width="400" height="80"></canvas>
+
+<script>
+  initParticleJS('#brand', {
+    text: 'Brand',
+    colors: ['#333333'],
+    fontSize: 40
+  });
+</script>`}
+/>
+
+### Call-to-Action
+
+<CodePreview
+  code={`<canvas id="cta" width="800" height="200"></canvas>
+
+<script>
+  initParticleJS('#cta', {
+    text: 'Click Here',
+    colors: ['#FF6B6B', '#FFD93D'],
+    fontSize: 80
+  });
+</script>`}
+/>
+
+## Next Steps
+
+Now that you understand the basics:
+
+- **[Configuration Reference](/api-reference/configuration/)** - Explore all configuration options
+- **[Methods](/api-reference/methods/)** - Learn about available methods
+- **[Examples](/examples/)** - See 18 detailed examples
+- **[Breakpoint System](/guides/breakpoint-system/)** - Master responsive configuration
+
+## Tips & Best Practices
+
+1. **Canvas Size**: Make canvas larger than your text to prevent clipping
+2. **Color Format**: Always use 6-digit hex colors (#RRGGBB), not shorthand (#RGB)
+3. **Performance**: Limit `maxParticles` on lower-end devices
+4. **Responsiveness**: Use the breakpoint system for different screen sizes
+5. **Multiple Instances**: Store each `initParticleJS` result if you need to control them later

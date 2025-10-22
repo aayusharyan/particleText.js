@@ -1,0 +1,56 @@
+---
+title: Single Color
+description: Using a single color for all particles to create a unified, cohesive appearance
+---
+
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+This example demonstrates using a single color for all particles. The coral red color gives the text a unified, cohesive appearance. All particles are the same color, creating a clean and professional look.
+
+## Live Demo
+
+<CanvasExample
+  title="Single Color"
+  config={{
+    text: 'SINGLE COLOR',
+    colors: ['#FF6B6B'],
+    fontSize: 100
+  }}
+  height={400}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'SINGLE COLOR',
+  colors: ['#FF6B6B'],  // Single color in array
+  fontSize: 100
+});`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Unified Appearance:** All particles share the same vibrant coral red color (#FF6B6B)
+- **Clean Aesthetic:** Single color creates a professional, cohesive look
+- **High Contrast:** Coral red stands out beautifully on dark backgrounds
+- **Array Format:** Even single colors must be provided in array format for consistency
+
+## Important Note
+
+Even when using a single color, you still need to provide it as an array: `['#FF6B6B']`. This maintains consistency with the multi-color configuration format. The color format must be a 6-digit hexadecimal color code (#RRGGBB).
+
+## Use Cases
+
+Single color configurations work well for:
+- Brand-specific particle effects matching your company colors
+- Minimalist designs requiring a clean, unified look
+- Situations where you want to emphasize one specific color
+- Professional or corporate websites
+
+## Try It Yourself
+
+Experiment with different single colors in the [Interactive Playground](/playground/).

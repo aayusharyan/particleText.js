@@ -1,0 +1,84 @@
+---
+title: Basic Usage
+description: The simplest example of ParticleText.js with minimal configuration
+---
+
+import CanvasExample from '../../../components/CanvasExample.astro';
+import CodePreview from '../../../components/CodePreview.astro';
+
+This is the simplest example of ParticleText.js with minimal configuration. The text "ParticleText.JS" is rendered as purple particles that explode when you move your mouse near them and smoothly return to their original positions.
+
+## Live Demo
+
+<CanvasExample
+  title="Basic Usage"
+  config={{
+    text: 'ParticleText.JS',
+    colors: ['#695aa6']
+  }}
+  height={400}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'ParticleText.JS',
+  colors: ['#695aa6']  // Single purple color
+});
+
+// That's it! The animation starts automatically.`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Particle Animation:** Each letter is formed by small circular particles
+- **Mouse Interaction:** Particles explode away from your cursor within ~150px radius
+- **Smooth Return:** After explosion, particles smoothly animate back to form the text
+- **Touch Support:** On mobile, touch to trigger particle explosion
+- **Auto Animation:** Animation starts automatically on page load
+
+## Default Behavior
+
+When you don't specify configuration options, ParticleText.js uses sensible defaults:
+
+<CodePreview
+  code={`{
+  autoAnimate: true,              // Start animation automatically
+  fontSize: canvas.height / 4,    // 100px in this example
+  fontWeight: 'bold',
+  textAlign: 'center',
+  particleRadius: {               // Responsive particle sizes
+    'xs': { base: 1, rand: 1 },
+    'lg': { base: 1, rand: 1 }
+  },
+  explosionRadius: {              // Responsive explosion zones
+    'xxxs': 30,
+    'xs': 50,
+    'sm': 60,
+    'lg': 75,
+    'xxl': 90,
+    'xxxl': 100
+  },
+  friction: {                     // Particle movement speed
+    base: 0.9,
+    rand: 0.05
+  },
+  maxParticles: 5000              // Maximum particle count
+}`}
+  language="javascript"
+/>
+
+## Use Cases
+
+This basic configuration is perfect for:
+- Getting started with ParticleText.js
+- Simple hero sections
+- Quick prototypes
+- Learning the fundamentals
+
+## Try It Yourself
+
+Experiment with this configuration in the [Interactive Playground](/playground/).

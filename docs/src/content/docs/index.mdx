@@ -1,0 +1,115 @@
+---
+title: ParticleText.js
+description: A vanilla JavaScript library for creating stunning particle text animations
+template: splash
+hero:
+  tagline: Create beautiful, interactive particle text animations with pure vanilla JavaScript
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: Get Started
+      link: /getting-started/installation/
+      icon: right-arrow
+      variant: primary
+    - text: View Examples
+      link: /examples/
+      icon: open-book
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/aayusharyan/particleText.js
+      icon: external
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+  <Card title="Zero Dependencies" icon="puzzle">
+    Pure vanilla JavaScript with no external dependencies. Works everywhere.
+  </Card>
+  <Card title="Highly Customizable" icon="setting">
+    Extensive configuration options for colors, particles, animations, and more.
+  </Card>
+  <Card title="Responsive" icon="laptop">
+    Built-in responsive breakpoint system adapts to any screen size.
+  </Card>
+  <Card title="Performance Optimized" icon="rocket">
+    Smart particle limiting and automatic slow browser detection.
+  </Card>
+  <Card title="Accessible" icon="information">
+    ARIA labels, reduced motion support, and screen reader compatibility.
+  </Card>
+  <Card title="Framework Ready" icon="star">
+    Easy integration with React, Vue, Angular, Svelte, and more.
+  </Card>
+</CardGrid>
+
+## Quick Example
+
+Get started with just a few lines of code:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ParticleText.js Demo</title>
+</head>
+<body>
+  <canvas id="particle-canvas" data-text="Hello World"></canvas>
+
+  <script src="particleText.js"></script>
+  <script>
+    initParticleJS('#particle-canvas', {
+      colors: ['#695aa6', '#8b7bb8'],
+      fontSize: 100
+    });
+  </script>
+</body>
+</html>
+```
+
+## Why ParticleText.js?
+
+ParticleText.js makes it easy to add eye-catching particle text animations to your web projects. Whether you're building a portfolio, landing page, or interactive experience, ParticleText.js provides the tools you need with minimal setup.
+
+- **Simple API**: Initialize with a single function call
+- **Flexible Configuration**: Over 15 configuration options
+- **Mobile Support**: Touch-enabled interactions
+- **Browser Compatible**: Supports IE11+ and all modern browsers
+
+## What's Included?
+
+- **18 Example Demos**: Learn from comprehensive examples
+- **Interactive Playground**: Test configurations in real-time
+- **Framework Guides**: Integration docs for 6+ popular frameworks
+- **Complete API Reference**: Detailed documentation of all features
+- **Performance Guides**: Optimization tips and best practices
+
+## Ready to Start?
+
+<CardGrid>
+  <Card title="Installation" icon="add-document">
+    [Get started with installation →](/getting-started/installation/)
+  </Card>
+  <Card title="Quick Start" icon="rocket">
+    [Follow the quick start guide →](/getting-started/quick-start/)
+  </Card>
+  <Card title="Examples" icon="open-book">
+    [Explore 18 examples →](/examples/)
+  </Card>
+  <Card title="API Reference" icon="document">
+    [View API documentation →](/api-reference/initialization/)
+  </Card>
+</CardGrid>
+
+## Community & Support
+
+- **GitHub**: [Report issues and contribute](https://github.com/aayusharyan/particleText.js)
+- **License**: MIT - Free for commercial and personal use
+- **Version**: 0.1.0 (Active Development)
+
+---
+
+Built with love by [Aayush Sinha](https://github.com/aayusharyan)

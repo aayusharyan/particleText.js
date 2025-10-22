@@ -1,0 +1,539 @@
+---
+title: Configuration
+description: Complete reference for all ParticleText.js configuration options
+---
+
+import CanvasExample from '../../../components/CanvasExample.astro';
+import CodePreview from '../../../components/CodePreview.astro';
+
+The configuration object controls every aspect of your particle text animation. This page documents all available options with examples.
+
+## Configuration Object
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  // Text & Display
+  text: 'ParticleText',
+  colors: ['#695aa6'],
+  fontSize: 100,
+  fontWeight: 'bold',
+  textAlign: 'center',
+
+  // Canvas Dimensions
+  width: 1200,
+  height: 400,
+
+  // Animation Control
+  autoAnimate: true,
+
+  // Particle Behavior
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  explosionRadius: { xs: 50 },
+  friction: { base: 0.9, rand: 0.05 },
+
+  // Performance
+  maxParticles: 5000,
+  supportSlowBrowsers: false,
+  renderTimeThreshold: 15,
+
+  // Interaction
+  trackCursorOnlyInsideCanvas: false,
+
+  // Callbacks
+  slowBrowserDetected: function() {}
+});`}
+  language="javascript"
+/>
+
+## Text & Display Options
+
+### text
+
+**Type:** `String`
+**Default:** Value from `data-text` attribute
+**Required:** Yes (either config or `data-text`)
+
+The text to display as particles. Overrides the `data-text` attribute if both are specified.
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'ParticleText.js',
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+<CanvasExample
+  title="Custom Text"
+  config={{
+    text: 'ParticleText.js',
+    colors: ['#695aa6'],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+### colors
+
+**Type:** `String | Array<String>`
+**Default:** `['#000000']`
+**Format:** 6-digit hex color (#RRGGBB)
+
+Colors are randomly assigned to particles. Use a single color for uniformity or multiple colors for variety.
+
+<CodePreview
+  code={`// Single color (provide as array)
+colors: ['#FF6B6B']
+
+// Multiple colors (random assignment)
+colors: ['#695aa6', '#8b7bb8', '#a89bc9']
+
+// Single string (auto-converted to array)
+colors: '#FF6B6B'`}
+  language="javascript"
+/>
+
+**Validation:** Colors must be in 6-digit hex format. `#RGB` shorthand is not supported.
+
+```javascript
+// ✅ Valid
+colors: ['#FF6B6B', '#4ECDC4']
+
+// ❌ Invalid - will throw error
+colors: ['#F6B', 'red', 'rgb(255,0,0)']
+```
+
+<CanvasExample
+  title="Multiple Colors"
+  config={{
+    text: 'RAINBOW',
+    colors: ['#FF6B6B', '#FFD93D', '#6BCF7F', '#4ECDC4', '#695aa6'],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+### fontSize
+
+**Type:** `Number`
+**Default:** `canvas.height / 4`
+**Unit:** Pixels
+
+Size of the text in pixels.
+
+<CodePreview
+  code={`// Small text (40px)
+fontSize: 40
+
+// Medium text (100px)
+fontSize: 100
+
+// Large text (200px)
+fontSize: 200`}
+  language="javascript"
+/>
+
+**Tip:** Canvas height should be at least 1.5× the font size to prevent clipping.
+
+### fontWeight
+
+**Type:** `String`
+**Default:** `'bold'`
+**Supported:** `'bold'` only
+
+Text weight. Currently only bold is supported.
+
+<CodePreview
+  code={`fontWeight: 'bold'  // Only supported value`}
+  language="javascript"
+/>
+
+### textAlign
+
+**Type:** `String`
+**Default:** `'center'`
+**Supported:** `'center'` only
+
+Text alignment. Currently only center alignment is supported.
+
+<CodePreview
+  code={`textAlign: 'center'  // Only supported value`}
+  language="javascript"
+/>
+
+## Canvas Dimensions
+
+### width
+
+**Type:** `Number`
+**Default:** Canvas element width attribute
+**Unit:** Pixels
+
+Width of the canvas. Can be set via HTML attribute or configuration.
+
+<CodePreview
+  code={`// Via configuration
+initParticleJS('#canvas', {
+  width: 1200,
+  colors: ['#695aa6']
+});
+
+// Via HTML attribute (recommended)
+<canvas width="1200"></canvas>`}
+  language="javascript"
+/>
+
+### height
+
+**Type:** `Number`
+**Default:** Canvas element height attribute
+**Unit:** Pixels
+
+Height of the canvas.
+
+<CodePreview
+  code={`// Via configuration
+initParticleJS('#canvas', {
+  height: 400,
+  colors: ['#695aa6']
+});
+
+// Via HTML attribute (recommended)
+<canvas height="400"></canvas>`}
+  language="javascript"
+/>
+
+**Best Practice:** Set dimensions as HTML attributes for better initial rendering:
+
+```html
+<canvas id="canvas" width="1200" height="400" data-text="Hello"></canvas>
+```
+
+## Animation Control
+
+### autoAnimate
+
+**Type:** `Boolean`
+**Default:** `true`
+
+Whether to start animation automatically on initialization.
+
+<CodePreview
+  code={`// Auto-start (default)
+const particle = initParticleJS('#canvas', {
+  autoAnimate: true,
+  colors: ['#695aa6']
+});
+
+// Manual start
+const particle = initParticleJS('#canvas', {
+  autoAnimate: false,
+  colors: ['#695aa6']
+});
+
+// Start later
+document.getElementById('btn').onclick = () => {
+  particle.startAnimation();
+};`}
+  language="javascript"
+/>
+
+## Particle Behavior
+
+### particleRadius
+
+**Type:** `Object | Function`
+**Default:** Responsive object with breakpoint values
+
+Controls the radius of individual particles.
+
+#### As Object (Responsive)
+
+<CodePreview
+  code={`particleRadius: {
+  xxxs: { base: 1, rand: 1 },  // Mobile: 1-2px
+  xs: { base: 1, rand: 1 },    // Small: 1-2px
+  lg: { base: 1, rand: 1 }     // Large: 1-2px
+}`}
+  language="javascript"
+/>
+
+- **base:** Minimum radius in pixels
+- **rand:** Random addition (final radius = base + random(0, rand))
+- Each breakpoint cascades to larger breakpoints unless overridden
+
+#### As Function
+
+<CodePreview
+  code={`particleRadius: function() {
+  // Custom logic for each particle
+  return Math.random() * 3 + 2;  // 2-5px
+}`}
+  language="javascript"
+/>
+
+### explosionRadius
+
+**Type:** `Object | Function`
+**Default:** Responsive values from 30px (mobile) to 100px (large screens)
+**Unit:** Pixels
+
+Distance from cursor where particles explode away.
+
+#### As Object (Responsive)
+
+<CodePreview
+  code={`explosionRadius: {
+  xxxs: 30,   // Small on mobile
+  xxs: 40,    // Mobile
+  xs: 50,     // Mobile/tablet
+  sm: 60,     // Tablet/small desktop
+  md: 70,     // Desktop
+  lg: 75,     // Large desktop
+  xl: 80,     // Extra large
+  xxl: 90,    // Ultra-wide
+  xxxl: 100   // 4K+ displays
+}`}
+  language="javascript"
+/>
+
+<CanvasExample
+  title="Small Explosion Radius (50px)"
+  config={{
+    text: 'SMALL RADIUS',
+    colors: ['#FF6B6B'],
+    fontSize: 80,
+    explosionRadius: { xxxs: 50, xs: 50, sm: 50, md: 50, lg: 50, xl: 50, xxl: 50, xxxl: 50 }
+  }}
+  height={300}
+/>
+
+#### As Function
+
+<CodePreview
+  code={`explosionRadius: function() {
+  // Dynamic explosion radius
+  return window.innerWidth < 768 ? 30 : 100;
+}`}
+  language="javascript"
+/>
+
+### friction
+
+**Type:** `Object | Function`
+**Default:** `{ base: 0.9, rand: 0.05 }`
+**Range:** 0-1 (lower = faster movement)
+
+Controls how quickly particles return to their original position.
+
+#### As Object
+
+<CodePreview
+  code={`friction: {
+  base: 0.9,   // Base friction
+  rand: 0.05   // Random variation
+}
+// Final friction: 0.9 to 0.95`}
+  language="javascript"
+/>
+
+- **High friction (0.95-0.99):** Slow, smooth return
+- **Medium friction (0.85-0.95):** Balanced (default)
+- **Low friction (0.70-0.85):** Fast, bouncy return
+
+<CodePreview
+  code={`// Slow, smooth animation
+friction: { base: 0.95, rand: 0.03 }
+
+// Fast, bouncy animation
+friction: { base: 0.75, rand: 0.05 }`}
+  language="javascript"
+/>
+
+#### As Function
+
+<CodePreview
+  code={`friction: function() {
+  return Math.random() * 0.1 + 0.85;
+}`}
+  language="javascript"
+/>
+
+## Performance Options
+
+### maxParticles
+
+**Type:** `Number`
+**Default:** `5000`
+
+Maximum number of particles to render. Limits performance impact on complex text.
+
+<CodePreview
+  code={`// Low particle count (faster)
+maxParticles: 500
+
+// Default
+maxParticles: 5000
+
+// High particle count (detailed but slower)
+maxParticles: 10000`}
+  language="javascript"
+/>
+
+**Tip:** Lower values improve performance on mobile devices.
+
+### supportSlowBrowsers
+
+**Type:** `Boolean`
+**Default:** `false`
+
+Enable automatic performance optimization for slow browsers.
+
+<CodePreview
+  code={`supportSlowBrowsers: true`}
+  language="javascript"
+/>
+
+When enabled:
+- Monitors initial render time
+- Reduces quality/particles if slow
+- Scales canvas to maintain appearance
+- Triggers `slowBrowserDetected` callback
+
+### renderTimeThreshold
+
+**Type:** `Number`
+**Default:** `15`
+**Unit:** Milliseconds
+
+Threshold for detecting slow browsers. For smooth 60fps, each frame should render in ≤15ms.
+
+<CodePreview
+  code={`renderTimeThreshold: 15  // 60fps target`}
+  language="javascript"
+/>
+
+## Interaction Options
+
+### trackCursorOnlyInsideCanvas
+
+**Type:** `Boolean`
+**Default:** `false`
+
+Controls whether particles react to cursor position only when inside canvas.
+
+<CodePreview
+  code={`// Track cursor anywhere (default)
+trackCursorOnlyInsideCanvas: false
+
+// Only track inside canvas
+trackCursorOnlyInsideCanvas: true`}
+  language="javascript"
+/>
+
+**When to use `true`:**
+- Multiple canvases on same page
+- Clear interaction boundaries desired
+- Canvas in sidebar/widget
+
+**When to use `false` (default):**
+- Single canvas (hero section)
+- Smoother experience desired
+- Full-page effects
+
+## Callbacks
+
+### slowBrowserDetected
+
+**Type:** `Function`
+**Default:** `function() {}`
+
+Called when a slow browser is detected (requires `supportSlowBrowsers: true`).
+
+<CodePreview
+  code={`slowBrowserDetected: function() {
+  console.warn('Slow browser detected - reducing quality');
+  // Show message to user
+  document.getElementById('warning').style.display = 'block';
+}`}
+  language="javascript"
+/>
+
+## Breakpoint Reference
+
+Valid breakpoint keys for responsive configuration:
+
+| Breakpoint | Width Range |
+|-----------|-------------|
+| `xxxs` | 0px - 320px |
+| `xxs` | 320px - 375px |
+| `xs` | 375px - 768px |
+| `sm` | 768px - 1024px |
+| `md` | 1024px - 1440px |
+| `lg` | 1440px - 2560px |
+| `xl` | 2560px - 3440px |
+| `xxl` | 3440px - 3840px |
+| `xxxl` | 3840px+ |
+
+See [Breakpoint System](/guides/breakpoint-system/) for detailed usage.
+
+## Complete Example
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  // Text
+  text: 'ParticleText',
+  colors: ['#695aa6', '#8b7bb8', '#a89bc9'],
+  fontSize: 100,
+  fontWeight: 'bold',
+  textAlign: 'center',
+
+  // Canvas
+  width: 1200,
+  height: 400,
+
+  // Animation
+  autoAnimate: true,
+
+  // Particles (responsive)
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 1, rand: 1 }
+  },
+
+  // Explosion (responsive)
+  explosionRadius: {
+    xs: 20,
+    sm: 50,
+    lg: 75,
+    xxl: 150
+  },
+
+  // Friction
+  friction: {
+    base: 0.9,
+    rand: 0.05
+  },
+
+  // Performance
+  maxParticles: 5000,
+  supportSlowBrowsers: true,
+  renderTimeThreshold: 15,
+
+  // Interaction
+  trackCursorOnlyInsideCanvas: false,
+
+  // Callbacks
+  slowBrowserDetected: function() {
+    console.warn('Performance optimization enabled');
+  }
+});`}
+  language="javascript"
+/>
+
+## Next Steps
+
+- **[Methods](/api-reference/methods/)** - Control animation programmatically
+- **[Properties](/api-reference/properties/)** - Access animation state
+- **[Examples](/examples/)** - See configurations in action
+- **[Breakpoint System](/guides/breakpoint-system/)** - Master responsive configs

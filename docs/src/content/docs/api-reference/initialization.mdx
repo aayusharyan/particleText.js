@@ -1,0 +1,258 @@
+---
+title: Initialization
+description: How to initialize ParticleText.js
+---
+
+import CodePreview from '../../../components/CodePreview.astro';
+
+The `initParticleJS()` function is the entry point to ParticleText.js. This function initializes a particle text animation on a canvas element.
+
+## Function Signature
+
+<CodePreview
+  code={`initParticleJS(elementSelector, configurationObject)`}
+  language="javascript"
+/>
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `elementSelector` | String | Yes | CSS selector for the canvas element (e.g., `'#myCanvas'`, `.particle-canvas`) |
+| `configurationObject` | Object | Yes | Configuration options for the particle animation |
+
+### Return Value
+
+Returns an object with the following properties and methods:
+
+| Property/Method | Type | Description |
+|-----------------|------|-------------|
+| `isAnimating` | Boolean | Current animation state (true if running) |
+| `particleList` | Array | Array of all particle objects |
+| `getCurrentBreakpoint()` | Function | Returns current responsive breakpoint |
+| `startAnimation()` | Function | Starts the animation (use when autoAnimate is false) |
+| `forceRequestAnimationFrame()` | Function | Forces a single frame render |
+
+## Basic Usage
+
+<CodePreview
+  code={`// Minimal initialization
+const particleText = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// The function returns an object you can use for control
+console.log(particleText.isAnimating);  // true
+console.log(particleText.particleList.length);  // Number of particles`}
+  language="javascript"
+/>
+
+## Canvas Element Requirements
+
+The canvas element **must exist** in the DOM before calling `initParticleJS()`:
+
+<CodePreview
+  code={`<!-- Canvas must be in HTML -->
+<canvas id="myCanvas" data-text="ParticleText" width="1200" height="400"></canvas>
+
+<script src="particleText.js"></script>
+<script>
+  // Initialize after canvas exists
+  initParticleJS('#myCanvas', {
+    colors: ['#695aa6']
+  });
+</script>`}
+  language="html"
+/>
+
+## Common Initialization Patterns
+
+### 1. Minimal Configuration
+
+Uses default values for most options:
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+### 2. Complete Configuration
+
+Specifies all common options:
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'ParticleText',
+  colors: ['#695aa6', '#8b7bb8', '#a89bc9'],
+  fontSize: 100,
+  width: 1200,
+  height: 400,
+  fontWeight: 'bold',
+  textAlign: 'center',
+  autoAnimate: true,
+  maxParticles: 5000,
+  trackCursorOnlyInsideCanvas: false
+});`}
+  language="javascript"
+/>
+
+### 3. Store Reference for Later Control
+
+<CodePreview
+  code={`// Store the reference
+const myAnimation = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Control it later
+document.getElementById('startBtn').addEventListener('click', () => {
+  myAnimation.startAnimation();
+});
+
+// Check current state
+if (myAnimation.isAnimating) {
+  console.log('Animation is running');
+}`}
+  language="javascript"
+/>
+
+### 4. Multiple Instances
+
+<CodePreview
+  code={`// Initialize multiple canvases
+const header = initParticleJS('#headerCanvas', {
+  text: 'Welcome',
+  colors: ['#FF6B6B'],
+  fontSize: 120
+});
+
+const footer = initParticleJS('#footerCanvas', {
+  text: 'Thank You',
+  colors: ['#4ECDC4'],
+  fontSize: 80
+});
+
+// Control them independently
+header.startAnimation();
+footer.startAnimation();`}
+  language="javascript"
+/>
+
+## DOM Ready Considerations
+
+Ensure the canvas exists before initialization:
+
+### Using defer attribute
+
+<CodePreview
+  code={`<!-- Recommended: Use defer -->
+<canvas id="canvas" data-text="Hello"></canvas>
+<script src="particleText.js" defer></script>
+<script defer>
+  initParticleJS('#canvas', { colors: ['#695aa6'] });
+</script>`}
+  language="html"
+/>
+
+### Using DOMContentLoaded
+
+<CodePreview
+  code={`<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initParticleJS('#canvas', {
+      colors: ['#695aa6']
+    });
+  });
+</script>`}
+  language="javascript"
+/>
+
+### At End of Body
+
+<CodePreview
+  code={`<body>
+  <canvas id="canvas" data-text="Hello"></canvas>
+
+  <!-- Scripts at end of body -->
+  <script src="particleText.js"></script>
+  <script>
+    initParticleJS('#canvas', { colors: ['#695aa6'] });
+  </script>
+</body>`}
+  language="html"
+/>
+
+## Error Handling
+
+The library will throw errors for invalid configurations:
+
+<CodePreview
+  code={`try {
+  initParticleJS('#canvas', {
+    colors: ['invalid-color']  // Will throw error
+  });
+} catch (error) {
+  console.error('Initialization failed:', error.message);
+}`}
+  language="javascript"
+/>
+
+Common initialization errors:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "Canvas element not found" | Invalid selector or element doesn't exist | Check selector and ensure canvas is in DOM |
+| "Missing required 'text' property" | No text specified | Add `text` config or `data-text` attribute |
+| "Color at index 0 is not a valid hex color" | Invalid color format | Use 6-digit hex format: `#RRGGBB` |
+
+## Validation
+
+The library validates your configuration and will log warnings for:
+
+- Invalid breakpoint names
+- Invalid particle radius structure
+- Invalid friction values
+- Missing required properties
+
+<CodePreview
+  code={`// This will log validation warnings
+initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  particleRadius: {
+    'invalid-breakpoint': { base: 1, rand: 1 }  // Warning: invalid breakpoint
+  }
+});`}
+  language="javascript"
+/>
+
+## Text Source Priority
+
+The library looks for text in this order:
+
+1. **Configuration `text` property** (highest priority)
+2. **Canvas `data-text` attribute**
+3. **Error if neither exists**
+
+<CodePreview
+  code={`<!-- data-text attribute -->
+<canvas id="canvas" data-text="From Attribute"></canvas>
+
+<script>
+  initParticleJS('#canvas', {
+    text: 'From Config',  // This takes priority
+    colors: ['#695aa6']
+  });
+  // Will display: "From Config"
+</script>`}
+  language="javascript"
+/>
+
+## Next Steps
+
+- **[Configuration Reference](/api-reference/configuration/)** - All configuration options
+- **[Methods](/api-reference/methods/)** - Available methods
+- **[Properties](/api-reference/properties/)** - Exposed properties
+- **[Examples](/examples/)** - See initialization in action

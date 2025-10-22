@@ -1,0 +1,210 @@
+---
+title: Quick Start
+description: Create your first particle text animation in minutes
+---
+
+import CanvasExample from '../../../components/CanvasExample.astro';
+import CodePreview from '../../../components/CodePreview.astro';
+
+This guide will help you create your first particle text animation in just a few minutes.
+
+## Step 1: Create HTML File
+
+Create a new HTML file with a canvas element:
+
+<CodePreview
+  title="index.html"
+  code={`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My First ParticleText</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas" data-text="Hello World"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/gh/aayusharyan/particleText.js@main/src/particleText.js"></script>
+  <script>
+    // Your code goes here
+  </script>
+</body>
+</html>`}
+  language="html"
+/>
+
+## Step 2: Initialize ParticleText.js
+
+Add the initialization code inside the second `<script>` tag:
+
+<CodePreview
+  title="Basic Initialization"
+  code={`initParticleJS('#particle-canvas', {
+  text: 'Hello World',
+  colors: ['#695aa6', '#8b7bb8', '#a89bc9'],
+  fontSize: 100
+});`}
+  language="javascript"
+/>
+
+## Step 3: See It in Action
+
+Open your HTML file in a browser. You should see "Hello World" rendered as animated particles!
+
+<CanvasExample
+  title="Your First Particle Text Animation"
+  config={{
+    text: 'Hello World',
+    colors: ['#695aa6', '#8b7bb8', '#a89bc9'],
+    fontSize: 100
+  }}
+  height={300}
+  showStats={true}
+/>
+
+Move your mouse over the canvas to interact with the particles!
+
+## Understanding the Code
+
+Let's break down what each parameter does:
+
+- **`text`**: The text to display as particles
+- **`colors`**: Array of hex colors for particles (randomly assigned)
+- **`fontSize`**: Size of the text in pixels
+
+## Customization Examples
+
+### Change Colors
+
+Try different color schemes:
+
+<CodePreview
+  code={`// Sunset theme
+initParticleJS('#particle-canvas', {
+  text: 'Sunset',
+  colors: ['#FF6B6B', '#FFD93D', '#FF8C42'],
+  fontSize: 100
+});
+
+// Ocean theme
+initParticleJS('#particle-canvas', {
+  text: 'Ocean',
+  colors: ['#4ECDC4', '#44A08D', '#1A535C'],
+  fontSize: 100
+});`}
+  language="javascript"
+/>
+
+### Adjust Size
+
+Make your text larger or smaller:
+
+<CodePreview
+  code={`// Large text for hero sections
+initParticleJS('#particle-canvas', {
+  text: 'BIG',
+  colors: ['#695aa6'],
+  fontSize: 200
+});
+
+// Small text for subtle effects
+initParticleJS('#particle-canvas', {
+  text: 'small',
+  colors: ['#695aa6'],
+  fontSize: 40
+});`}
+  language="javascript"
+/>
+
+### Control Animation
+
+Control when the animation starts:
+
+<CodePreview
+  code={`const instance = initParticleJS('#particle-canvas', {
+  text: 'Click to Start',
+  colors: ['#695aa6'],
+  fontSize: 100,
+  autoAnimate: false  // Don't start automatically
+});
+
+// Start animation on button click
+document.querySelector('#start-btn').addEventListener('click', () => {
+  instance.startAnimation();
+});`}
+  language="javascript"
+/>
+
+## Common Patterns
+
+### Using data-text Attribute
+
+Instead of passing `text` in the config, you can use the `data-text` attribute on the canvas:
+
+<CodePreview
+  code={`<!-- HTML -->
+<canvas id="particle-canvas" data-text="From HTML"></canvas>
+
+<!-- JavaScript -->
+<script>
+  initParticleJS('#particle-canvas', {
+    colors: ['#695aa6'],
+    fontSize: 100
+    // text property will be read from data-text attribute
+  });
+</script>`}
+  language="html"
+/>
+
+### Multiple Instances
+
+Create multiple particle text animations on one page:
+
+<CodePreview
+  code={`<!-- HTML -->
+<canvas id="canvas-1" data-text="First"></canvas>
+<canvas id="canvas-2" data-text="Second"></canvas>
+
+<!-- JavaScript -->
+<script>
+  initParticleJS('#canvas-1', {
+    colors: ['#FF6B6B'],
+    fontSize: 80
+  });
+
+  initParticleJS('#canvas-2', {
+    colors: ['#4ECDC4'],
+    fontSize: 80
+  });
+</script>`}
+  language="html"
+/>
+
+## Next Steps
+
+Now that you have a basic particle text animation running, explore these topics:
+
+- **[Basic Usage](/getting-started/basic-usage/)** - Learn more configuration options
+- **[Examples](/examples/)** - See 18 different examples
+- **[API Reference](/api-reference/configuration/)** - Explore all configuration options
+- **[Interactive Playground](/playground/)** - Experiment with configurations
+
+## Need Help?
+
+- Check the [Common Issues](/troubleshooting/common-issues/) guide
+- View [all examples](/examples/) for inspiration
+- Report bugs on [GitHub](https://github.com/aayusharyan/particleText.js/issues)

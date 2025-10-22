@@ -1,0 +1,181 @@
+/* Custom styles for ParticleText.js documentation */
+
+/* Canvas example container styling */
+.canvas-example {
+	margin: 2rem 0;
+}
+
+.canvas-example canvas {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	border-radius: 0.25rem;
+	background: #000;
+}
+
+/* Code preview styling */
+.code-preview {
+	position: relative;
+	margin: 1.5rem 0;
+}
+
+.code-preview .copy-button {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	padding: 0.5rem 1rem;
+	background: var(--sl-color-accent);
+	color: var(--sl-color-white);
+	border: none;
+	border-radius: 0.25rem;
+	cursor: pointer;
+	font-size: 0.875rem;
+	transition: background 0.2s;
+	z-index: 10;
+}
+
+.code-preview .copy-button:hover {
+	background: var(--sl-color-accent-high);
+}
+
+/* Playground specific styles */
+.playground-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+	margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+	.playground-container {
+		grid-template-columns: 1fr;
+	}
+}
+
+.config-editor {
+	background: var(--sl-color-gray-1);
+	padding: 1rem;
+	border-radius: 0.5rem;
+	border: 1px solid var(--sl-color-gray-3);
+}
+
+.preview-panel {
+	background: var(--sl-color-black, #000);
+	padding: 1rem;
+	border-radius: 0.5rem;
+	min-height: 400px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Framework badge styling */
+.framework-badge {
+	display: inline-block;
+	padding: 0.25rem 0.75rem;
+	background: var(--sl-color-accent-low);
+	color: var(--sl-color-white);
+	border-radius: 1rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	margin-right: 0.5rem;
+	text-transform: uppercase;
+}
+
+/* Example grid for overview pages */
+.example-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: 1.5rem;
+	margin: 2rem 0;
+}
+
+.example-card {
+	padding: 1.5rem;
+	background: var(--sl-color-gray-1);
+	border-radius: 0.5rem;
+	border: 1px solid var(--sl-color-gray-3);
+	transition: transform 0.2s, box-shadow 0.2s;
+	text-decoration: none;
+	color: inherit;
+}
+
+.example-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px var(--sl-color-shadow-md);
+}
+
+.example-card h3 {
+	margin-top: 0;
+	color: var(--sl-color-accent);
+}
+
+/* Configuration table styling */
+.config-table {
+	width: 100%;
+	margin: 1.5rem 0;
+	border-collapse: collapse;
+}
+
+.config-table th,
+.config-table td {
+	padding: 0.75rem;
+	text-align: left;
+	border-bottom: 1px solid var(--sl-color-gray-3);
+}
+
+.config-table th {
+	background: var(--sl-color-gray-1);
+	font-weight: 600;
+}
+
+.config-table code {
+	background: var(--sl-color-gray-2);
+	padding: 0.125rem 0.375rem;
+	border-radius: 0.25rem;
+	font-size: 0.875em;
+}
+
+/* Performance stats display */
+.performance-stats {
+	display: flex;
+	gap: 1rem;
+	margin: 1rem 0;
+	padding: 1rem;
+	background: var(--sl-color-gray-1);
+	border-radius: 0.5rem;
+}
+
+.stat {
+	flex: 1;
+	text-align: center;
+}
+
+.stat-value {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: var(--sl-color-accent);
+}
+
+.stat-label {
+	font-size: 0.875rem;
+	color: var(--sl-color-gray-6);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+/* Responsive breakpoint indicator */
+.breakpoint-indicator {
+	position: fixed;
+	bottom: 1rem;
+	right: 1rem;
+	padding: 0.5rem 1rem;
+	background: var(--sl-color-accent);
+	color: var(--sl-color-white);
+	border-radius: 0.25rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	z-index: 1000;
+	box-shadow: 0 2px 8px var(--sl-color-shadow-md);
+}

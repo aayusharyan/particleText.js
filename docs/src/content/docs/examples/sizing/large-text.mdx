@@ -1,0 +1,78 @@
+---
+title: Large Text
+description: Large display text with bigger particles for maximum visual impact
+---
+
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+This example showcases large display text (200px) with bigger particles for maximum visual impact. Perfect for hero sections, splash screens, and anywhere you want to make a bold statement. The larger particles create a more dramatic explosion effect.
+
+## Live Demo
+
+<CanvasExample
+  title="Large Text"
+  config={{
+    text: 'BIG',
+    fontSize: 200,
+    particleRadius: { 'xs': { base: 3, rand: 2 } },
+    colors: ['#9B59B6', '#3498DB', '#E74C3C', '#F39C12']
+  }}
+  height={500}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'BIG',
+  fontSize: 200,
+  particleRadius: {
+    'xs': { base: 3, rand: 2 }  // Larger particles (3-5px)
+  },
+  colors: ['#9B59B6', '#3498DB', '#E74C3C', '#F39C12']
+});`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Large Font Size:** 200px creates dramatic, eye-catching text
+- **Bigger Particles:** 3-5px particle radius for bold visual impact
+- **Dramatic Effect:** Larger explosion radius and more visible particle movement
+- **High Visual Impact:** Perfect for making a statement
+
+## Performance Considerations
+
+Large text generates many more particles, so keep these in mind:
+
+- **Particle Count:** Large text generates significantly more particles
+- **Canvas Size:** Keep dimensions reasonable (under 2000px width)
+- **Text Length:** Shorter text works better (1-4 characters ideal)
+- **maxParticles:** Consider limiting to 3000-4000 for older devices
+- **Device Testing:** Always test on target devices
+
+## Use Cases
+
+Large text configurations are ideal for:
+- Hero sections on landing pages
+- Splash screens and intros
+- Feature announcements
+- Event/conference websites
+- Portfolio headers
+- Product launches
+- Brand statements
+
+## Optimization Tips
+
+For best performance with large text:
+- Use shorter text strings (1-4 characters)
+- Set `maxParticles` to limit particle count
+- Consider responsive configurations for mobile
+- Test on lower-end devices
+- Use `supportSlowBrowsers: true` for automatic optimization
+
+## Try It Yourself
+
+Create impactful large text effects in the [Interactive Playground](/playground/).

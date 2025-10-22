@@ -1,0 +1,121 @@
+---
+title: Installation
+description: Learn how to install and set up ParticleText.js in your project
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+ParticleText.js is a standalone vanilla JavaScript library with no dependencies. You can install it in multiple ways depending on your project setup.
+
+## CDN (Recommended for Quick Start)
+
+The fastest way to get started is to include ParticleText.js via CDN:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My ParticleText Project</title>
+</head>
+<body>
+  <canvas id="particle-canvas" data-text="ParticleText.js"></canvas>
+
+  <!-- Include ParticleText.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/gh/aayusharyan/particleText.js@main/src/particleText.js"></script>
+
+  <script>
+    initParticleJS('#particle-canvas', {
+      colors: ['#695aa6'],
+      fontSize: 100
+    });
+  </script>
+</body>
+</html>
+```
+
+## NPM
+
+Install via npm for use in bundled projects:
+
+<Tabs>
+  <TabItem label="npm">
+    ```bash
+    npm install particletext-js
+    ```
+  </TabItem>
+  <TabItem label="pnpm">
+    ```bash
+    pnpm add particletext-js
+    ```
+  </TabItem>
+  <TabItem label="yarn">
+    ```bash
+    yarn add particletext-js
+    ```
+  </TabItem>
+</Tabs>
+
+Then import in your JavaScript:
+
+```javascript
+import { initParticleJS } from 'particletext-js';
+
+initParticleJS('#particle-canvas', {
+  colors: ['#695aa6'],
+  fontSize: 100
+});
+```
+
+## Direct Download
+
+1. Download `particleText.js` from the [GitHub repository](https://github.com/aayusharyan/particleText.js)
+2. Place it in your project directory
+3. Include it in your HTML:
+
+```html
+<script src="path/to/particleText.js"></script>
+```
+
+## Requirements
+
+ParticleText.js has minimal requirements:
+
+- **Browser Support**: IE11+, Chrome, Firefox, Safari, Edge
+- **Dependencies**: None - Pure vanilla JavaScript
+- **HTML5 Canvas**: Required (supported by all modern browsers)
+
+## Verify Installation
+
+To verify ParticleText.js is loaded correctly, open your browser's developer console and type:
+
+```javascript
+console.log(typeof initParticleJS); // Should output: "function"
+```
+
+If you see `"function"`, you're ready to go!
+
+## Next Steps
+
+- [Quick Start Guide](/getting-started/quick-start/) - Create your first particle text animation
+- [Basic Usage](/getting-started/basic-usage/) - Learn the fundamentals
+- [Configuration Reference](/api-reference/configuration/) - Explore all options
+
+## Troubleshooting
+
+### Script Not Loading
+
+If `initParticleJS` is undefined:
+
+1. Check that the script tag is before your initialization code
+2. Verify the CDN URL or file path is correct
+3. Check browser console for 404 errors
+
+### Canvas Not Found
+
+If you see "Canvas element not found":
+
+1. Ensure your canvas has the correct `id` attribute
+2. Make sure the canvas element exists in the HTML before running the script
+3. Check that your selector (e.g., `#particle-canvas`) matches the canvas ID
+
+For more help, visit the [Troubleshooting Guide](/troubleshooting/common-issues/).

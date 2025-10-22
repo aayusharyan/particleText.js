@@ -1,0 +1,65 @@
+---
+title: Small Text
+description: Small font size with fine particle detail for subtle, delicate effects
+---
+
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+This example demonstrates small text rendering with fine particle detail. The small font size (40px) combined with tiny particles creates a subtle, delicate effect perfect for secondary text or decorative elements.
+
+## Live Demo
+
+<CanvasExample
+  title="Small Text"
+  config={{
+    text: 'small',
+    fontSize: 40,
+    particleRadius: { 'xs': { base: 1, rand: 1 } },
+    colors: ['#695aa6', '#ABC121']
+  }}
+  height={200}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'small',
+  fontSize: 40,
+  particleRadius: {
+    'xs': { base: 1, rand: 1 }  // Tiny particles (1-2px)
+  },
+  colors: ['#695aa6', '#ABC121']
+});`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Small Font Size:** 40px text creates a subtle, understated effect
+- **Tiny Particles:** 1-2px particle radius ensures fine detail
+- **Delicate Appearance:** Perfect for secondary text elements
+- **Lower Canvas Size:** Smaller canvas dimensions improve performance
+
+## Use Cases
+
+Small text configurations work well for:
+- Taglines and subtitles
+- Navigation menu items
+- Footer text
+- Decorative accents
+- Secondary information displays
+
+## Performance
+
+Small text generates fewer particles, making it:
+- Ideal for mobile devices
+- Great for multiple instances on one page
+- Lower resource consumption
+- Smooth animation even on older devices
+
+## Try It Yourself
+
+Experiment with small text sizes in the [Interactive Playground](/playground/).

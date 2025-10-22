@@ -1,0 +1,284 @@
+---
+title: Methods
+description: Methods available on ParticleText.js instances
+---
+
+import CodePreview from '../../../components/CodePreview.astro';
+
+ParticleText.js instances expose several methods for controlling animation and querying state. Access these methods through the object returned by `initParticleJS()`.
+
+## Available Methods
+
+```javascript
+const particle = initParticleJS('#canvas', { colors: ['#695aa6'] });
+
+// Available methods:
+particle.start Animation();
+particle.forceRequestAnimationFrame();
+particle.getCurrentBreakpoint();
+```
+
+---
+
+## startAnimation()
+
+Manually starts the animation. Use this when `autoAnimate` is set to `false`.
+
+### Signature
+
+<CodePreview
+  code={`particle.startAnimation()`}
+  language="javascript"
+/>
+
+### Parameters
+
+None
+
+### Returns
+
+`undefined`
+
+### Usage
+
+<CodePreview
+  code={`// Initialize without auto-start
+const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't start automatically
+});
+
+// Start animation when user clicks button
+document.getElementById('startBtn').addEventListener('click', () => {
+  particle.startAnimation();
+  console.log('Animation started!');
+});`}
+  language="javascript"
+/>
+
+### Notes
+
+- Calling `startAnimation()` multiple times has no effect after the first call
+- Animation state is tracked via `isAnimating` property
+- Once started, animation cannot be stopped (by design)
+
+### Example: Delayed Start
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Start after 2 seconds
+setTimeout(() => {
+  particle.startAnimation();
+}, 2000);`}
+  language="javascript"
+/>
+
+### Example: User-Triggered Animation
+
+<CodePreview
+  code={`const particle = initParticleJS('#hero-canvas', {
+  text: 'Welcome',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Start when page is visible
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.visibilityState === 'visible') {
+    particle.startAnimation();
+  }
+});`}
+  language="javascript"
+/>
+
+---
+
+## forceRequestAnimationFrame()
+
+Forces an immediate single-frame render of the animation. Useful for debugging or manual frame-by-frame control.
+
+### Signature
+
+<CodePreview
+  code={`particle.forceRequestAnimationFrame()`}
+  language="javascript"
+/>
+
+### Parameters
+
+None
+
+### Returns
+
+`undefined`
+
+### Usage
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false  // Manual control
+});
+
+// Render single frame
+particle.forceRequestAnimationFrame();
+
+// Render another frame
+particle.forceRequestAnimationFrame();`}
+  language="javascript"
+/>
+
+### Notes
+
+- This renders only ONE frame
+- Primarily for debugging and testing
+- Does not start continuous animation
+- Can be called before or after `startAnimation()`
+
+### Example: Step-Through Animation
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+let frame = 0;
+
+// Render frame-by-frame
+document.getElementById('nextFrame').addEventListener('click', () => {
+  particle.forceRequestAnimationFrame();
+  console.log(\`Rendered frame \${++frame}\`);
+});`}
+  language="javascript"
+/>
+
+---
+
+## getCurrentBreakpoint()
+
+Returns the current responsive breakpoint based on viewport width. Can be overridden for custom breakpoint logic.
+
+### Signature
+
+<CodePreview
+  code={`particle.getCurrentBreakpoint()`}
+  language="javascript"
+/>
+
+### Parameters
+
+None
+
+### Returns
+
+`String` - Current breakpoint key
+
+Possible values: `'xxxs'`, `'xxs'`, `'xs'`, `'sm'`, `'md'`, `'lg'`, `'xl'`, `'xxl'`, `'xxxl'`
+
+### Usage
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Check current breakpoint
+const breakpoint = particle.getCurrentBreakpoint();
+console.log(breakpoint);  // e.g., 'lg' on desktop
+
+// Use in conditional logic
+if (breakpoint === 'xs' || breakpoint === 'xxs') {
+  console.log('Mobile device detected');
+}`}
+  language="javascript"
+/>
+
+### Default Breakpoints
+
+| Breakpoint | Width Range |
+|-----------|-------------|
+| `xxxs` | 0px - 320px |
+| `xxs` | 320px - 375px |
+| `xs` | 375px - 768px |
+| `sm` | 768px - 1024px |
+| `md` | 1024px - 1440px |
+| `lg` | 1440px - 2560px |
+| `xl` | 2560px - 3440px |
+| `xxl` | 3440px - 3840px |
+| `xxxl` | 3840px+ |
+
+### Example: Responsive Logic
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Adjust behavior based on breakpoint
+const bp = particle.getCurrentBreakpoint();
+
+if (bp === 'xs' || bp === 'xxs' || bp === 'xxxs') {
+  console.log('Optimizing for mobile');
+  // Could adjust particle count, etc.
+}`}
+  language="javascript"
+/>
+
+### Overriding for Custom Breakpoints
+
+You can override this method to implement custom breakpoint logic:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Override with custom logic
+particle.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 600) return 'mobile';
+  if (width < 1200) return 'tablet';
+  return 'desktop';
+};
+
+console.log(particle.getCurrentBreakpoint());  // 'mobile', 'tablet', or 'desktop'`}
+  language="javascript"
+/>
+
+**Note:** When overriding, ensure your custom breakpoints match those used in `particleRadius` and `explosionRadius` configurations.
+
+---
+
+## Method Chaining
+
+Methods can be called sequentially, but they don't return the instance (no chaining):
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Call methods
+particle.startAnimation();
+particle.forceRequestAnimationFrame();  // Not chained
+
+const bp = particle.getCurrentBreakpoint();
+console.log(bp);`}
+  language="javascript"
+/>
+
+---
+
+## Next Steps
+
+- **[Properties](/api-reference/properties/)** - Access animation state
+- **[Configuration](/api-reference/configuration/)** - Configure behavior
+- **[Examples](/examples/)** - See methods in action
+- **[Advanced Examples](/examples/advanced/manual-control/)** - Manual animation control

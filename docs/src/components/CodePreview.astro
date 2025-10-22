@@ -1,0 +1,39 @@
+---
+/**
+ * CodePreview Component
+ * Displays code with syntax highlighting and copy button
+ *
+ * Usage:
+ * <CodePreview
+ *   code={`const config = { ... }`}
+ *   language="javascript"
+ *   title="Configuration"
+ * />
+ */
+
+import { Code } from '@astrojs/starlight/components';
+
+interface Props {
+	code: string;
+	language?: string;
+	title?: string;
+	showLineNumbers?: boolean;
+}
+
+const {
+	code,
+	language = 'javascript',
+	title,
+	showLineNumbers = true
+} = Astro.props;
+---
+
+<div class="code-preview">
+	<Code code={code.trim()} lang={language} title={title} />
+</div>
+
+<style>
+	.code-preview {
+		margin: 1.5rem 0;
+	}
+</style>

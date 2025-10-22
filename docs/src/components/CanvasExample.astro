@@ -1,0 +1,180 @@
+---
+/**
+ * CanvasExample Component
+ * Renders a live ParticleText.js canvas demonstration
+ *
+ * Usage:
+ * <CanvasExample
+ *   title="Example Title"
+ *   config={{
+ *     text: 'ParticleText',
+ *     colors: ['#695aa6'],
+ *     fontSize: 100
+ *   }}
+ *   height={400}
+ * />
+ */
+
+interface Props {
+	title: string;
+	config: Record<string, any>;
+	height?: number;
+	text?: string;
+	showStats?: boolean;
+	canvasId?: string;
+}
+
+const {
+	title,
+	config,
+	height = 400,
+	text,
+	showStats = false,
+	canvasId = `canvas-${Math.random().toString(36).substring(7)}`
+} = Astro.props;
+
+// Merge text prop into config if provided
+const finalConfig = text ? { ...config, text } : config;
+---
+
+<div class="canvas-example">
+	<h4>{title}</h4>
+	<div class="canvas-container">
+		<canvas
+			id={canvasId}
+			data-text={finalConfig.text || 'ParticleText.js'}
+			style={`height: ${height}px;`}
+		></canvas>
+	</div>
+	{showStats && (
+		<div class="performance-stats" id={`stats-${canvasId}`}>
+			<div class="stat">
+				<div class="stat-value" data-stat="particles">-</div>
+				<div class="stat-label">Particles</div>
+			</div>
+			<div class="stat">
+				<div class="stat-value" data-stat="fps">-</div>
+				<div class="stat-label">FPS</div>
+			</div>
+		</div>
+	)}
+</div>
+
+<script define:vars={{ canvasId, finalConfig, showStats }}>
+	// Wait for DOM to be ready
+	document.addEventListener('DOMContentLoaded', () => {
+		// Ensure particleText.js is loaded
+		if (typeof window.initParticleJS === 'undefined') {
+			console.error('ParticleText.js library not loaded. Make sure particleText.js is included in the page.');
+			return;
+		}
+
+		const canvas = document.getElementById(canvasId);
+		if (!canvas) {
+			console.error(`Canvas element with id ${canvasId} not found.`);
+			return;
+		}
+
+		try {
+			// Initialize ParticleText.js
+			const instance = window.initParticleJS(`#${canvasId}`, finalConfig);
+
+			// Set up performance monitoring if stats are enabled
+			if (showStats && instance) {
+				const statsContainer = document.getElementById(`stats-${canvasId}`);
+				if (statsContainer) {
+					const particlesEl = statsContainer.querySelector('[data-stat="particles"]');
+					const fpsEl = statsContainer.querySelector('[data-stat="fps"]');
+
+					let lastTime = performance.now();
+					let frames = 0;
+					let fps = 0;
+
+					function updateStats() {
+						frames++;
+						const currentTime = performance.now();
+
+						if (currentTime >= lastTime + 1000) {
+							fps = Math.round((frames * 1000) / (currentTime - lastTime));
+							frames = 0;
+							lastTime = currentTime;
+
+							if (fpsEl) fpsEl.textContent = fps.toString();
+						}
+
+						if (instance.particleList && particlesEl) {
+							particlesEl.textContent = instance.particleList.length.toString();
+						}
+
+						requestAnimationFrame(updateStats);
+					}
+
+					updateStats();
+				}
+			}
+		} catch (error) {
+			console.error('Error initializing ParticleText.js:', error);
+			if (canvas.parentElement) {
+				const errorDiv = document.createElement('div');
+				errorDiv.className = 'canvas-error';
+				errorDiv.textContent = `Error: ${error.message}`;
+				errorDiv.style.cssText = 'color: red; padding: 1rem; background: #ffe5e5; border-radius: 0.25rem; margin-top: 0.5rem;';
+				canvas.parentElement.appendChild(errorDiv);
+			}
+		}
+	});
+</script>
+
+<style>
+	.canvas-example {
+		margin: 2rem 0;
+	}
+
+	.canvas-example h4 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+		color: var(--sl-color-text);
+		font-weight: 600;
+	}
+
+	.canvas-container {
+		position: relative;
+		width: 100%;
+		background: var(--sl-color-black, #000);
+		border-radius: 0.5rem;
+		overflow: hidden;
+		border: 1px solid var(--sl-color-gray-5);
+	}
+
+	.canvas-container canvas {
+		display: block;
+		width: 100%;
+	}
+
+	.performance-stats {
+		display: flex;
+		gap: 1rem;
+		margin: 1rem 0;
+		padding: 1rem;
+		background: transparent;
+		border-radius: 0.5rem;
+	}
+
+	.stat {
+		flex: 1;
+		text-align: center;
+	}
+
+	.stat-value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--sl-color-accent);
+	}
+
+	.stat-label {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-5);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+</style>

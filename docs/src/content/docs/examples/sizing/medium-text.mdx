@@ -1,0 +1,74 @@
+---
+title: Medium Text
+description: The most commonly used size for headers and titles with balanced particle density
+---
+
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+This example shows the most commonly used size - medium text (100px) with standard particle density. This is ideal for headers, titles, and main text elements that need to be clearly readable while maintaining the beautiful particle effect.
+
+## Live Demo
+
+<CanvasExample
+  title="Medium Text"
+  config={{
+    text: 'MEDIUM',
+    fontSize: 100,
+    particleRadius: { 'xs': { base: 1, rand: 1 } },
+    colors: ['#FF6B6B', '#4ECDC4', '#45B7D1']
+  }}
+  height={300}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'MEDIUM',
+  fontSize: 100,
+  particleRadius: {
+    'xs': { base: 1, rand: 1 }  // Standard particles (1-2px)
+  },
+  colors: ['#FF6B6B', '#4ECDC4', '#45B7D1']
+});`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Balanced Sizing:** 100px font size is readable on most screens
+- **Standard Particles:** 1-2px particles provide good detail without lag
+- **Optimal Performance:** Sweet spot between visual quality and performance
+- **Versatile:** Works well in most design contexts
+
+## Best Practices
+
+- **Font Size Range:** 80-120px is the recommended range for medium text
+- **Particle Density:** 1-2px particles provide good detail without lag
+- **Canvas Dimensions:** Keep width under 1500px for good performance
+- **Color Count:** 2-4 colors work well at this size
+- **Readable:** Text remains clearly legible
+
+## Use Cases
+
+Medium text configurations are perfect for:
+- Page headers and titles
+- Section headings
+- Call-to-action text
+- Landing page headlines
+- Hero section text
+- Main content headings
+
+## Performance Considerations
+
+Medium text offers balanced performance:
+- Moderate particle count (1000-2000 particles typically)
+- Smooth on most modern devices
+- Good for desktop and tablet displays
+- May need optimization for older mobile devices
+
+## Try It Yourself
+
+Create your own medium-sized effects in the [Interactive Playground](/playground/).

@@ -1,0 +1,320 @@
+---
+title: Properties
+description: Properties available on ParticleText.js instances
+---
+
+import CodePreview from '../../../components/CodePreview.astro';
+
+ParticleText.js instances expose properties that allow you to inspect the current state of the animation. Access these properties through the object returned by `initParticleJS()`.
+
+## Available Properties
+
+```javascript
+const particle = initParticleJS('#canvas', { colors: ['#695aa6'] });
+
+// Available properties:
+particle.isAnimating    // Boolean
+particle.particleList   // Array
+```
+
+---
+
+## isAnimating
+
+Indicates whether the animation is currently running.
+
+### Type
+
+`Boolean`
+
+### Values
+
+- `true` - Animation is running
+- `false` - Animation has not started yet
+
+### Usage
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: true  // Starts automatically
+});
+
+console.log(particle.isAnimating);  // true
+
+// With manual start
+const particle2 = initParticleJS('#canvas2', {
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't start automatically
+});
+
+console.log(particle2.isAnimating);  // false
+
+particle2.startAnimation();
+console.log(particle2.isAnimating);  // true`}
+  language="javascript"
+/>
+
+### Example: Conditional Logic
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Check before performing action
+if (particle.isAnimating) {
+  console.log('Animation is running');
+  // Update UI, show loading indicator, etc.
+} else {
+  console.log('Animation not started');
+  // Show start button, etc.
+}`}
+  language="javascript"
+/>
+
+### Example: Status Display
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Update status display
+function updateStatus() {
+  const statusEl = document.getElementById('status');
+  statusEl.textContent = particle.isAnimating ? 'Running' : 'Stopped';
+}
+
+document.getElementById('startBtn').onclick = () => {
+  particle.startAnimation();
+  updateStatus();
+};
+
+updateStatus();  // Initial status`}
+  language="javascript"
+/>
+
+### Notes
+
+- Read-only property (don't modify it directly)
+- Once `true`, it stays `true` (animation cannot be stopped)
+- Useful for UI state management
+
+---
+
+## particleList
+
+Array containing all particle objects in the animation.
+
+### Type
+
+`Array<Particle>`
+
+### Structure
+
+Each particle object contains:
+
+```javascript
+{
+  x: Number,        // Current X position
+  y: Number,        // Current Y position
+  vx: Number,       // X velocity
+  vy: Number,       // Y velocity
+  accX: Number,     // X acceleration
+  accY: Number,     // Y acceleration
+  r: Number,        // Particle radius
+  friction: Number, // Particle friction (0-1)
+  color: String,    // Hex color (#RRGGBB)
+  dest: {           // Destination (rest position)
+    x: Number,
+    y: Number
+  }
+}
+```
+
+### Usage
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'Hello',
+  colors: ['#695aa6']
+});
+
+// Get particle count
+console.log(\`Total particles: \${particle.particleList.length}\`);
+
+// Access individual particles
+const firstParticle = particle.particleList[0];
+console.log('First particle color:', firstParticle.color);
+console.log('First particle position:', firstParticle.x, firstParticle.y);
+
+// Inspect all particles
+particle.particleList.forEach((p, index) => {
+  console.log(\`Particle \${index}: radius=\${p.r}, color=\${p.color}\`);
+});`}
+  language="javascript"
+/>
+
+### Example: Particle Count Display
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'ParticleText',
+  colors: ['#695aa6', '#8b7bb8', '#a89bc9']
+});
+
+// Display particle count
+const count = particle.particleList.length;
+document.getElementById('count').textContent = \`\${count} particles\`;
+
+// Color distribution
+const colorCounts = {};
+particle.particleList.forEach(p => {
+  colorCounts[p.color] = (colorCounts[p.color] || 0) + 1;
+});
+
+console.log('Color distribution:', colorCounts);`}
+  language="javascript"
+/>
+
+### Example: Performance Monitoring
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'Performance Test',
+  colors: ['#695aa6']
+});
+
+// Monitor particle count for performance
+setInterval(() => {
+  const stats = {
+    total: particle.particleList.length,
+    animating: particle.isAnimating,
+    timestamp: Date.now()
+  };
+  console.log(stats);
+}, 1000);`}
+  language="javascript"
+/>
+
+### Example: Find Particles by Color
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'RAINBOW',
+  colors: ['#FF6B6B', '#4ECDC4', '#695aa6']
+});
+
+// Find all purple particles
+const purpleParticles = particle.particleList.filter(p =>
+  p.color === '#695aa6'
+);
+
+console.log(\`Found \${purpleParticles.length} purple particles\`);
+
+// Get average position of red particles
+const redParticles = particle.particleList.filter(p =>
+  p.color === '#FF6B6B'
+);
+
+const avgX = redParticles.reduce((sum, p) => sum + p.x, 0) / redParticles.length;
+const avgY = redParticles.reduce((sum, p) => sum + p.y, 0) / redParticles.length;
+
+console.log(\`Red particles center: (\${avgX}, \${avgY})\`);`}
+  language="javascript"
+/>
+
+### Notes
+
+- **Read-only** - Don't modify the array or particle objects directly
+- Particle count depends on text complexity and `maxParticles` setting
+- Each character generates multiple particles based on its shape
+- Particle positions update every frame during animation
+
+### Performance Consideration
+
+For large text or high `maxParticles` values, this array can be quite large:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'This is a very long text string',
+  colors: ['#695aa6'],
+  maxParticles: 10000
+});
+
+console.log(\`Particle count: \${particle.particleList.length}\`);
+// Could be 5000+ particles
+
+// Be careful with operations on large arrays
+// Avoid frequent iterations in hot code paths`}
+  language="javascript"
+/>
+
+---
+
+## Using Properties Together
+
+Combine properties for comprehensive state inspection:
+
+<CodePreview
+  code={`const particle = initParticleJS('#canvas', {
+  text: 'Status Check',
+  colors: ['#695aa6', '#8b7bb8']
+});
+
+// Complete status report
+function getStatus() {
+  return {
+    running: particle.isAnimating,
+    particleCount: particle.particleList.length,
+    colors: [...new Set(particle.particleList.map(p => p.color))],
+    averageRadius: particle.particleList.reduce((sum, p) => sum + p.r, 0) / particle.particleList.length
+  };
+}
+
+console.log(getStatus());
+// {
+//   running: true,
+//   particleCount: 2847,
+//   colors: ['#695aa6', '#8b7bb8'],
+//   averageRadius: 2.4
+// }`}
+  language="javascript"
+/>
+
+---
+
+## Property Access Pattern
+
+Always store the instance reference to access properties later:
+
+<CodePreview
+  code={`// ✅ Good - Store reference
+const myParticle = initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// Can access properties later
+setTimeout(() => {
+  console.log(myParticle.isAnimating);
+  console.log(myParticle.particleList.length);
+}, 1000);
+
+// ❌ Bad - No reference
+initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+// Can't access properties later!`}
+  language="javascript"
+/>
+
+---
+
+## Next Steps
+
+- **[Methods](/api-reference/methods/)** - Control animation behavior
+- **[Configuration](/api-reference/configuration/)** - Configure particle properties
+- **[Examples](/examples/)** - See properties in use
+- **[Performance Guide](/guides/performance-optimization/)** - Optimize particle count

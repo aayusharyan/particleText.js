@@ -1,0 +1,71 @@
+---
+title: Multiple Colors
+description: Create vibrant, rainbow-like effects with randomly distributed particle colors
+---
+
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+This example demonstrates the multi-color feature where each particle is randomly assigned one of the specified colors. This creates a vibrant, rainbow-like effect that makes the text more dynamic and eye-catching.
+
+## Live Demo
+
+<CanvasExample
+  title="Multiple Colors"
+  config={{
+    text: 'RAINBOW TEXT',
+    colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'],
+    fontSize: 100
+  }}
+  height={400}
+  showStats={false}
+/>
+
+## Configuration
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'RAINBOW TEXT',
+  colors: [
+    '#FF6B6B',  // Coral Red
+    '#4ECDC4',  // Turquoise
+    '#45B7D1',  // Sky Blue
+    '#FFA07A',  // Light Salmon
+    '#98D8C8'   // Mint Green
+  ],
+  fontSize: 100
+});`}
+  language="javascript"
+/>
+
+## Key Features
+
+- **Random Distribution:** Each particle gets a random color from your palette
+- **Vibrant Effect:** Creates dynamic, colorful text that stands out
+- **Flexible Palette:** Use 2-10 colors based on your design needs
+- **Visual Interest:** Multi-color particles add energy and personality
+
+## How It Works
+
+When multiple colors are provided, each particle is assigned a random color from the array during initialization. The color distribution is random, so you'll see a nice mix of all colors throughout the text. Each time the page loads, particles get randomly distributed colors from the palette.
+
+## Best Practices
+
+- **Color Count:** Use 3-5 colors for best visual effect
+- **Too Many Colors:** More than 7-8 colors can look chaotic
+- **Too Few Colors:** Just 2 colors might not create enough variety
+- **Color Harmony:** Choose colors that complement each other for a professional appearance
+- **Contrast:** Ensure all colors have good contrast against your background
+
+## Use Cases
+
+Multi-color configurations are perfect for:
+- Creative portfolios and artistic websites
+- Entertainment and gaming sites
+- Children's applications
+- Festive or celebratory themes
+- Bold, attention-grabbing hero sections
+
+## Try It Yourself
+
+Create your own color palette in the [Interactive Playground](/playground/).
