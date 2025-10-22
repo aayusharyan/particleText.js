@@ -10,6 +10,7 @@ import starlightSiteGraph from 'starlight-site-graph';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://particletext.js.org', // Update with your actual domain
+	prefetch: true,
 	integrations: [
 		starlight({
 			plugins: [
