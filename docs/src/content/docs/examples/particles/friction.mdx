@@ -1,6 +1,608 @@
 ---
-title: Friction
-description: Adjusting particle friction for different effects
+title: Friction Effects
+description: Control particle movement behavior and return animation speed
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+Friction controls how quickly particles slow down and return to their original positions after being displaced by cursor interaction. It's the key parameter that determines whether your particle animation feels smooth and calm, or energetic and bouncy. Understanding friction is essential for creating the exact feel you want for your interactive text.
+
+## Understanding Friction
+
+Friction in ParticleText.js works like real-world friction - it's a **velocity dampening factor** applied to each particle every frame. The friction value is a number between 0 and 1:
+
+- **Higher friction (0.95-0.99)**: Particles slow down quickly → smooth, damped movement
+- **Medium friction (0.85-0.93)**: Balanced movement → natural feel
+- **Lower friction (0.70-0.85)**: Particles slow down slowly → bouncy, energetic movement
+
+### The Physics
+
+Each animation frame, a particle's velocity is multiplied by the friction value:
+
+```
+New Velocity = Current Velocity × Friction
+
+Example with friction 0.9:
+Frame 1: velocity = 10 → 10 × 0.9 = 9
+Frame 2: velocity = 9 → 9 × 0.9 = 8.1
+Frame 3: velocity = 8.1 → 8.1 × 0.9 = 7.29
+...and so on until particle stops
+```
+
+**High friction** (closer to 1) means velocity decreases slowly - particles overshoot and bounce back.
+
+**Low friction** (closer to 0) means velocity decreases quickly - particles stop without bouncing.
+
+### The Friction Configuration
+
+<CodePreview
+  code={`friction: {
+  base: 0.9,   // Base friction value (0-1)
+  rand: 0.05   // Random variation per particle
+}
+
+// Final friction per particle: base to (base + rand)
+// Example: 0.9 to 0.95`}
+  language="javascript"
+/>
+
+- **base**: The minimum friction value
+- **rand**: Random amount added to each particle (creates organic variation)
+
+## Live Demos
+
+### High Friction - Slow & Smooth
+
+Very high friction (0.95) creates slow, damped movement with minimal overshoot.
+
+<CanvasExample
+  title="High Friction (0.95) - Slow & Smooth"
+  config={{
+    text: 'SMOOTH',
+    friction: { base: 0.95, rand: 0.03 },
+    colors: ['#3498DB', '#2980B9'],
+    fontSize: 75
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'SMOOTH',
+  friction: {
+    base: 0.95,   // Very high friction
+    rand: 0.03    // Small variation
+  },
+  colors: ['#3498DB', '#2980B9']
+});`}
+  language="javascript"
+/>
+
+**Try it:** Move your cursor over the text. Notice how particles move slowly and return to position without bouncing.
+
+**Best for:** Professional sites, calm aesthetics, subtle interactions, corporate brands.
+
+### Medium Friction - Balanced
+
+Medium friction (0.9) creates natural, balanced movement - the recommended default.
+
+<CanvasExample
+  title="Medium Friction (0.9) - Balanced"
+  config={{
+    text: 'BALANCED',
+    friction: { base: 0.9, rand: 0.05 },
+    colors: ['#95A5A6', '#7F8C8D'],
+    fontSize: 75
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'BALANCED',
+  friction: {
+    base: 0.9,    // Medium friction (default)
+    rand: 0.05    // Moderate variation
+  },
+  colors: ['#95A5A6', '#7F8C8D']
+});`}
+  language="javascript"
+/>
+
+**Try it:** The movement feels natural and responsive without being sluggish or chaotic.
+
+**Best for:** General purpose, most applications, landing pages, portfolios.
+
+### Low Friction - Fast & Bouncy
+
+Low friction (0.8) creates fast, energetic movement with visible overshoot and oscillation.
+
+<CanvasExample
+  title="Low Friction (0.8) - Fast & Bouncy"
+  config={{
+    text: 'BOUNCY',
+    friction: { base: 0.8, rand: 0.1 },
+    colors: ['#E74C3C', '#C0392B'],
+    fontSize: 75
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'BOUNCY',
+  friction: {
+    base: 0.8,    // Low friction
+    rand: 0.1     // High variation
+  },
+  colors: ['#E74C3C', '#C0392B']
+});`}
+  language="javascript"
+/>
+
+**Try it:** Particles spring back quickly and overshoot their target, creating a bouncy, playful effect.
+
+**Best for:** Playful brands, entertainment sites, gaming, creative portfolios, energetic content.
+
+## Friction Value Guide
+
+| Friction Range | Speed | Behavior | Overshoot | Best For |
+|---------------|-------|----------|-----------|----------|
+| **0.95-0.99** | Very Slow | Heavily damped, smooth glide | None | Professional, minimal, calm |
+| **0.90-0.95** | Slow | Soft landing, gentle | Minimal | Corporate, elegant, refined |
+| **0.85-0.90** | Medium | Balanced, natural | Slight | General purpose, versatile |
+| **0.80-0.85** | Fast | Springy, responsive | Noticeable | Energetic, modern, dynamic |
+| **0.70-0.80** | Very Fast | Highly bouncy, chaotic | Strong | Playful, experimental, artistic |
+| **< 0.70** | Extreme | Unstable, wild | Excessive | Rarely recommended |
+
+## Dynamic Friction (Function)
+
+For advanced control, use a function to calculate friction dynamically for each particle.
+
+<CodePreview
+  code={`// Random friction per particle
+friction: function() {
+  return Math.random() * 0.15 + 0.8;  // 0.8-0.95
+}
+
+// Weighted towards high friction
+friction: function() {
+  const values = [0.9, 0.9, 0.9, 0.85, 0.95];
+  return values[Math.floor(Math.random() * values.length)];
+}
+
+// Friction based on particle radius
+friction: function() {
+  const radius = this.r || 2;  // Access particle radius
+  return radius < 2 ? 0.95 : 0.85;  // Small = smooth, large = bouncy
+}
+
+// Screen width-based
+friction: function() {
+  return window.innerWidth < 768 ?
+    0.92 :  // Higher friction on mobile (smoother)
+    0.88;   // Lower friction on desktop (more dynamic)
+}`}
+  language="javascript"
+/>
+
+## Combining Friction with Explosion Radius
+
+Friction and explosion radius work together to create distinct interaction feels:
+
+### Gentle Waves
+
+<CodePreview
+  code={`{
+  friction: { base: 0.93, rand: 0.03 },  // High friction
+  explosionRadius: { xs: 80, lg: 120 }   // Medium radius
+}
+// Result: Soft, wave-like movement`}
+  language="javascript"
+/>
+
+### Sharp, Snappy Response
+
+<CodePreview
+  code={`{
+  friction: { base: 0.87, rand: 0.05 },  // Medium-low friction
+  explosionRadius: { xs: 50, lg: 70 }    // Small radius
+}
+// Result: Quick, precise reactions`}
+  language="javascript"
+/>
+
+### Dramatic, Sweeping Effect
+
+<CodePreview
+  code={`{
+  friction: { base: 0.82, rand: 0.08 },  // Low friction
+  explosionRadius: { xs: 150, lg: 250 }  // Large radius
+}
+// Result: Wide-ranging, bouncy movement`}
+  language="javascript"
+/>
+
+### Minimal, Smooth Disturbance
+
+<CodePreview
+  code={`{
+  friction: { base: 0.96, rand: 0.02 },  // Very high friction
+  explosionRadius: { xs: 40, lg: 60 }    // Small radius
+}
+// Result: Subtle, calm, professional`}
+  language="javascript"
+/>
+
+## Use Case Patterns
+
+### Professional/Corporate
+
+Calm, controlled, minimal bounce.
+
+<CodePreview
+  code={`{
+  friction: { base: 0.94, rand: 0.03 },
+  explosionRadius: { xs: 50, lg: 80 },
+  colors: ['#2C3E50'],
+  particleRadius: { xs: { base: 1, rand: 1 } }
+}
+// Smooth, professional interaction`}
+  language="javascript"
+/>
+
+### Creative/Portfolio
+
+Engaging, noticeable movement with character.
+
+<CodePreview
+  code={`{
+  friction: { base: 0.87, rand: 0.06 },
+  explosionRadius: { xs: 100, lg: 180 },
+  colors: [
+    { color: '#E74C3C', weight: 5 },
+    { color: '#9B59B6', weight: 2 }
+  ],
+  particleRadius: { xs: { base: 2, rand: 2 } }
+}
+// Dynamic, memorable interaction`}
+  language="javascript"
+/>
+
+### Gaming/Entertainment
+
+Energetic, bouncy, playful.
+
+<CodePreview
+  code={`{
+  friction: { base: 0.78, rand: 0.12 },
+  explosionRadius: { xs: 120, lg: 200 },
+  colors: ['#FF6B6B', '#4ECDC4', '#FFD93D'],
+  particleRadius: { xs: { base: 3, rand: 2 } }
+}
+// Playful, energetic, fun`}
+  language="javascript"
+/>
+
+### Hero Section
+
+Bold, attention-grabbing with smooth recovery.
+
+<CodePreview
+  code={`{
+  friction: { base: 0.89, rand: 0.05 },
+  explosionRadius: { xs: 150, lg: 300 },
+  colors: ['#695aa6', '#8b7bb8'],
+  fontSize: 150
+}
+// Impactful yet controlled`}
+  language="javascript"
+/>
+
+### Data Visualization / Precise
+
+Quick to position, minimal oscillation.
+
+<CodePreview
+  code={`{
+  friction: { base: 0.96, rand: 0.02 },
+  explosionRadius: { xs: 30, lg: 50 },
+  particleRadius: { xs: { base: 1, rand: 0.5 } }
+}
+// Precise, minimal overshoot`}
+  language="javascript"
+/>
+
+## Randomness and Variation
+
+The `rand` parameter adds per-particle variation, creating organic, natural movement:
+
+### No Variation (Uniform)
+
+<CodePreview
+  code={`friction: { base: 0.9, rand: 0 }
+// All particles have exactly 0.9 friction
+// Movement looks mechanical, synchronized`}
+  language="javascript"
+/>
+
+### Small Variation (Subtle)
+
+<CodePreview
+  code={`friction: { base: 0.9, rand: 0.03 }
+// Particles: 0.9 to 0.93
+// Subtle organic feel, particles slightly out of sync`}
+  language="javascript"
+/>
+
+### Medium Variation (Natural)
+
+<CodePreview
+  code={`friction: { base: 0.9, rand: 0.05 }
+// Particles: 0.9 to 0.95
+// Natural variation, recommended for most cases`}
+  language="javascript"
+/>
+
+### Large Variation (Dynamic)
+
+<CodePreview
+  code={`friction: { base: 0.85, rand: 0.15 }
+// Particles: 0.85 to 1.0
+// Wide range of behaviors, creates depth and interest`}
+  language="javascript"
+/>
+
+**Recommended:** Use `rand` values between 0.03-0.08 for natural-looking variation without chaos.
+
+## Performance Considerations
+
+Friction has **zero performance impact** beyond the base animation loop. It's a simple multiplication operation:
+
+```javascript
+velocity *= friction;
+```
+
+However, friction affects the **perceived performance**:
+
+- **High friction** → Slower movement → May feel laggy on slow devices
+- **Low friction** → Faster movement → May feel choppy at low frame rates
+
+### Optimizing for Slow Devices
+
+<CodePreview
+  code={`{
+  friction: { base: 0.88, rand: 0.05 },  // Medium friction
+  supportSlowBrowsers: true,
+  renderTimeThreshold: 15,
+  maxParticles: 3000
+}
+// On slow browsers, friction is automatically adjusted:
+// friction /= 1.1  (becomes ~0.8 for faster movement)`}
+  language="javascript"
+/>
+
+The library automatically reduces friction on slow browsers to compensate for lower frame rates.
+
+## Advanced Techniques
+
+### Friction Transitions
+
+Smoothly change friction over time (requires manual implementation):
+
+<CodePreview
+  code={`let targetFriction = 0.9;
+let currentFriction = 0.9;
+
+friction: function() {
+  // Smoothly interpolate to target
+  currentFriction += (targetFriction - currentFriction) * 0.1;
+  return currentFriction;
+}
+
+// Later, change friction dynamically:
+// targetFriction = 0.75;  // Becomes bouncier`}
+  language="javascript"
+/>
+
+### Position-Based Friction
+
+Different friction in different areas (experimental):
+
+<CodePreview
+  code={`friction: function() {
+  const x = this.dest.x;  // Particle's rest position
+  const centerX = canvas.width / 2;
+
+  const distanceFromCenter = Math.abs(x - centerX);
+  const maxDistance = centerX;
+
+  // Higher friction towards edges
+  return 0.85 + (distanceFromCenter / maxDistance) * 0.1;
+  // Center particles: 0.85 (bouncy)
+  // Edge particles: 0.95 (smooth)
+}`}
+  language="javascript"
+/>
+
+### Rhythm-Based Friction
+
+Pulsing friction for musical/rhythmic effects:
+
+<CodePreview
+  code={`let time = 0;
+
+friction: function() {
+  time += 0.05;
+  const pulse = Math.sin(time) * 0.05;  // -0.05 to +0.05
+  return 0.9 + pulse;  // Oscillates 0.85-0.95
+}
+// Creates rhythmic variation in particle behavior`}
+  language="javascript"
+/>
+
+### Velocity-Dependent Friction
+
+Air resistance effect (higher friction at higher speeds):
+
+<CodePreview
+  code={`friction: function() {
+  const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+
+  if (speed > 5) {
+    return 0.85;  // High friction for fast particles
+  } else if (speed > 2) {
+    return 0.90;  // Medium friction
+  } else {
+    return 0.95;  // Low friction for slow particles
+  }
+  // Fast particles slow down quickly, slow particles glide
+}`}
+  language="javascript"
+/>
+
+## Common Mistakes
+
+### Friction Too Low (< 0.7)
+
+<CodePreview
+  code={`// ❌ Too chaotic
+friction: { base: 0.65, rand: 0.1 }
+// Particles never settle, constantly oscillating
+
+// ✅ Better
+friction: { base: 0.8, rand: 0.08 }
+// Bouncy but stable`}
+  language="javascript"
+/>
+
+### Friction Too High (> 0.98)
+
+<CodePreview
+  code={`// ❌ Too slow, feels laggy
+friction: { base: 0.98, rand: 0.01 }
+// Particles barely move
+
+// ✅ Better
+friction: { base: 0.94, rand: 0.03 }
+// Smooth but responsive`}
+  language="javascript"
+/>
+
+### Mismatched with Explosion Radius
+
+<CodePreview
+  code={`// ❌ Awkward combination
+{
+  friction: { base: 0.95, rand: 0.02 },  // Very smooth
+  explosionRadius: { lg: 300 }           // Very large
+}
+// Large explosion but slow recovery = feels disconnected
+
+// ✅ Better pairing
+{
+  friction: { base: 0.88, rand: 0.05 },  // Medium
+  explosionRadius: { lg: 300 }           // Very large
+}
+// Fast enough to follow large movements`}
+  language="javascript"
+/>
+
+### No Randomness
+
+<CodePreview
+  code={`// ❌ Mechanical, synchronized
+friction: { base: 0.9, rand: 0 }
+
+// ✅ Natural, organic
+friction: { base: 0.9, rand: 0.05 }`}
+  language="javascript"
+/>
+
+## Best Practices
+
+1. **Start with defaults**: `{ base: 0.9, rand: 0.05 }` works for 90% of use cases
+2. **Test by interacting**: Don't just look - move your mouse and feel the response
+3. **Match your brand**: Playful brand = lower friction; professional = higher friction
+4. **Pair with explosion radius**: Large radius needs lower friction for responsiveness
+5. **Use variation**: `rand` of 0.03-0.08 creates natural movement
+6. **Consider device**: Mobile may need higher friction (smoother) than desktop
+7. **Avoid extremes**: Stay within 0.75-0.96 for stable behavior
+8. **Test slow browsers**: Enable `supportSlowBrowsers` to auto-adjust
+
+## Troubleshooting
+
+**Particles move too slowly or feel sluggish?**
+- Decrease friction value
+- Try: `{ base: 0.87, rand: 0.05 }`
+
+**Particles bounce too much or never settle?**
+- Increase friction value
+- Try: `{ base: 0.92, rand: 0.04 }`
+
+**Movement looks robotic or synchronized?**
+- Increase `rand` value
+- Try: `{ base: 0.9, rand: 0.06 }`
+
+**Particles overshoot and oscillate wildly?**
+- Increase `base` to 0.90+
+- Decrease `rand` to < 0.05
+
+**Different behavior on mobile vs desktop?**
+- Set explicit friction values
+- Consider using a function to detect device type
+
+**Particles don't react to cursor at all?**
+- This is not a friction issue - check `explosionRadius`
+- See [Explosion Radius](/examples/particles/explosion-radius/)
+
+## Physics Deep Dive
+
+For those interested in the math:
+
+### Without Friction (Theoretical)
+```
+velocity = constant (never slows down)
+```
+
+### With Friction
+```
+v(n+1) = v(n) × friction
+
+After k frames:
+v(k) = v(0) × friction^k
+```
+
+### Time to Stop (95% reduction)
+
+How many frames until velocity is reduced to 5% of original:
+
+- **Friction 0.95**: ~60 frames (~1 second at 60fps)
+- **Friction 0.90**: ~29 frames (~0.5 seconds)
+- **Friction 0.85**: ~19 frames (~0.3 seconds)
+- **Friction 0.80**: ~14 frames (~0.23 seconds)
+
+Lower friction = faster settling time.
+
+### Overshoot
+
+Overshoot occurs when friction is low enough that particles accelerate past their rest position before slowing down:
+
+- **Friction > 0.92**: Minimal overshoot (critically damped)
+- **Friction 0.85-0.92**: Slight overshoot (slightly underdamped)
+- **Friction < 0.85**: Noticeable overshoot (underdamped)
+
+## Accessibility Considerations
+
+- **Reduced motion**: The library respects `prefers-reduced-motion` - consider using higher friction (0.94+) for users who prefer reduced motion
+- **Photosensitivity**: Very low friction with rapid oscillation may trigger issues - avoid friction < 0.75
+- **Predictability**: Higher friction = more predictable movement = better for users with motor impairments
+
+## Related Examples
+
+- [Friction (API Reference)](/api-reference/configuration/#friction) - Full configuration options
+- [Explosion Radius](/examples/particles/explosion-radius/) - Control interaction distance
+- [Particle Density](/examples/particles/density/) - Control particle size and detail
+- [Slow Browser Support](/examples/advanced/slow-browser/) - Automatic friction adjustment
+- [Performance Optimization](/guides/performance-optimization/) - Optimize animations

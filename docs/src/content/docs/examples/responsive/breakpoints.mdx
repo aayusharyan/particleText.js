@@ -1,6 +1,621 @@
 ---
-title: Breakpoints
-description: Using responsive breakpoints with ParticleText.js
+title: Responsive Breakpoints
+description: Adapt particle behavior and appearance across all device sizes
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+ParticleText.js includes a sophisticated responsive breakpoint system that automatically adapts particle configurations based on screen size. With 9 breakpoints covering everything from tiny mobile screens to 4K displays, you can create experiences that look perfect on any device without writing media queries.
+
+## Understanding Breakpoints
+
+Breakpoints are screen width thresholds that trigger different configuration values. The library continuously monitors the window width and applies the appropriate values from your configuration.
+
+### The 9 Breakpoints
+
+| Breakpoint | Width Range | Typical Devices | Example Sizes |
+|-----------|-------------|-----------------|---------------|
+| **XXXS** | 0px - 319px | Very small phones | Old phones, minimal viewports |
+| **XXS** | 320px - 374px | Small phones | iPhone SE (1st gen) |
+| **XS** | 375px - 767px | Standard phones | iPhone 12/13/14, most Android phones |
+| **SM** | 768px - 1023px | Tablets (portrait) | iPad portrait, small tablets |
+| **MD** | 1024px - 1439px | Tablets (landscape), small laptops | iPad landscape, 13" laptops |
+| **LG** | 1440px - 2559px | Desktop monitors | 15-27" monitors, most desktops |
+| **XL** | 2560px - 3439px | Large monitors | 27-32" QHD/4K monitors |
+| **XXL** | 3440px - 3839px | Ultra-wide monitors | 34" ultra-wide, triple monitor setups |
+| **XXXL** | 3840px+ | 4K+ displays | 4K monitors, 5K displays, multi-monitor |
+
+## Live Responsive Demo
+
+<CanvasExample
+  title="Responsive Particle Configuration"
+  config={{
+    text: 'RESPONSIVE',
+    colors: ['#695aa6', '#8b7bb8'],
+    particleRadius: {
+      xxxs: { base: 1, rand: 0.5 },
+      xs: { base: 1.5, rand: 1 },
+      md: { base: 2, rand: 1 },
+      lg: { base: 3, rand: 2 },
+      xxxl: { base: 4, rand: 2 }
+    },
+    explosionRadius: {
+      xxxs: 30,
+      xs: 50,
+      md: 75,
+      lg: 150,
+      xxxl: 250
+    }
+  }}
+  height={300}
+/>
+
+**Try it:** Resize your browser window and watch how the particles adapt to different screen sizes!
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'RESPONSIVE',
+  colors: ['#695aa6', '#8b7bb8'],
+
+  // Particles grow on larger screens
+  particleRadius: {
+    xxxs: { base: 1, rand: 0.5 },   // Tiny: 1-1.5px
+    xs: { base: 1.5, rand: 1 },     // Small: 1.5-2.5px
+    md: { base: 2, rand: 1 },       // Medium: 2-3px
+    lg: { base: 3, rand: 2 },       // Large: 3-5px
+    xxxl: { base: 4, rand: 2 }      // Huge: 4-6px
+  },
+
+  // Explosion radius grows proportionally
+  explosionRadius: {
+    xxxs: 30,    // Touch-friendly on tiny screens
+    xs: 50,      // Phone-optimized
+    md: 75,      // Tablet size
+    lg: 150,     // Desktop with mouse
+    xxxl: 250    // Dramatic on 4K
+  }
+});`}
+  language="javascript"
+/>
+
+## How Breakpoint Inheritance Works
+
+One of the most powerful features is **breakpoint inheritance** - you don't need to specify all 9 breakpoints. Values cascade upward:
+
+### Cascade Rules
+
+1. If a breakpoint isn't specified, it inherits from the nearest smaller breakpoint
+2. If no smaller breakpoint exists, it uses the library default
+3. Once you specify a breakpoint, all larger breakpoints inherit that value
+4. You can override at any breakpoint to change the cascade
+
+### Inheritance Examples
+
+<CodePreview
+  code={`// Example 1: Minimal specification
+particleRadius: {
+  xs: { base: 2, rand: 1 }
+}
+// Result:
+// xxxs/xxs → Default values
+// xs/sm/md/lg/xl/xxl/xxxl → 2-3px (all inherit from xs)
+
+// Example 2: Mobile and desktop
+particleRadius: {
+  xs: { base: 1, rand: 1 },   // Mobile: 1-2px
+  lg: { base: 3, rand: 2 }    // Desktop: 3-5px
+}
+// Result:
+// xxxs/xxs → Default
+// xs/sm/md → 1-2px (inherit from xs)
+// lg/xl/xxl/xxxl → 3-5px (inherit from lg)
+
+// Example 3: Full control
+particleRadius: {
+  xxxs: { base: 0.5, rand: 0.5 },  // Tiny screens
+  xs: { base: 1, rand: 1 },        // Phones
+  sm: { base: 1.5, rand: 1 },      // Tablets portrait
+  md: { base: 2, rand: 1 },        // Tablets landscape
+  lg: { base: 3, rand: 2 },        // Desktop
+  xl: { base: 4, rand: 2 },        // Large monitors
+  xxxl: { base: 5, rand: 3 }       // 4K displays
+}
+// Each breakpoint explicitly defined`}
+  language="javascript"
+/>
+
+## Responsive Configuration Patterns
+
+### Mobile-First Approach (Recommended)
+
+Start with mobile configuration and enhance for larger screens:
+
+<CodePreview
+  code={`{
+  // Mobile base (xs)
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  explosionRadius: { xs: 40 },
+  friction: { base: 0.92, rand: 0.04 },
+
+  // Enhance for desktop (lg)
+  particleRadius: { lg: { base: 2, rand: 2 } },
+  explosionRadius: { lg: 120 },
+  friction: { lg: { base: 0.88, rand: 0.06 } }
+}
+// xxxs/xxs inherit defaults
+// xs/sm/md get mobile values
+// lg/xl/xxl/xxxl get desktop values`}
+  language="javascript"
+/>
+
+### Desktop-First Approach
+
+Start with desktop and optimize for mobile:
+
+<CodePreview
+  code={`{
+  // Desktop base (lg)
+  particleRadius: { lg: { base: 3, rand: 2 } },
+  explosionRadius: { lg: 150 },
+
+  // Optimize for mobile (xs)
+  particleRadius: { xs: { base: 1, rand: 0.5 } },
+  explosionRadius: { xs: 40 }
+}
+// xxxs/xxs inherit defaults
+// xs/sm/md get mobile values
+// lg+ get desktop values`}
+  language="javascript"
+/>
+
+### Three-Tier Approach
+
+Mobile, tablet, and desktop:
+
+<CodePreview
+  code={`{
+  // Mobile (xs)
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  explosionRadius: { xs: 40 },
+
+  // Tablet (sm)
+  particleRadius: { sm: { base: 2, rand: 1 } },
+  explosionRadius: { sm: 70 },
+
+  // Desktop (lg)
+  particleRadius: { lg: { base: 3, rand: 2 } },
+  explosionRadius: { lg: 150 }
+}`}
+  language="javascript"
+/>
+
+## Responsive Properties
+
+All responsive-capable properties support breakpoint configuration:
+
+### particleRadius
+
+<CodePreview
+  code={`particleRadius: {
+  xs: { base: 1, rand: 0.5 },    // Mobile: small, dense
+  lg: { base: 3, rand: 2 }       // Desktop: larger, more visible
+}`}
+  language="javascript"
+/>
+
+### explosionRadius
+
+<CodePreview
+  code={`explosionRadius: {
+  xxxs: 30,   // Touch-friendly minimum
+  xs: 50,     // Standard mobile
+  sm: 70,     // Tablet
+  lg: 120,    // Desktop mouse
+  xxxl: 250   // Large displays
+}`}
+  language="javascript"
+/>
+
+### fontSize
+
+<CodePreview
+  code={`fontSize: {
+  xs: 40,     // Readable on phone
+  sm: 60,     // Larger on tablet
+  md: 80,     // Even larger
+  lg: 120,    // Desktop hero size
+  xxxl: 200   // Massive on 4K
+}`}
+  language="javascript"
+/>
+
+## Real-World Examples
+
+### Professional Portfolio
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'PORTFOLIO',
+  colors: ['#2C3E50'],
+
+  // Small, dense particles on all devices
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 1.5, rand: 1 }
+  },
+
+  // Conservative explosion radius
+  explosionRadius: {
+    xs: 40,
+    lg: 80
+  },
+
+  // Smooth friction everywhere
+  friction: { base: 0.94, rand: 0.03 }
+});`}
+  language="javascript"
+/>
+
+### Creative Agency
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'CREATIVE',
+  colors: [
+    { color: '#E74C3C', weight: 5 },
+    { color: '#9B59B6', weight: 2 },
+    { color: '#F39C12', weight: 1 }
+  ],
+
+  // Medium particles, larger on desktop
+  particleRadius: {
+    xs: { base: 2, rand: 1 },
+    sm: { base: 2, rand: 2 },
+    lg: { base: 3, rand: 3 }
+  },
+
+  // Wide explosion on desktop
+  explosionRadius: {
+    xs: 60,
+    sm: 90,
+    lg: 180,
+    xxxl: 300
+  },
+
+  // More bounce on desktop
+  friction: {
+    xs: { base: 0.90, rand: 0.05 },
+    lg: { base: 0.85, rand: 0.08 }
+  }
+});`}
+  language="javascript"
+/>
+
+### Gaming/Entertainment
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'PLAY',
+  colors: ['#FF6B6B', '#4ECDC4', '#FFD93D'],
+
+  // Large, playful particles
+  particleRadius: {
+    xs: { base: 3, rand: 2 },     // Big even on mobile
+    lg: { base: 5, rand: 3 }      // Huge on desktop
+  },
+
+  // Generous explosion
+  explosionRadius: {
+    xs: 80,
+    lg: 200,
+    xxxl: 400
+  },
+
+  // Bouncy movement
+  friction: { base: 0.78, rand: 0.12 }
+});`}
+  language="javascript"
+/>
+
+### Minimal/Clean
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'MINIMAL',
+  colors: ['#000000'],
+
+  // Ultra-fine particles
+  particleRadius: {
+    xs: { base: 0.5, rand: 0.5 },
+    lg: { base: 1, rand: 0.5 }
+  },
+
+  // Subtle interaction
+  explosionRadius: {
+    xs: 30,
+    lg: 50
+  },
+
+  // Very smooth
+  friction: { base: 0.96, rand: 0.02 }
+});`}
+  language="javascript"
+/>
+
+## Getting Current Breakpoint
+
+Access the current breakpoint programmatically:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'HELLO',
+  colors: ['#695aa6']
+});
+
+// Get current breakpoint
+const breakpoint = instance.getCurrentBreakpoint();
+console.log(breakpoint);  // 'xs', 'lg', etc.
+
+// React to breakpoint changes
+window.addEventListener('resize', () => {
+  const newBreakpoint = instance.getCurrentBreakpoint();
+  console.log('Breakpoint changed to:', newBreakpoint);
+
+  // Trigger custom logic based on breakpoint
+  if (newBreakpoint === 'xs' || newBreakpoint === 'sm') {
+    console.log('Mobile view detected');
+  } else {
+    console.log('Desktop view detected');
+  }
+});`}
+  language="javascript"
+/>
+
+## Custom Breakpoints
+
+Override the default breakpoint detection:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+  colors: ['#695aa6']
+});
+
+// Override with custom logic
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  // Your custom breakpoint logic
+  if (width < 480) return 'mobile';
+  if (width < 1024) return 'tablet';
+  return 'desktop';
+};
+
+// Now the library uses your custom breakpoints
+// Note: Your config should use these custom keys:
+// particleRadius: {
+//   mobile: { base: 1, rand: 1 },
+//   tablet: { base: 2, rand: 1 },
+//   desktop: { base: 3, rand: 2 }
+// }`}
+  language="javascript"
+/>
+
+## Performance Optimization
+
+Use breakpoints to optimize performance on different devices:
+
+<CodePreview
+  code={`{
+  // Mobile: optimize for performance
+  particleRadius: {
+    xs: { base: 2, rand: 1 }  // Larger particles = fewer total
+  },
+  maxParticles: 2000,
+  supportSlowBrowsers: true,
+
+  // Desktop: can handle more
+  particleRadius: {
+    lg: { base: 1.5, rand: 1 }  // Smaller = more particles
+  }
+
+  // Note: maxParticles applies globally, but larger
+  // particles on mobile means fewer will be rendered
+}`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Mobile-First Design
+
+Always consider mobile users first:
+
+<CodePreview
+  code={`// ✅ Good: Mobile-optimized
+{
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  explosionRadius: { xs: 40 },
+  // Then enhance for desktop
+  explosionRadius: { lg: 120 }
+}
+
+// ❌ Bad: Desktop-only thinking
+{
+  explosionRadius: { lg: 150 }
+  // Mobile users get defaults which might not be optimized
+}`}
+  language="javascript"
+/>
+
+### 2. Test on Real Devices
+
+Don't just resize your browser:
+- Use actual phones and tablets
+- Test touch interactions
+- Check performance on older devices
+
+### 3. Specify Key Breakpoints
+
+You don't need all 9, but specify the important ones:
+
+<CodePreview
+  code={`// Minimum recommended
+{
+  particleRadius: {
+    xs: { base: 1, rand: 1 },   // Mobile
+    lg: { base: 2, rand: 2 }    // Desktop
+  }
+}
+
+// Better coverage
+{
+  particleRadius: {
+    xs: { base: 1, rand: 1 },   // Mobile
+    sm: { base: 1.5, rand: 1 }, // Tablet
+    lg: { base: 2, rand: 2 },   // Desktop
+    xl: { base: 3, rand: 2 }    // Large monitors
+  }
+}`}
+  language="javascript"
+/>
+
+### 4. Touch vs Mouse Considerations
+
+<CodePreview
+  code={`// Touch screens need larger interaction zones
+explosionRadius: {
+  xs: 60,    // Larger for fingers
+  sm: 70,    // Still touch-focused
+  lg: 100    // Mouse is more precise
+}
+
+// Friction can be higher on mobile (smoother)
+friction: {
+  xs: { base: 0.92, rand: 0.04 },  // Smooth on mobile
+  lg: { base: 0.88, rand: 0.06 }   // Bouncier on desktop
+}`}
+  language="javascript"
+/>
+
+### 5. Proportional Scaling
+
+Keep properties proportional to screen size:
+
+<CodePreview
+  code={`// Particles, explosion, and font scale together
+{
+  fontSize: {
+    xs: 40,
+    lg: 100,
+    xxxl: 200
+  },
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 2, rand: 2 },
+    xxxl: { base: 4, rand: 2 }
+  },
+  explosionRadius: {
+    xs: 40,
+    lg: 120,
+    xxxl: 250
+  }
+  // Everything scales together harmoniously
+}`}
+  language="javascript"
+/>
+
+## Common Mistakes
+
+### Mistake 1: Not Testing Mobile
+
+<CodePreview
+  code={`// ❌ Works on desktop, terrible on mobile
+{
+  explosionRadius: { lg: 200 }
+  // Mobile gets default, might be too large/small
+}
+
+// ✅ Tested on mobile
+{
+  explosionRadius: {
+    xs: 50,   // Tested on actual phone
+    lg: 200
+  }
+}`}
+  language="javascript"
+/>
+
+### Mistake 2: Too Many Particles on Mobile
+
+<CodePreview
+  code={`// ❌ Performance issues on mobile
+{
+  particleRadius: {
+    xs: { base: 0.5, rand: 0.5 }  // Tiny = many particles
+  }
+}
+
+// ✅ Optimized for mobile
+{
+  particleRadius: {
+    xs: { base: 2, rand: 1 },   // Larger = fewer particles
+    lg: { base: 1, rand: 1 }    // Desktop can handle smaller
+  }
+}`}
+  language="javascript"
+/>
+
+### Mistake 3: Ignoring Tablet
+
+<CodePreview
+  code={`// ❌ Binary mobile/desktop split
+{
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 3, rand: 2 }
+  }
+  // Tablets (sm/md) jump from 1-2px to 3-5px abruptly
+}
+
+// ✅ Smooth progression
+{
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    sm: { base: 1.5, rand: 1.5 },  // Tablet middle ground
+    lg: { base: 3, rand: 2 }
+  }
+}`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Breakpoints not updating when resizing?**
+- The library automatically detects resize
+- Check browser console for errors
+- Verify you're specifying breakpoint keys correctly (lowercase)
+
+**Configuration not applying to certain screens?**
+- Check your cascade logic
+- Use `instance.getCurrentBreakpoint()` to debug
+- Make sure you specified the right breakpoint keys
+
+**Particles look wrong on mobile?**
+- Test on actual device, not just browser resize
+- Check if default values are being used
+- Specify at least `xs` breakpoint for mobile
+
+**Performance issues on specific devices?**
+- Increase `particleRadius` on mobile (fewer particles)
+- Set `maxParticles` limit
+- Enable `supportSlowBrowsers: true`
+
+## Related Documentation
+
+- [Breakpoint System Guide](/guides/breakpoint-system/) - Deep dive into breakpoint mechanics
+- [Particle Density](/examples/particles/density/) - Control particle size
+- [Explosion Radius](/examples/particles/explosion-radius/) - Touch vs mouse optimization
+- [Performance Optimization](/guides/performance-optimization/) - Mobile performance tips
+- [API Reference - Configuration](/api-reference/configuration/) - All responsive properties

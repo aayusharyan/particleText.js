@@ -3,4 +3,1569 @@ title: Multiple Instances
 description: Managing multiple ParticleText instances on one page
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../components/CanvasExample.astro';
+import CodePreview from '../../../components/CodePreview.astro';
+
+You can create multiple ParticleText.js instances on a single page, each with its own canvas, configuration, and behavior. This guide covers best practices for managing multiple instances, optimizing performance, and coordinating animations across multiple canvases.
+
+## Basic Setup
+
+Creating multiple instances is straightforward - just call `initParticleJS()` for each canvas element:
+
+<CodePreview
+  code={`// Create three independent instances
+const instance1 = initParticleJS('#canvas1', {
+  text: 'FIRST',
+  colors: ['#695aa6']
+});
+
+const instance2 = initParticleJS('#canvas2', {
+  text: 'SECOND',
+  colors: ['#FF6B6B']
+});
+
+const instance3 = initParticleJS('#canvas3', {
+  text: 'THIRD',
+  colors: ['#4ECDC4']
+});
+
+// Each instance operates independently
+console.log(instance1.particleList.length);  // Particle count for first
+console.log(instance2.isAnimating);          // Animation state for second`}
+  language="javascript"
+/>
+
+**Key points:**
+- Each instance is independent with its own particles, animation loop, and state
+- Store references to instances if you need to control them later
+- Each canvas needs a unique selector
+
+## Managing Instance References
+
+### Store in Variables
+
+<CodePreview
+  code={`// Store individual references
+const heroCanvas = initParticleJS('#hero', {
+  text: 'HERO',
+  colors: ['#695aa6'],
+  maxParticles: 3000
+});
+
+const footerCanvas = initParticleJS('#footer', {
+  text: 'FOOTER',
+  colors: ['#4ECDC4'],
+  maxParticles: 1000
+});
+
+// Control individually
+heroCanvas.destroy();  // Stop hero animation
+footerCanvas.startAnimation();  // Start footer animation`}
+  language="javascript"
+/>
+
+### Store in Array
+
+<CodePreview
+  code={`// Store multiple instances in array
+const instances = [];
+
+instances.push(initParticleJS('#canvas1', {
+  text: 'ONE',
+  colors: ['#FF6B6B']
+}));
+
+instances.push(initParticleJS('#canvas2', {
+  text: 'TWO',
+  colors: ['#4ECDC4']
+}));
+
+instances.push(initParticleJS('#canvas3', {
+  text: 'THREE',
+  colors: ['#FFD93D']
+}));
+
+// Control all at once
+instances.forEach(instance => instance.destroy());
+
+// Check status of all
+const allAnimating = instances.every(instance => instance.isAnimating);
+console.log('All animating:', allAnimating);`}
+  language="javascript"
+/>
+
+### Store in Map
+
+<CodePreview
+  code={`// Store instances in a map for easy lookup
+const instanceMap = new Map();
+
+instanceMap.set('hero', initParticleJS('#hero', {
+  text: 'HERO',
+  colors: ['#695aa6']
+}));
+
+instanceMap.set('sidebar', initParticleJS('#sidebar', {
+  text: 'MENU',
+  colors: ['#FF6B6B']
+}));
+
+instanceMap.set('footer', initParticleJS('#footer', {
+  text: 'FOOTER',
+  colors: ['#4ECDC4']
+}));
+
+// Access by name
+instanceMap.get('hero').destroy();
+instanceMap.get('sidebar').startAnimation();
+
+// Clean up all
+instanceMap.forEach(instance => instance.destroy());
+instanceMap.clear();`}
+  language="javascript"
+/>
+
+### Store in Object
+
+<CodePreview
+  code={`// Store instances in object with semantic keys
+const particles = {
+  hero: initParticleJS('#hero', {
+    text: 'WELCOME',
+    colors: ['#695aa6'],
+    maxParticles: 3000
+  }),
+
+  feature1: initParticleJS('#feature1', {
+    text: 'FAST',
+    colors: ['#FF6B6B'],
+    maxParticles: 2000
+  }),
+
+  feature2: initParticleJS('#feature2', {
+    text: 'EASY',
+    colors: ['#4ECDC4'],
+    maxParticles: 2000
+  }),
+
+  footer: initParticleJS('#footer', {
+    text: 'CONTACT',
+    colors: ['#FFD93D'],
+    maxParticles: 1500
+  })
+};
+
+// Access semantically
+particles.hero.destroy();
+particles.footer.startAnimation();
+
+// Clean up
+Object.values(particles).forEach(instance => instance.destroy());`}
+  language="javascript"
+/>
+
+## Common Patterns
+
+### Comparison Layout
+
+Side-by-side canvases for demonstrating different configurations:
+
+<CodePreview
+  code={`// HTML structure
+// <div class="comparison">
+//   <canvas id="config-a"></canvas>
+//   <canvas id="config-b"></canvas>
+// </div>
+
+const configA = initParticleJS('#config-a', {
+  text: 'CONFIG A',
+  colors: ['#FF6B6B'],
+  maxParticles: 1500,
+  explosionRadius: { xs: 80, lg: 120 }
+});
+
+const configB = initParticleJS('#config-b', {
+  text: 'CONFIG B',
+  colors: ['#4ECDC4'],
+  maxParticles: 3000,
+  explosionRadius: { xs: 150, lg: 200 }
+});
+
+// Styling for comparison
+document.querySelector('.comparison').style.display = 'grid';
+document.querySelector('.comparison').style.gridTemplateColumns = '1fr 1fr';
+document.querySelector('.comparison').style.gap = '20px';`}
+  language="javascript"
+/>
+
+### Gallery Layout
+
+Grid of multiple particle text items:
+
+<CodePreview
+  code={`// HTML structure
+// <div class="gallery">
+//   <canvas class="gallery-item" id="item-1"></canvas>
+//   <canvas class="gallery-item" id="item-2"></canvas>
+//   <canvas class="gallery-item" id="item-3"></canvas>
+//   <canvas class="gallery-item" id="item-4"></canvas>
+// </div>
+
+const galleryConfig = {
+  maxParticles: 1500,
+  trackCursorOnlyInsideCanvas: true,  // Important for galleries!
+  explosionRadius: { xs: 80, lg: 120 }
+};
+
+const galleryItems = [
+  { id: 'item-1', text: 'DESIGN', color: '#FF6B6B' },
+  { id: 'item-2', text: 'CODE', color: '#4ECDC4' },
+  { id: 'item-3', text: 'TEST', color: '#FFD93D' },
+  { id: 'item-4', text: 'SHIP', color: '#95E1D3' }
+];
+
+const instances = galleryItems.map(item => {
+  return initParticleJS(\`#\${item.id}\`, {
+    text: item.text,
+    colors: [item.color],
+    ...galleryConfig
+  });
+});
+
+// CSS Grid styling
+document.querySelector('.gallery').style.cssText = \`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+\`;`}
+  language="javascript"
+/>
+
+### Section-Based Layout
+
+Different sections of a page with their own particle effects:
+
+<CodePreview
+  code={`// Hero section
+const hero = initParticleJS('#hero-canvas', {
+  text: 'WELCOME',
+  colors: ['#695aa6'],
+  maxParticles: 3000,
+  fontSize: 120,
+  explosionRadius: { xs: 100, lg: 150 }
+});
+
+// Features section (multiple small canvases)
+const features = [
+  { selector: '#feature-fast', text: 'FAST', color: '#FF6B6B' },
+  { selector: '#feature-easy', text: 'EASY', color: '#4ECDC4' },
+  { selector: '#feature-free', text: 'FREE', color: '#FFD93D' }
+].map(feature => {
+  return initParticleJS(feature.selector, {
+    text: feature.text,
+    colors: [feature.color],
+    maxParticles: 1500,
+    fontSize: 80,
+    trackCursorOnlyInsideCanvas: true
+  });
+});
+
+// Footer
+const footer = initParticleJS('#footer-canvas', {
+  text: 'CONTACT',
+  colors: ['#4ECDC4'],
+  maxParticles: 1000,
+  fontSize: 60,
+  particleFriction: 0.98  // Faster settling for footer
+});`}
+  language="javascript"
+/>
+
+### Stacked/Overlapping Canvases
+
+Layered canvases with different z-index:
+
+<CodePreview
+  code={`// HTML structure
+// <div class="stack">
+//   <canvas id="background-layer"></canvas>
+//   <canvas id="foreground-layer"></canvas>
+// </div>
+
+// Background layer - subtle, slow
+const background = initParticleJS('#background-layer', {
+  text: 'BACKGROUND',
+  colors: ['#695aa6'],
+  maxParticles: 2000,
+  particleFriction: 0.98,
+  explosionRadius: { xs: 150, lg: 200 }
+});
+
+// Foreground layer - prominent, interactive
+const foreground = initParticleJS('#foreground-layer', {
+  text: 'FRONT',
+  colors: ['#FF6B6B'],
+  maxParticles: 1500,
+  particleFriction: 0.90,
+  explosionRadius: { xs: 100, lg: 150 }
+});
+
+// CSS positioning
+const stack = document.querySelector('.stack');
+stack.style.position = 'relative';
+
+document.querySelector('#background-layer').style.cssText = \`
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.3;
+  z-index: 1;
+\`;
+
+document.querySelector('#foreground-layer').style.cssText = \`
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+\`;`}
+  language="javascript"
+/>
+
+## Performance Optimization
+
+### Reduce Particle Count Per Canvas
+
+<CodePreview
+  code={`// ❌ Bad: Each canvas uses full particle budget
+const bad1 = initParticleJS('#canvas1', {
+  text: 'FIRST',
+  maxParticles: 5000  // Too many for multiple instances
+});
+
+const bad2 = initParticleJS('#canvas2', {
+  text: 'SECOND',
+  maxParticles: 5000  // Total: 10,000 particles!
+});
+
+// ✅ Good: Distribute particle budget across canvases
+const good1 = initParticleJS('#canvas1', {
+  text: 'FIRST',
+  maxParticles: 2000  // Reasonable for multiple instances
+});
+
+const good2 = initParticleJS('#canvas2', {
+  text: 'SECOND',
+  maxParticles: 2000  // Total: 4,000 particles
+});
+
+// ✅ Even better: Vary based on importance
+const hero = initParticleJS('#hero', {
+  text: 'HERO',
+  maxParticles: 2500  // Most important
+});
+
+const sidebar = initParticleJS('#sidebar', {
+  text: 'MENU',
+  maxParticles: 1000  // Less important
+});
+
+const footer = initParticleJS('#footer', {
+  text: 'FOOTER',
+  maxParticles: 800  // Least important
+});
+// Total: 4,300 particles - good distribution`}
+  language="javascript"
+/>
+
+### Stagger Initialization
+
+<CodePreview
+  code={`// ❌ Bad: Initialize all at once - causes CPU spike
+const instance1 = initParticleJS('#canvas1', config1);
+const instance2 = initParticleJS('#canvas2', config2);
+const instance3 = initParticleJS('#canvas3', config3);
+const instance4 = initParticleJS('#canvas4', config4);
+// CPU spike during initialization
+
+// ✅ Good: Stagger initialization
+const instances = [];
+
+// Initialize first one immediately
+instances.push(initParticleJS('#canvas1', config1));
+
+// Stagger the rest
+setTimeout(() => {
+  instances.push(initParticleJS('#canvas2', config2));
+}, 100);
+
+setTimeout(() => {
+  instances.push(initParticleJS('#canvas3', config3));
+}, 200);
+
+setTimeout(() => {
+  instances.push(initParticleJS('#canvas4', config4));
+}, 300);
+
+// ✅ Better: Use loop with delay
+const configs = [
+  { selector: '#canvas1', config: config1 },
+  { selector: '#canvas2', config: config2 },
+  { selector: '#canvas3', config: config3 },
+  { selector: '#canvas4', config: config4 }
+];
+
+const instances2 = [];
+configs.forEach((item, index) => {
+  setTimeout(() => {
+    instances2.push(initParticleJS(item.selector, item.config));
+    console.log(\`Initialized canvas \${index + 1}\`);
+  }, index * 100);  // 100ms between each
+});`}
+  language="javascript"
+/>
+
+### Lazy Load Off-Screen Instances
+
+<CodePreview
+  code={`// Only initialize instances when they enter viewport
+const canvases = [
+  { selector: '#canvas1', config: { text: 'ONE', colors: ['#FF6B6B'] } },
+  { selector: '#canvas2', config: { text: 'TWO', colors: ['#4ECDC4'] } },
+  { selector: '#canvas3', config: { text: 'THREE', colors: ['#FFD93D'] } }
+];
+
+const instances = new Map();
+
+canvases.forEach(({ selector, config }) => {
+  const element = document.querySelector(selector);
+
+  // Create IntersectionObserver for each canvas
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Initialize when entering viewport
+        if (!instances.has(selector)) {
+          console.log('Initializing', selector);
+          const instance = initParticleJS(selector, config);
+          instances.set(selector, instance);
+        } else {
+          // Restart animation if already initialized
+          instances.get(selector).startAnimation();
+        }
+      } else {
+        // Stop animation when leaving viewport
+        const instance = instances.get(selector);
+        if (instance) {
+          instance.destroy();
+        }
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '50px'  // Start loading 50px before entering
+  });
+
+  observer.observe(element);
+});`}
+  language="javascript"
+/>
+
+### Use Restricted Cursor Tracking
+
+<CodePreview
+  code={`// ❌ Bad: Global cursor tracking for all instances
+const bad1 = initParticleJS('#canvas1', {
+  text: 'FIRST',
+  colors: ['#FF6B6B'],
+  trackCursorOnlyInsideCanvas: false  // Reacts to cursor everywhere
+});
+
+const bad2 = initParticleJS('#canvas2', {
+  text: 'SECOND',
+  colors: ['#4ECDC4'],
+  trackCursorOnlyInsideCanvas: false  // Also reacts to cursor everywhere
+});
+// Both canvases react even when cursor is nowhere near them!
+
+// ✅ Good: Restricted tracking for each instance
+const good1 = initParticleJS('#canvas1', {
+  text: 'FIRST',
+  colors: ['#FF6B6B'],
+  trackCursorOnlyInsideCanvas: true  // Only reacts inside canvas
+});
+
+const good2 = initParticleJS('#canvas2', {
+  text: 'SECOND',
+  colors: ['#4ECDC4'],
+  trackCursorOnlyInsideCanvas: true  // Only reacts inside canvas
+});
+// Each canvas only reacts when cursor is over it
+// Much better performance and clearer UX`}
+  language="javascript"
+/>
+
+### Progressive Enhancement
+
+<CodePreview
+  code={`// Load high-quality instances on desktop, simpler on mobile
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+const instanceConfigs = [
+  {
+    selector: '#hero',
+    desktop: { text: 'HERO', maxParticles: 3000, fontSize: 120 },
+    mobile: { text: 'HERO', maxParticles: 1200, fontSize: 80 }
+  },
+  {
+    selector: '#feature1',
+    desktop: { text: 'FAST', maxParticles: 2000, fontSize: 100 },
+    mobile: { text: 'FAST', maxParticles: 800, fontSize: 60 }
+  },
+  {
+    selector: '#feature2',
+    desktop: { text: 'EASY', maxParticles: 2000, fontSize: 100 },
+    mobile: { text: 'EASY', maxParticles: 800, fontSize: 60 }
+  }
+];
+
+const instances = instanceConfigs.map(item => {
+  const config = isMobile ? item.mobile : item.desktop;
+  return initParticleJS(item.selector, {
+    ...config,
+    colors: ['#695aa6']
+  });
+});
+
+// Total particles:
+// Desktop: 7,000 particles (acceptable)
+// Mobile: 2,800 particles (good performance)`}
+  language="javascript"
+/>
+
+## Coordinating Multiple Instances
+
+### Start All Instances Together
+
+<CodePreview
+  code={`// Initialize without auto-animation
+const instances = [
+  initParticleJS('#canvas1', {
+    text: 'ONE',
+    colors: ['#FF6B6B'],
+    autoAnimate: false
+  }),
+  initParticleJS('#canvas2', {
+    text: 'TWO',
+    colors: ['#4ECDC4'],
+    autoAnimate: false
+  }),
+  initParticleJS('#canvas3', {
+    text: 'THREE',
+    colors: ['#FFD93D'],
+    autoAnimate: false
+  })
+];
+
+// Start all animations together
+function startAll() {
+  instances.forEach(instance => instance.startAnimation());
+  console.log('All animations started');
+}
+
+// Trigger on user action
+document.getElementById('start-btn').addEventListener('click', startAll);
+
+// Or after page load
+window.addEventListener('load', () => {
+  setTimeout(startAll, 500);  // Start after 500ms delay
+});`}
+  language="javascript"
+/>
+
+### Stop All Instances Together
+
+<CodePreview
+  code={`const instances = [
+  initParticleJS('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] }),
+  initParticleJS('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] }),
+  initParticleJS('#canvas3', { text: 'THREE', colors: ['#FFD93D'] })
+];
+
+function stopAll() {
+  instances.forEach(instance => {
+    instance.destroy();
+  });
+  console.log('All animations stopped');
+}
+
+// Stop on page unload
+window.addEventListener('beforeunload', stopAll);
+
+// Stop on visibility change
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopAll();
+  } else {
+    instances.forEach(instance => instance.startAnimation());
+  }
+});
+
+// Stop on button click
+document.getElementById('stop-btn').addEventListener('click', stopAll);`}
+  language="javascript"
+/>
+
+### Sequential Animation
+
+<CodePreview
+  code={`// Animate instances one after another
+const configs = [
+  { selector: '#canvas1', text: 'FIRST', color: '#FF6B6B' },
+  { selector: '#canvas2', text: 'SECOND', color: '#4ECDC4' },
+  { selector: '#canvas3', text: 'THIRD', color: '#FFD93D' }
+];
+
+// Initialize all without animation
+const instances = configs.map(config => {
+  return initParticleJS(config.selector, {
+    text: config.text,
+    colors: [config.color],
+    autoAnimate: false
+  });
+});
+
+// Start animations sequentially
+function startSequentially(delay = 500) {
+  instances.forEach((instance, index) => {
+    setTimeout(() => {
+      instance.startAnimation();
+      console.log(\`Started animation \${index + 1}\`);
+    }, index * delay);
+  });
+}
+
+// Trigger on scroll
+let hasAnimated = false;
+window.addEventListener('scroll', () => {
+  if (!hasAnimated && window.scrollY > 300) {
+    startSequentially();
+    hasAnimated = true;
+  }
+});`}
+  language="javascript"
+/>
+
+### Pause/Resume All
+
+<CodePreview
+  code={`const instances = [
+  initParticleJS('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] }),
+  initParticleJS('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] }),
+  initParticleJS('#canvas3', { text: 'THREE', colors: ['#FFD93D'] })
+];
+
+let isPaused = false;
+
+function toggleAll() {
+  if (isPaused) {
+    // Resume all
+    instances.forEach(instance => instance.startAnimation());
+    isPaused = false;
+    console.log('Resumed all animations');
+  } else {
+    // Pause all
+    instances.forEach(instance => instance.destroy());
+    isPaused = true;
+    console.log('Paused all animations');
+  }
+}
+
+// Toggle button
+document.getElementById('toggle-btn').addEventListener('click', toggleAll);
+
+// Keyboard shortcut
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ') {  // Spacebar
+    e.preventDefault();
+    toggleAll();
+  }
+});`}
+  language="javascript"
+/>
+
+### Conditional Animation
+
+<CodePreview
+  code={`// Animate only specific instances based on conditions
+const instances = {
+  hero: initParticleJS('#hero', {
+    text: 'HERO',
+    colors: ['#695aa6'],
+    autoAnimate: false
+  }),
+
+  feature1: initParticleJS('#feature1', {
+    text: 'FAST',
+    colors: ['#FF6B6B'],
+    autoAnimate: false
+  }),
+
+  feature2: initParticleJS('#feature2', {
+    text: 'EASY',
+    colors: ['#4ECDC4'],
+    autoAnimate: false
+  }),
+
+  footer: initParticleJS('#footer', {
+    text: 'FOOTER',
+    colors: ['#FFD93D'],
+    autoAnimate: false
+  })
+};
+
+// Function to start specific instances
+function startInstances(names) {
+  names.forEach(name => {
+    if (instances[name]) {
+      instances[name].startAnimation();
+      console.log(\`Started \${name}\`);
+    }
+  });
+}
+
+// Function to stop specific instances
+function stopInstances(names) {
+  names.forEach(name => {
+    if (instances[name]) {
+      instances[name].destroy();
+      console.log(\`Stopped \${name}\`);
+    }
+  });
+}
+
+// Use conditionally
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+if (isMobile) {
+  // Only animate hero on mobile
+  startInstances(['hero']);
+} else {
+  // Animate all on desktop
+  startInstances(['hero', 'feature1', 'feature2', 'footer']);
+}
+
+// Or based on performance
+if (navigator.hardwareConcurrency >= 8) {
+  // High-end device: animate all
+  startInstances(Object.keys(instances));
+} else {
+  // Low-end device: only animate hero
+  startInstances(['hero']);
+}`}
+  language="javascript"
+/>
+
+## Responsive Behavior
+
+### Reinitialize on Resize
+
+<CodePreview
+  code={`let instances = [];
+
+function initializeInstances() {
+  // Clean up existing instances
+  instances.forEach(instance => instance.destroy());
+  instances = [];
+
+  const isMobile = window.innerWidth < 768;
+
+  if (isMobile) {
+    // Mobile: fewer instances
+    instances.push(
+      initParticleJS('#hero', {
+        text: 'HERO',
+        colors: ['#695aa6'],
+        maxParticles: 1200
+      })
+    );
+  } else {
+    // Desktop: more instances
+    instances.push(
+      initParticleJS('#hero', {
+        text: 'HERO',
+        colors: ['#695aa6'],
+        maxParticles: 3000
+      }),
+      initParticleJS('#feature1', {
+        text: 'FAST',
+        colors: ['#FF6B6B'],
+        maxParticles: 2000
+      }),
+      initParticleJS('#feature2', {
+        text: 'EASY',
+        colors: ['#4ECDC4'],
+        maxParticles: 2000
+      })
+    );
+  }
+}
+
+// Initialize on load
+initializeInstances();
+
+// Reinitialize on resize (debounced)
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(initializeInstances, 300);
+});`}
+  language="javascript"
+/>
+
+### Breakpoint-Based Instances
+
+<CodePreview
+  code={`const instanceManager = {
+  instances: new Map(),
+  currentBreakpoint: null,
+
+  configs: {
+    mobile: [
+      { selector: '#hero', text: 'HERO', colors: ['#695aa6'], maxParticles: 1200 }
+    ],
+
+    tablet: [
+      { selector: '#hero', text: 'HERO', colors: ['#695aa6'], maxParticles: 2000 },
+      { selector: '#feature1', text: 'FAST', colors: ['#FF6B6B'], maxParticles: 1500 }
+    ],
+
+    desktop: [
+      { selector: '#hero', text: 'HERO', colors: ['#695aa6'], maxParticles: 3000 },
+      { selector: '#feature1', text: 'FAST', colors: ['#FF6B6B'], maxParticles: 2000 },
+      { selector: '#feature2', text: 'EASY', colors: ['#4ECDC4'], maxParticles: 2000 },
+      { selector: '#footer', text: 'FOOTER', colors: ['#FFD93D'], maxParticles: 1000 }
+    ]
+  },
+
+  getBreakpoint() {
+    const width = window.innerWidth;
+    if (width < 768) return 'mobile';
+    if (width < 1024) return 'tablet';
+    return 'desktop';
+  },
+
+  initialize() {
+    const breakpoint = this.getBreakpoint();
+
+    if (breakpoint === this.currentBreakpoint) {
+      return;  // No change needed
+    }
+
+    // Clean up old instances
+    this.instances.forEach(instance => instance.destroy());
+    this.instances.clear();
+
+    // Create new instances for current breakpoint
+    const configs = this.configs[breakpoint];
+    configs.forEach(config => {
+      const instance = initParticleJS(config.selector, config);
+      this.instances.set(config.selector, instance);
+    });
+
+    this.currentBreakpoint = breakpoint;
+    console.log(\`Initialized \${configs.length} instances for \${breakpoint}\`);
+  }
+};
+
+// Initialize
+instanceManager.initialize();
+
+// Reinitialize on resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    instanceManager.initialize();
+  }, 300);
+});`}
+  language="javascript"
+/>
+
+## Memory Management
+
+### Clean Up on Navigation
+
+<CodePreview
+  code={`// Store all instances globally
+const particleInstances = [];
+
+// Create instances
+function createInstances() {
+  particleInstances.push(
+    initParticleJS('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] }),
+    initParticleJS('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] }),
+    initParticleJS('#canvas3', { text: 'THREE', colors: ['#FFD93D'] })
+  );
+}
+
+// Clean up function
+function cleanupInstances() {
+  particleInstances.forEach(instance => {
+    instance.destroy();
+  });
+  particleInstances.length = 0;  // Clear array
+  console.log('All instances cleaned up');
+}
+
+// Initialize
+createInstances();
+
+// Clean up on page unload
+window.addEventListener('beforeunload', cleanupInstances);
+
+// For Single Page Applications (SPA)
+// Clean up when navigating away
+router.beforeEach((to, from, next) => {
+  cleanupInstances();
+  next();
+});
+
+// For frameworks
+// React
+useEffect(() => {
+  createInstances();
+  return cleanupInstances;  // Cleanup on unmount
+}, []);
+
+// Vue
+export default {
+  mounted() {
+    createInstances();
+  },
+  beforeUnmount() {
+    cleanupInstances();
+  }
+};`}
+  language="javascript"
+/>
+
+### Prevent Memory Leaks
+
+<CodePreview
+  code={`// ❌ Bad: Creating instances without cleanup
+function badPattern() {
+  // Creating new instances every time without destroying old ones
+  setInterval(() => {
+    initParticleJS('#canvas1', { text: 'LEAK', colors: ['#FF6B6B'] });
+    // Previous instances keep running - memory leak!
+  }, 5000);
+}
+
+// ✅ Good: Proper cleanup before creating new instances
+function goodPattern() {
+  let instance = null;
+
+  function reinitialize() {
+    // Clean up old instance first
+    if (instance) {
+      instance.destroy();
+    }
+
+    // Create new instance
+    instance = initParticleJS('#canvas1', {
+      text: 'SAFE',
+      colors: ['#FF6B6B']
+    });
+  }
+
+  // Safe to call repeatedly
+  setInterval(reinitialize, 5000);
+}
+
+// ✅ Better: Manage multiple instances
+class InstanceManager {
+  constructor() {
+    this.instances = new Map();
+  }
+
+  create(selector, config) {
+    // Clean up if already exists
+    this.destroy(selector);
+
+    // Create new instance
+    const instance = initParticleJS(selector, config);
+    this.instances.set(selector, instance);
+    return instance;
+  }
+
+  destroy(selector) {
+    const instance = this.instances.get(selector);
+    if (instance) {
+      instance.destroy();
+      this.instances.delete(selector);
+    }
+  }
+
+  destroyAll() {
+    this.instances.forEach(instance => instance.destroy());
+    this.instances.clear();
+  }
+
+  get(selector) {
+    return this.instances.get(selector);
+  }
+
+  has(selector) {
+    return this.instances.has(selector);
+  }
+}
+
+// Usage
+const manager = new InstanceManager();
+
+manager.create('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] });
+manager.create('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] });
+
+// Clean up specific instance
+manager.destroy('#canvas1');
+
+// Clean up all
+manager.destroyAll();`}
+  language="javascript"
+/>
+
+## Framework Integration
+
+### React
+
+<CodePreview
+  code={`import { useEffect, useRef, useState } from 'react';
+
+function MultipleParticleText() {
+  const canvasRefs = useRef([]);
+  const instancesRef = useRef([]);
+
+  const configs = [
+    { text: 'ONE', colors: ['#FF6B6B'], maxParticles: 2000 },
+    { text: 'TWO', colors: ['#4ECDC4'], maxParticles: 2000 },
+    { text: 'THREE', colors: ['#FFD93D'], maxParticles: 2000 }
+  ];
+
+  useEffect(() => {
+    // Initialize all instances
+    canvasRefs.current.forEach((canvas, index) => {
+      if (canvas) {
+        const instance = initParticleJS(canvas, configs[index]);
+        instancesRef.current.push(instance);
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      instancesRef.current.forEach(instance => {
+        instance.destroy();
+      });
+      instancesRef.current = [];
+    };
+  }, []);
+
+  const handleStopAll = () => {
+    instancesRef.current.forEach(instance => instance.destroy());
+  };
+
+  const handleStartAll = () => {
+    instancesRef.current.forEach(instance => instance.startAnimation());
+  };
+
+  return (
+    <div>
+      <div className="controls">
+        <button onClick={handleStartAll}>Start All</button>
+        <button onClick={handleStopAll}>Stop All</button>
+      </div>
+
+      {configs.map((config, index) => (
+        <canvas
+          key={index}
+          ref={el => canvasRefs.current[index] = el}
+          width={800}
+          height={200}
+        />
+      ))}
+    </div>
+  );
+}`}
+  language="javascript"
+/>
+
+### Vue 3
+
+<CodePreview
+  code={`<template>
+  <div>
+    <div class="controls">
+      <button @click="startAll">Start All</button>
+      <button @click="stopAll">Stop All</button>
+    </div>
+
+    <canvas
+      v-for="(config, index) in configs"
+      :key="index"
+      :ref="el => canvasRefs[index] = el"
+      width="800"
+      height="200"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const canvasRefs = ref([]);
+const instances = ref([]);
+
+const configs = [
+  { text: 'ONE', colors: ['#FF6B6B'], maxParticles: 2000 },
+  { text: 'TWO', colors: ['#4ECDC4'], maxParticles: 2000 },
+  { text: 'THREE', colors: ['#FFD93D'], maxParticles: 2000 }
+];
+
+onMounted(() => {
+  canvasRefs.value.forEach((canvas, index) => {
+    if (canvas) {
+      const instance = initParticleJS(canvas, configs[index]);
+      instances.value.push(instance);
+    }
+  });
+});
+
+onBeforeUnmount(() => {
+  instances.value.forEach(instance => instance.destroy());
+  instances.value = [];
+});
+
+const startAll = () => {
+  instances.value.forEach(instance => instance.startAnimation());
+};
+
+const stopAll = () => {
+  instances.value.forEach(instance => instance.destroy());
+};
+</script>`}
+  language="javascript"
+/>
+
+### Vanilla JS with Class
+
+<CodePreview
+  code={`class ParticleTextManager {
+  constructor(configs) {
+    this.configs = configs;
+    this.instances = [];
+    this.initialized = false;
+  }
+
+  initialize() {
+    if (this.initialized) {
+      console.warn('Already initialized');
+      return;
+    }
+
+    this.configs.forEach(config => {
+      const instance = initParticleJS(config.selector, config.options);
+      this.instances.push({
+        name: config.name,
+        selector: config.selector,
+        instance: instance
+      });
+    });
+
+    this.initialized = true;
+    console.log(\`Initialized \${this.instances.length} instances\`);
+  }
+
+  destroy() {
+    this.instances.forEach(item => {
+      item.instance.destroy();
+    });
+    this.instances = [];
+    this.initialized = false;
+    console.log('Destroyed all instances');
+  }
+
+  startAll() {
+    this.instances.forEach(item => {
+      item.instance.startAnimation();
+    });
+  }
+
+  stopAll() {
+    this.instances.forEach(item => {
+      item.instance.destroy();
+    });
+  }
+
+  get(name) {
+    const found = this.instances.find(item => item.name === name);
+    return found ? found.instance : null;
+  }
+
+  getStatus() {
+    return this.instances.map(item => ({
+      name: item.name,
+      isAnimating: item.instance.isAnimating,
+      particleCount: item.instance.particleList.length
+    }));
+  }
+}
+
+// Usage
+const manager = new ParticleTextManager([
+  {
+    name: 'hero',
+    selector: '#hero',
+    options: { text: 'HERO', colors: ['#695aa6'], maxParticles: 3000 }
+  },
+  {
+    name: 'footer',
+    selector: '#footer',
+    options: { text: 'FOOTER', colors: ['#4ECDC4'], maxParticles: 1000 }
+  }
+]);
+
+manager.initialize();
+
+// Control specific instance
+const heroInstance = manager.get('hero');
+heroInstance.destroy();
+
+// Check status
+console.log(manager.getStatus());
+
+// Cleanup
+window.addEventListener('beforeunload', () => {
+  manager.destroy();
+});`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Use Restricted Cursor Tracking
+
+<CodePreview
+  code={`// ✅ Good: Each instance only reacts to its own canvas
+const instances = [
+  { selector: '#canvas1', text: 'ONE' },
+  { selector: '#canvas2', text: 'TWO' },
+  { selector: '#canvas3', text: 'THREE' }
+].map(config => {
+  return initParticleJS(config.selector, {
+    text: config.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true  // Critical for multiple instances!
+  });
+});
+
+// ❌ Bad: All instances react to cursor globally
+const badInstances = [
+  { selector: '#canvas1', text: 'ONE' },
+  { selector: '#canvas2', text: 'TWO' }
+].map(config => {
+  return initParticleJS(config.selector, {
+    text: config.text,
+    colors: ['#695aa6']
+    // trackCursorOnlyInsideCanvas defaults to false
+    // Both canvases react even when cursor is far away
+  });
+});`}
+  language="javascript"
+/>
+
+### 2. Budget Your Particles
+
+<CodePreview
+  code={`// ✅ Good: Total particle budget is reasonable
+const totalBudget = 5000;
+const instanceCount = 3;
+const perInstance = Math.floor(totalBudget / instanceCount);
+
+const instances = Array(instanceCount).fill(null).map((_, i) => {
+  return initParticleJS(\`#canvas\${i + 1}\`, {
+    text: \`CANVAS \${i + 1}\`,
+    colors: ['#695aa6'],
+    maxParticles: perInstance  // ~1666 per instance
+  });
+});
+// Total: ~5000 particles (good)
+
+// ❌ Bad: Each instance uses full budget
+const badInstances = Array(3).fill(null).map((_, i) => {
+  return initParticleJS(\`#canvas\${i + 1}\`, {
+    text: \`CANVAS \${i + 1}\`,
+    colors: ['#695aa6'],
+    maxParticles: 5000  // Full budget per instance
+  });
+});
+// Total: 15,000 particles (too many)`}
+  language="javascript"
+/>
+
+### 3. Clean Up Properly
+
+<CodePreview
+  code={`// ✅ Good: Proper cleanup lifecycle
+class Application {
+  constructor() {
+    this.instances = [];
+  }
+
+  init() {
+    this.instances = [
+      initParticleJS('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] }),
+      initParticleJS('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] })
+    ];
+  }
+
+  destroy() {
+    this.instances.forEach(instance => instance.destroy());
+    this.instances = [];
+  }
+
+  restart() {
+    this.destroy();
+    this.init();
+  }
+}
+
+const app = new Application();
+app.init();
+
+// Cleanup on navigation
+window.addEventListener('beforeunload', () => {
+  app.destroy();
+});
+
+// ❌ Bad: No cleanup
+function badInit() {
+  initParticleJS('#canvas1', { text: 'ONE', colors: ['#FF6B6B'] });
+  initParticleJS('#canvas2', { text: 'TWO', colors: ['#4ECDC4'] });
+  // No way to access or clean up these instances later
+}`}
+  language="javascript"
+/>
+
+### 4. Stagger Initialization
+
+<CodePreview
+  code={`// ✅ Good: Staggered initialization prevents CPU spike
+async function initializeStaggered(configs, delay = 100) {
+  const instances = [];
+
+  for (const config of configs) {
+    const instance = initParticleJS(config.selector, config.options);
+    instances.push(instance);
+
+    // Wait before next initialization
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+
+  return instances;
+}
+
+const configs = [
+  { selector: '#canvas1', options: { text: 'ONE', colors: ['#FF6B6B'] } },
+  { selector: '#canvas2', options: { text: 'TWO', colors: ['#4ECDC4'] } },
+  { selector: '#canvas3', options: { text: 'THREE', colors: ['#FFD93D'] } }
+];
+
+initializeStaggered(configs).then(instances => {
+  console.log('All instances initialized:', instances);
+});
+
+// ❌ Bad: Initialize all at once
+const badInstances = configs.map(config => {
+  return initParticleJS(config.selector, config.options);
+});
+// CPU spike during initialization`}
+  language="javascript"
+/>
+
+### 5. Provide Visual Feedback
+
+<CodePreview
+  code={`// ✅ Good: Clear visual boundaries for each canvas
+const instances = [
+  { selector: '#canvas1', text: 'ONE', color: '#FF6B6B' },
+  { selector: '#canvas2', text: 'TWO', color: '#4ECDC4' },
+  { selector: '#canvas3', text: 'THREE', color: '#FFD93D' }
+].map(config => {
+  const instance = initParticleJS(config.selector, {
+    text: config.text,
+    colors: [config.color],
+    trackCursorOnlyInsideCanvas: true
+  });
+
+  // Add visual feedback
+  const canvas = document.querySelector(config.selector);
+  canvas.style.border = \`3px solid \${config.color}\`;
+  canvas.style.borderRadius = '8px';
+  canvas.style.cursor = 'crosshair';
+
+  // Hover effects
+  canvas.addEventListener('mouseenter', () => {
+    canvas.style.boxShadow = \`0 0 20px \${config.color}66\`;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    canvas.style.boxShadow = 'none';
+  });
+
+  return instance;
+});
+
+// Users can clearly see which canvas is which
+// and which one they're interacting with`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+### Performance Issues
+
+<CodePreview
+  code={`// Issue: Too many particles causing lag
+console.log('Total particles:',
+  instances.reduce((sum, instance) =>
+    sum + instance.particleList.length, 0
+  )
+);
+
+// Solution 1: Reduce per-instance count
+instances.forEach(instance => {
+  console.log('Instance has', instance.particleList.length, 'particles');
+  // If too many, reinitialize with lower maxParticles
+});
+
+// Solution 2: Stop non-visible instances
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const instance = instanceMap.get(entry.target.id);
+    if (entry.isIntersecting) {
+      instance.startAnimation();
+    } else {
+      instance.destroy();
+    }
+  });
+});
+
+// Solution 3: Use restricted tracking
+// Ensure trackCursorOnlyInsideCanvas: true for all instances`}
+  language="javascript"
+/>
+
+### Instances Interfering with Each Other
+
+<CodePreview
+  code={`// Issue: Canvases reacting when cursor is elsewhere
+
+// Check cursor tracking setting
+instances.forEach((instance, i) => {
+  console.log(\`Instance \${i} trackCursorOnlyInsideCanvas:\`,
+    instance.trackCursorOnlyInsideCanvas
+  );
+});
+
+// Solution: Enable restricted tracking
+instances.forEach(instance => {
+  instance.destroy();
+});
+
+instances = [
+  initParticleJS('#canvas1', {
+    text: 'ONE',
+    colors: ['#FF6B6B'],
+    trackCursorOnlyInsideCanvas: true  // Fix!
+  }),
+  initParticleJS('#canvas2', {
+    text: 'TWO',
+    colors: ['#4ECDC4'],
+    trackCursorOnlyInsideCanvas: true  // Fix!
+  })
+];`}
+  language="javascript"
+/>
+
+### Memory Leaks
+
+<CodePreview
+  code={`// Issue: Instances not being cleaned up
+
+// Check for lingering instances
+console.log('Active instances:', instances.length);
+instances.forEach((instance, i) => {
+  console.log(\`Instance \${i} isAnimating:\`, instance.isAnimating);
+});
+
+// Solution: Proper cleanup
+function cleanupAll() {
+  instances.forEach(instance => {
+    if (instance.isAnimating) {
+      instance.destroy();
+    }
+  });
+  instances.length = 0;  // Clear array
+}
+
+// Add cleanup listeners
+window.addEventListener('beforeunload', cleanupAll);
+
+// For SPA navigation
+if (typeof router !== 'undefined') {
+  router.beforeEach((to, from, next) => {
+    cleanupAll();
+    next();
+  });
+}`}
+  language="javascript"
+/>
+
+### Initialization Failures
+
+<CodePreview
+  code={`// Issue: Some instances fail to initialize
+
+// Check which instances failed
+const results = configs.map(config => {
+  try {
+    const instance = initParticleJS(config.selector, config.options);
+    return { success: true, selector: config.selector, instance };
+  } catch (error) {
+    console.error(\`Failed to initialize \${config.selector}:\`, error);
+    return { success: false, selector: config.selector, error };
+  }
+});
+
+// Filter successful instances
+const instances = results
+  .filter(result => result.success)
+  .map(result => result.instance);
+
+console.log(\`Initialized \${instances.length} of \${configs.length} instances\`);
+
+// Report failures
+const failures = results.filter(result => !result.success);
+if (failures.length > 0) {
+  console.warn('Failed to initialize:', failures);
+}`}
+  language="javascript"
+/>
+
+## Related Documentation
+
+- [Performance Optimization](/guides/performance-optimization/) - Optimize performance across multiple instances
+- [Max Particles](/examples/performance/max-particles/) - Control particle count per instance
+- [Restricted Cursor Tracking](/examples/cursor/restricted-tracking/) - Limit cursor interaction zones
+- [Manual Animation Control](/examples/advanced/manual-control/) - Start/stop instances programmatically
+- [Error Handling](/examples/advanced/error-handling/) - Handle initialization failures
+- [Slow Browser Detection](/examples/advanced/slow-browser/) - Automatic performance adaptation

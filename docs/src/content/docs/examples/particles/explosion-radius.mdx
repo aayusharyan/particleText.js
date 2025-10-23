@@ -1,6 +1,467 @@
 ---
 title: Explosion Radius
-description: Configuring the explosion radius of particles
+description: Control how far particles react to mouse and touch interactions
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+The explosion radius determines the distance from your cursor at which particles will be repelled and scatter. It creates an interactive "bubble" around your mouse or finger, making the text responsive to user movement. A larger radius creates dramatic, wide-reaching effects, while a smaller radius requires precise positioning for subtle interactions.
+
+## Understanding Explosion Radius
+
+The explosion radius is measured in **pixels** from the cursor position. When your mouse (or finger on touch devices) comes within this distance of a particle, that particle will be pushed away, creating the signature "explosion" effect.
+
+### How It Works
+
+```
+Distance from cursor to particle < explosionRadius
+  → Particle is pushed away
+
+Distance from cursor to particle >= explosionRadius
+  → Particle returns to original position
+```
+
+The force applied to particles decreases as they get farther from the cursor, creating a natural-looking repulsion effect.
+
+## Live Demos
+
+### Small Explosion Radius
+
+Tight explosion (50px) - particles only react when the mouse is very close, creating precise, subtle interactions.
+
+<CanvasExample
+  title="Small Explosion (50px)"
+  config={{
+    text: 'SMALL',
+    explosionRadius: { xxxs: 50, xs: 50, sm: 50, md: 50, lg: 50, xl: 50 },
+    colors: ['#695aa6'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'SMALL',
+  explosionRadius: {
+    xs: 50,   // Small screens: 50px
+    lg: 50    // Large screens: 50px
+  },
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+**Try it:** Move your mouse over the text. Notice how you need to get very close to the particles to make them scatter.
+
+### Medium Explosion Radius
+
+Standard explosion (150px) - balanced interaction zone that works well for most use cases.
+
+<CanvasExample
+  title="Medium Explosion (150px)"
+  config={{
+    text: 'MEDIUM',
+    explosionRadius: { xxxs: 150, xs: 150, sm: 150, md: 150, lg: 150, xl: 150 },
+    colors: ['#FF6B6B'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'MEDIUM',
+  explosionRadius: {
+    xs: 150,
+    lg: 150
+  },
+  colors: ['#FF6B6B']
+});`}
+  language="javascript"
+/>
+
+**Try it:** The interaction feels natural and easy to trigger without being overwhelming.
+
+### Large Explosion Radius
+
+Wide explosion (300px) - particles react from far away, creating dramatic, sweeping effects.
+
+<CanvasExample
+  title="Large Explosion (300px)"
+  config={{
+    text: 'LARGE',
+    explosionRadius: { xxxs: 300, xs: 300, sm: 300, md: 300, lg: 300, xl: 300 },
+    colors: ['#E74C3C'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'LARGE',
+  explosionRadius: {
+    xs: 300,
+    lg: 300
+  },
+  colors: ['#E74C3C']
+});`}
+  language="javascript"
+/>
+
+**Try it:** Just bringing your cursor near the text causes widespread particle movement across the entire composition.
+
+## Responsive Explosion Radius
+
+Different screen sizes benefit from different explosion radii. Mobile devices typically work better with smaller radii, while large desktop displays can handle dramatic effects.
+
+<CodePreview
+  code={`explosionRadius: {
+  xxxs: 30,   // Tiny mobile: 30px (tight, finger-friendly)
+  xxs: 40,    // Small mobile: 40px
+  xs: 50,     // Mobile/tablet: 50px
+  sm: 60,     // Tablet: 60px
+  md: 70,     // Small desktop: 70px
+  lg: 75,     // Desktop: 75px
+  xl: 80,     // Large desktop: 80px
+  xxl: 90,    // Ultra-wide: 90px
+  xxxl: 100   // 4K+ displays: 100px
+}`}
+  language="javascript"
+/>
+
+This is the **default configuration** - optimized for all screen sizes.
+
+### Mobile-First Approach
+
+<CodePreview
+  code={`// Smaller radii for better mobile UX
+explosionRadius: {
+  xxxs: 25,   // Very tight on tiny screens
+  xs: 35,     // Mobile-optimized
+  sm: 50,     // Tablet
+  lg: 100     // Generous on desktop
+}`}
+  language="javascript"
+/>
+
+### Desktop-First Dramatic Effect
+
+<CodePreview
+  code={`// Larger radii for dramatic desktop experience
+explosionRadius: {
+  xxxs: 60,   // Still functional on mobile
+  xs: 80,     // Moderate on mobile
+  lg: 200,    // Wide on desktop
+  xl: 250,    // Very wide on large screens
+  xxxl: 350   // Dramatic on 4K displays
+}`}
+  language="javascript"
+/>
+
+## Dynamic Explosion Radius (Function)
+
+For advanced control, use a function to calculate the explosion radius dynamically.
+
+<CodePreview
+  code={`// Screen size-based calculation
+explosionRadius: function() {
+  const width = window.innerWidth;
+  if (width < 768) {
+    return 40;  // Small on mobile
+  } else if (width < 1440) {
+    return 100; // Medium on desktop
+  } else {
+    return 200; // Large on big screens
+  }
+}
+
+// Percentage of screen width
+explosionRadius: function() {
+  return window.innerWidth * 0.08;  // 8% of screen width
+}
+
+// Time-based animation (pulsing effect)
+let time = 0;
+explosionRadius: function() {
+  time += 0.05;
+  return 100 + Math.sin(time) * 30;  // Oscillates 70-130px
+}`}
+  language="javascript"
+/>
+
+## Choosing the Right Radius
+
+| Radius Range | Size | Best For | User Experience |
+|-------------|------|----------|-----------------|
+| **20-50px** | Tiny | Mobile devices, precise interactions, subtle effects | Requires direct contact, minimal disturbance |
+| **50-100px** | Small-Medium | Standard mobile/desktop, balanced interaction | Easy to trigger, not overwhelming |
+| **100-200px** | Medium-Large | Desktop displays, engaging interactions | Noticeable effect, fun to explore |
+| **200-400px** | Large | Large screens, artistic projects, hero sections | Dramatic, sweeping movements |
+| **400px+** | Extreme | Artistic installations, full-page effects | Particles react across entire viewport |
+
+## Use Case Guide
+
+### Professional/Corporate Sites
+
+Clean, subtle interactions that don't distract from content.
+
+<CodePreview
+  code={`{
+  explosionRadius: {
+    xs: 50,   // Subtle on mobile
+    lg: 80    // Professional on desktop
+  },
+  colors: ['#2C3E50'],
+  particleRadius: { xs: { base: 1, rand: 1 } }
+}`}
+  language="javascript"
+/>
+
+**Why:** Maintains professionalism while adding subtle interactivity.
+
+### Creative/Portfolio Sites
+
+Engaging, noticeable effects that showcase creativity.
+
+<CodePreview
+  code={`{
+  explosionRadius: {
+    xs: 100,   // Engaging on mobile
+    lg: 200    // Dramatic on desktop
+  },
+  colors: [
+    { color: '#E74C3C', weight: 5 },
+    { color: '#9B59B6', weight: 2 }
+  ],
+  particleRadius: { xs: { base: 2, rand: 2 } }
+}`}
+  language="javascript"
+/>
+
+**Why:** Creates memorable, interactive experiences that engage visitors.
+
+### Hero Sections
+
+Large, attention-grabbing effects for above-the-fold content.
+
+<CodePreview
+  code={`{
+  explosionRadius: {
+    xs: 120,   // Strong on mobile
+    lg: 250,   // Very dramatic on desktop
+    xxxl: 400  // Extreme on 4K
+  },
+  colors: ['#FF6B6B', '#4ECDC4'],
+  fontSize: 150
+}`}
+  language="javascript"
+/>
+
+**Why:** Immediately captures attention and encourages interaction.
+
+### Touch Devices
+
+Optimized for finger-based interaction rather than precise mouse control.
+
+<CodePreview
+  code={`{
+  explosionRadius: {
+    xxxs: 60,  // Larger for finger touch
+    xs: 70,    // Easier to trigger
+    sm: 80,    // Tablet-optimized
+    lg: 100    // Desktop can be smaller
+  }
+}`}
+  language="javascript"
+/>
+
+**Why:** Fingers are less precise than mouse cursors - larger radii compensate.
+
+## Performance Considerations
+
+Explosion radius has **minimal performance impact**. The calculation is simple distance-based math that modern browsers handle efficiently.
+
+However, consider these factors:
+
+### Large Radii + Dense Particles
+
+<CodePreview
+  code={`// Potentially slower (many particles affected)
+{
+  explosionRadius: { lg: 400 },      // Very large
+  particleRadius: { xs: { base: 1, rand: 0.5 } },  // Many particles
+  maxParticles: 10000                // High particle count
+}
+
+// Optimized version
+{
+  explosionRadius: { lg: 400 },      // Keep large radius
+  particleRadius: { xs: { base: 2, rand: 1 } },    // Slightly larger
+  maxParticles: 3000                 // Reasonable limit
+}`}
+  language="javascript"
+/>
+
+**Tip:** If you have very dense particles (small radius), consider limiting `maxParticles` when using large explosion radii.
+
+## Interaction Patterns
+
+### Standard Interaction (Recommended)
+
+<CodePreview
+  code={`{
+  explosionRadius: { xs: 50, lg: 100 },
+  trackCursorOnlyInsideCanvas: false  // Track anywhere (default)
+}`}
+  language="javascript"
+/>
+
+Particles respond to cursor position anywhere on the page for fluid interaction.
+
+### Bounded Interaction
+
+<CodePreview
+  code={`{
+  explosionRadius: { xs: 50, lg: 100 },
+  trackCursorOnlyInsideCanvas: true  // Only track inside canvas
+}`}
+  language="javascript"
+/>
+
+Particles only respond when cursor is directly over the canvas. Useful for:
+- Multiple canvases on the same page
+- Clear interaction boundaries
+- Preventing cross-canvas interference
+
+## Advanced Techniques
+
+### Proximity-Based Color Shifting
+
+Combine explosion radius with weighted colors for dynamic effects:
+
+<CodePreview
+  code={`{
+  explosionRadius: { lg: 200 },
+  colors: [
+    { color: '#3498DB', weight: 8 },  // Mostly blue at rest
+    { color: '#E74C3C', weight: 2 }   // Some red when disturbed
+  ]
+}`}
+  language="javascript"
+/>
+
+The red particles become more noticeable when scattered by the explosion.
+
+### Variable Radius Based on Scroll Position
+
+<CodePreview
+  code={`let scrollPercent = 0;
+
+window.addEventListener('scroll', () => {
+  scrollPercent = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+});
+
+explosionRadius: function() {
+  // Radius grows as user scrolls down
+  return 50 + (scrollPercent * 150);  // 50px → 200px
+}`}
+  language="javascript"
+/>
+
+### Asymmetric Explosion (Directional Push)
+
+While not built-in, you could modify the particle behavior to push particles in specific directions rather than radially outward.
+
+## Common Patterns
+
+### Minimal Disturbance
+
+<CodePreview
+  code={`{
+  explosionRadius: { xs: 40, lg: 60 },
+  friction: { base: 0.95, rand: 0.03 }  // High friction = slow return
+}`}
+  language="javascript"
+/>
+
+Small radius + high friction = gentle, slowly-recovering movement.
+
+### Energetic Bouncing
+
+<CodePreview
+  code={`{
+  explosionRadius: { xs: 100, lg: 200 },
+  friction: { base: 0.75, rand: 0.05 }  // Low friction = bouncy
+}`}
+  language="javascript"
+/>
+
+Large radius + low friction = particles spring back vigorously.
+
+### Smooth Wave Effect
+
+<CodePreview
+  code={`{
+  explosionRadius: { xs: 150, lg: 250 },
+  friction: { base: 0.88, rand: 0.05 },
+  particleRadius: { xs: { base: 2, rand: 1 } }
+}`}
+  language="javascript"
+/>
+
+Medium-large radius with balanced friction creates smooth wave-like motion.
+
+## Best Practices
+
+1. **Test on target devices**: Mobile users need different radii than desktop users
+2. **Match your content**: Large hero text can handle larger radii; body text should be subtle
+3. **Consider friction**: Low friction + large radius = chaotic; high friction + small radius = subtle
+4. **Responsive is key**: Always define at least `xs` and `lg` breakpoints
+5. **Don't overdo it**: Radii over 500px are rarely practical
+6. **Touch-friendly**: Add 20-30px extra for touch devices vs. mouse
+7. **Test performance**: On older devices, keep radii under 200px with `maxParticles` < 5000
+
+## Troubleshooting
+
+**Particles react from too far away?**
+- Decrease `explosionRadius` values
+- Try: `{ xs: 40, lg: 60 }`
+
+**Need to get too close to trigger effect?**
+- Increase `explosionRadius` values
+- Try: `{ xs: 100, lg: 150 }`
+
+**Effect feels different on mobile vs desktop?**
+- Set explicit breakpoint values
+- Test on actual devices, not just browser resize
+
+**Particles don't return to position smoothly?**
+- This is a `friction` issue, not explosion radius
+- See [Friction Effects](/examples/particles/friction/)
+
+**Multiple canvases interfering with each other?**
+- Set `trackCursorOnlyInsideCanvas: true`
+- See [Configuration Reference](/api-reference/configuration/#trackcursoronlyinsidecanvas)
+
+**Performance issues with large radius?**
+- Check particle count with `maxParticles`
+- Consider slightly larger `particleRadius` to reduce total count
+- Enable `supportSlowBrowsers: true`
+
+## Accessibility Considerations
+
+- **Reduced motion**: The library respects `prefers-reduced-motion` CSS media query
+- **Touch targets**: Ensure explosion radius on mobile is at least 40px for easy triggering
+- **Keyboard navigation**: Explosion effects are mouse/touch only - ensure your text is still readable
+- **Screen readers**: Text content should be available in the `text` or `data-text` attribute
+
+## Related Examples
+
+- [Explosion Radius (API Reference)](/api-reference/configuration/#explosionradius) - Full configuration options
+- [Particle Density](/examples/particles/density/) - Control particle size and detail
+- [Friction Effects](/examples/particles/friction/) - How particles return to position
+- [Cursor Tracking](/examples/cursor/restricted-tracking/) - Control where particles react
+- [Performance Optimization](/guides/performance-optimization/) - Optimize large installations

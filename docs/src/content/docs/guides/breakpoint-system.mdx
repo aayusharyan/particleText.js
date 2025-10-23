@@ -1,6 +1,654 @@
 ---
-title: Breakpoint System
-description: Understanding the responsive breakpoint system
+title: Breakpoint System Guide
+description: Deep dive into the responsive breakpoint architecture and mechanics
 ---
 
-Documentation coming soon.
+import CodePreview from '../../../components/CodePreview.astro';
+
+This guide provides a comprehensive technical understanding of ParticleText.js's breakpoint system - how it works internally, how values cascade, and how to leverage it for sophisticated responsive designs.
+
+## System Architecture
+
+### The Breakpoint Array
+
+ParticleText.js defines 9 breakpoints as minimum width thresholds:
+
+```javascript
+const BREAKPOINTS = [
+  { key: 'xxxs', minWidth: 0 },
+  { key: 'xxs', minWidth: 320 },
+  { key: 'xs', minWidth: 375 },
+  { key: 'sm', minWidth: 768 },
+  { key: 'md', minWidth: 1024 },
+  { key: 'lg', minWidth: 1440 },
+  { key: 'xl', minWidth: 2560 },
+  { key: 'xxl', minWidth: 3440 },
+  { key: 'xxxl', minWidth: 3840 }
+];
+```
+
+### Detection Logic
+
+The `getCurrentBreakpoint()` function determines the active breakpoint:
+
+<CodePreview
+  code={`getCurrentBreakpoint() {
+  const ww = window.innerWidth;
+  let breakPoint = 'xxxs';  // Default
+
+  // Iterate from largest to smallest
+  for (let i = BREAKPOINTS.length - 1; i >= 0; i--) {
+    if (ww >= BREAKPOINTS[i].minWidth) {
+      breakPoint = BREAKPOINTS[i].key;
+      break;  // Found the match
+    }
+  }
+
+  return breakPoint;
+}`}
+  language="javascript"
+/>
+
+**Key Points:**
+- Checks from largest to smallest width
+- Returns first matching breakpoint
+- Always returns a value (defaults to 'xxxs')
+- Case-sensitive lowercase keys
+
+## Value Resolution System
+
+### The Cascade Algorithm
+
+When you configure a responsive property, the library uses this algorithm to determine the actual value for the current breakpoint:
+
+<CodePreview
+  code={`getBreakpointValue(configValue, defaultValue, currentBreakpoint) {
+  let currentValue = null;
+  let lastDefinedValue = null;
+
+  // Iterate through breakpoints from smallest to largest
+  for (let bp of BREAKPOINTS) {
+    if (configValue[bp.key] !== undefined) {
+      lastDefinedValue = configValue[bp.key];
+    }
+
+    // When we reach current breakpoint
+    if (bp.key === currentBreakpoint) {
+      currentValue = lastDefinedValue;
+      break;
+    }
+  }
+
+  // Fallback to default if nothing found
+  return currentValue !== null ? currentValue : defaultValue;
+}`}
+  language="javascript"
+/>
+
+### Cascade Visualization
+
+Here's how values cascade for different configurations:
+
+<CodePreview
+  code={`// Configuration
+particleRadius: {
+  xs: { base: 1, rand: 1 },
+  lg: { base: 3, rand: 2 }
+}
+
+// Resolution per breakpoint:
+// xxxs → default (not specified, before xs)
+// xxs  → default (not specified, before xs)
+// xs   → { base: 1, rand: 1 } (explicitly set)
+// sm   → { base: 1, rand: 1 } (inherits from xs)
+// md   → { base: 1, rand: 1 } (inherits from xs)
+// lg   → { base: 3, rand: 2 } (explicitly set)
+// xl   → { base: 3, rand: 2 } (inherits from lg)
+// xxl  → { base: 3, rand: 2 } (inherits from lg)
+// xxxl → { base: 3, rand: 2 } (inherits from lg)`}
+  language="javascript"
+/>
+
+## Responsive Properties
+
+### Properties Supporting Breakpoints
+
+The following configuration properties support responsive breakpoint values:
+
+1. **particleRadius** - Object with `{ base, rand }` or Function
+2. **explosionRadius** - Number or Function
+3. **fontSize** - Number
+4. **friction** - Object with `{ base, rand }` or Function
+
+### Non-Responsive Properties
+
+These properties apply globally (no breakpoint support):
+
+- `text` - Text content
+- `colors` - Color configuration
+- `width` / `height` - Canvas dimensions
+- `autoAnimate` - Animation control
+- `fontWeight` / `textAlign` - Typography
+- `supportSlowBrowsers` - Performance optimization
+- `maxParticles` - Particle limit
+- `trackCursorOnlyInsideCanvas` - Interaction boundary
+
+## Advanced Configuration Patterns
+
+### Incremental Enhancement Pattern
+
+Start minimal and add complexity at larger breakpoints:
+
+<CodePreview
+  code={`{
+  // Base configuration (applies to xxxs/xxs)
+  // Uses library defaults
+
+  // Mobile enhancement (xs)
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  explosionRadius: { xs: 40 },
+
+  // Tablet enhancement (sm)
+  explosionRadius: { sm: 70 },  // Override explosion
+  // particleRadius still 1-2px from xs
+
+  // Desktop enhancement (lg)
+  particleRadius: { lg: { base: 2, rand: 2 } },
+  explosionRadius: { lg: 150 },
+
+  // Large display enhancement (xl)
+  explosionRadius: { xl: 250 }
+  // particleRadius still 2-4px from lg
+}`}
+  language="javascript"
+/>
+
+### Graceful Degradation Pattern
+
+Start with full-featured desktop experience and optimize for mobile:
+
+<CodePreview
+  code={`{
+  // Desktop-first (lg)
+  particleRadius: { lg: { base: 3, rand: 2 } },
+  explosionRadius: { lg: 200 },
+  friction: { base: 0.85, rand: 0.08 },
+
+  // Mobile optimization (xs)
+  particleRadius: { xs: { base: 2, rand: 1 } },  // Fewer particles
+  explosionRadius: { xs: 50 },                    // Smaller interaction
+  friction: { xs: { base: 0.90, rand: 0.05 } }   // Smoother movement
+}`}
+  language="javascript"
+/>
+
+### Conditional Breakpoint Pattern
+
+Different configurations for specific breakpoint ranges:
+
+<CodePreview
+  code={`{
+  // Phones (xxxs-xs): Minimal
+  xxxs: { base: 1, rand: 0.5 },
+  xs: { base: 1, rand: 0.5 },
+
+  // Tablets (sm-md): Medium
+  sm: { base: 2, rand: 1 },
+  md: { base: 2, rand: 1 },
+
+  // Desktop (lg-xl): Full
+  lg: { base: 3, rand: 2 },
+  xl: { base: 3, rand: 2 },
+
+  // Ultra-wide (xxl-xxxl): Enhanced
+  xxl: { base: 4, rand: 3 },
+  xxxl: { base: 5, rand: 3 }
+}`}
+  language="javascript"
+/>
+
+## Performance Considerations
+
+### Breakpoint Detection Cost
+
+The `getCurrentBreakpoint()` function is called:
+- Once on initialization
+- On every window resize event (debounced internally)
+- When you call it programmatically
+
+**Performance:** O(n) where n=9, effectively constant time. Negligible impact.
+
+### Value Resolution Cost
+
+The `getBreakpointValue()` function is called:
+- Once per responsive property on initialization
+- On window resize (only if breakpoint changes)
+
+**Performance:** O(n) where n=9, effectively constant time. No noticeable impact.
+
+### Optimization Strategy
+
+The library caches the current breakpoint and only re-evaluates responsive properties when the breakpoint actually changes:
+
+<CodePreview
+  code={`let cachedBreakpoint = getCurrentBreakpoint();
+
+window.addEventListener('resize', () => {
+  const newBreakpoint = getCurrentBreakpoint();
+
+  if (newBreakpoint !== cachedBreakpoint) {
+    // Breakpoint changed - update all responsive values
+    updateResponsiveValues();
+    cachedBreakpoint = newBreakpoint;
+  }
+  // If breakpoint unchanged, skip expensive updates
+});`}
+  language="javascript"
+/>
+
+## Custom Breakpoint Implementation
+
+### Overriding the Detection Function
+
+You can replace the breakpoint detection with your own logic:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', { /* config */ });
+
+// Custom breakpoint logic
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  // Example: Aspect ratio-based breakpoints
+  const aspectRatio = width / height;
+
+  if (width < 600) return 'mobile';
+  if (aspectRatio > 1.5) return 'widescreen';
+  if (aspectRatio < 0.75) return 'portrait';
+  return 'standard';
+};
+
+// Important: Your configuration must use these custom keys
+// particleRadius: {
+//   mobile: { base: 1, rand: 1 },
+//   widescreen: { base: 3, rand: 2 },
+//   portrait: { base: 2, rand: 1 },
+//   standard: { base: 2, rand: 2 }
+// }`}
+  language="javascript"
+/>
+
+### Device Type Detection
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const isTouchDevice = 'ontouchstart' in window;
+
+  if (isTouchDevice) {
+    if (width < 768) return 'touch-phone';
+    if (width < 1024) return 'touch-tablet';
+    return 'touch-large';
+  } else {
+    if (width < 1024) return 'mouse-small';
+    if (width < 1920) return 'mouse-medium';
+    return 'mouse-large';
+  }
+};`}
+  language="javascript"
+/>
+
+### Orientation-Based Breakpoints
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const isPortrait = height > width;
+
+  if (isPortrait) {
+    if (width < 768) return 'portrait-phone';
+    return 'portrait-tablet';
+  } else {
+    if (width < 1024) return 'landscape-small';
+    return 'landscape-large';
+  }
+};`}
+  language="javascript"
+/>
+
+## Edge Cases and Gotchas
+
+### Case Sensitivity
+
+Breakpoint keys are case-sensitive and must be lowercase:
+
+<CodePreview
+  code={`// ✅ Correct
+particleRadius: {
+  xs: { base: 1, rand: 1 },
+  lg: { base: 3, rand: 2 }
+}
+
+// ❌ Wrong - won't work
+particleRadius: {
+  XS: { base: 1, rand: 1 },    // Uppercase
+  Lg: { base: 3, rand: 2 },    // Mixed case
+  'LG': { base: 3, rand: 2 }   // Still uppercase
+}`}
+  language="javascript"
+/>
+
+### Missing Intermediate Breakpoints
+
+If you skip breakpoints in your cascade, they inherit from the previous:
+
+<CodePreview
+  code={`// Configuration
+particleRadius: {
+  xs: { base: 1, rand: 1 },
+  // sm and md not specified
+  lg: { base: 3, rand: 2 }
+}
+
+// Result:
+// sm inherits from xs (1-2px)
+// md inherits from xs (1-2px)  ← Important!
+// Then lg changes to 3-5px
+
+// This might cause abrupt visual change from md→lg`}
+  language="javascript"
+/>
+
+**Best Practice:** Include intermediate breakpoints for smooth transitions.
+
+### Function vs Object Syntax
+
+Some properties accept both:
+
+<CodePreview
+  code={`// Object syntax (responsive)
+particleRadius: {
+  xs: { base: 1, rand: 1 },
+  lg: { base: 3, rand: 2 }
+}
+
+// Function syntax (NOT responsive)
+particleRadius: function() {
+  // This function is called per-particle
+  // It does NOT have breakpoint awareness
+  return Math.random() * 3 + 1;
+}
+
+// To make function responsive, access breakpoint inside:
+particleRadius: function() {
+  const bp = this.getCurrentBreakpoint();
+  if (bp === 'xs') return 1 + Math.random();
+  if (bp === 'lg') return 3 + Math.random() * 2;
+  return 2 + Math.random();
+}`}
+  language="javascript"
+/>
+
+### Default Values
+
+If no breakpoint matches (should never happen) or no value is specified:
+
+<CodePreview
+  code={`// If you don't specify any breakpoints
+particleRadius: {}  // Empty
+
+// Library uses internal defaults:
+particleRadius: {
+  xxxs: { base: 1, rand: 1 },
+  xs: { base: 1, rand: 1 },
+  sm: { base: 1, rand: 1 },
+  // ... etc
+}`}
+  language="javascript"
+/>
+
+## Testing Responsive Configurations
+
+### Browser DevTools Approach
+
+<CodePreview
+  code={`// 1. Open browser DevTools (F12)
+// 2. Enable device toolbar (Ctrl+Shift+M)
+// 3. Select devices or custom widths:
+//    - iPhone SE (375px) → xs
+//    - iPad (768px) → sm
+//    - iPad Pro (1024px) → md
+//    - Desktop (1440px+) → lg
+
+// 4. In console, check current breakpoint:
+const instance = window.particleTextInstance;
+console.log(instance.getCurrentBreakpoint());
+
+// 5. Add resize listener to see changes:
+window.addEventListener('resize', () => {
+  console.log('Now:', instance.getCurrentBreakpoint());
+});`}
+  language="javascript"
+/>
+
+### Automated Testing
+
+<CodePreview
+  code={`// Test all breakpoints programmatically
+const breakpointTests = [
+  { width: 300, expected: 'xxxs' },
+  { width: 350, expected: 'xxs' },
+  { width: 400, expected: 'xs' },
+  { width: 800, expected: 'sm' },
+  { width: 1200, expected: 'md' },
+  { width: 1600, expected: 'lg' },
+  { width: 2800, expected: 'xl' },
+  { width: 3500, expected: 'xxl' },
+  { width: 4000, expected: 'xxxl' }
+];
+
+breakpointTests.forEach(test => {
+  // Mock window.innerWidth
+  Object.defineProperty(window, 'innerWidth', {
+    writable: true,
+    configurable: true,
+    value: test.width
+  });
+
+  const bp = instance.getCurrentBreakpoint();
+  console.assert(
+    bp === test.expected,
+    \`Width \${test.width}px should be '\${test.expected}', got '\${bp}'\`
+  );
+});`}
+  language="javascript"
+/>
+
+## Integration with CSS Media Queries
+
+While ParticleText.js handles its own responsive behavior, you may want to sync with CSS:
+
+<CodePreview
+  code={`// ParticleText.js breakpoints (width >= minWidth)
+// xxxs: 0px
+// xxs:  320px
+// xs:   375px
+// sm:   768px
+// md:   1024px
+// lg:   1440px
+// xl:   2560px
+// xxl:  3440px
+// xxxl: 3840px
+
+/* Matching CSS media queries */
+@media (min-width: 375px) {  /* xs+ */
+  .canvas-container { /* ... */ }
+}
+
+@media (min-width: 768px) {  /* sm+ */
+  .canvas-container { /* ... */ }
+}
+
+@media (min-width: 1024px) { /* md+ */
+  .canvas-container { /* ... */ }
+}
+
+@media (min-width: 1440px) { /* lg+ */
+  .canvas-container { /* ... */ }
+}`}
+  language="css"
+/>
+
+## Migration Guide
+
+### From Fixed to Responsive
+
+Converting a non-responsive configuration:
+
+<CodePreview
+  code={`// Before (fixed)
+{
+  particleRadius: { base: 2, rand: 1 },
+  explosionRadius: 100
+}
+
+// After (responsive)
+{
+  particleRadius: {
+    xs: { base: 1, rand: 1 },    // Smaller on mobile
+    sm: { base: 1.5, rand: 1 },  // Medium on tablet
+    lg: { base: 2, rand: 1 },    // Original size on desktop
+    xl: { base: 3, rand: 2 }     // Larger on big screens
+  },
+  explosionRadius: {
+    xs: 50,    // Touch-friendly
+    sm: 75,    // Medium
+    lg: 100,   // Original size
+    xl: 150    // More dramatic
+  }
+}`}
+  language="javascript"
+/>
+
+### From Media Queries to Breakpoints
+
+If you were using CSS media queries to change canvas size:
+
+<CodePreview
+  code={`// Before: CSS-driven
+/* CSS */
+@media (max-width: 767px) {
+  #canvas { width: 100%; height: 300px; }
+}
+@media (min-width: 768px) {
+  #canvas { width: 100%; height: 500px; }
+}
+
+// JavaScript (fixed config)
+initParticleJS('#canvas', {
+  particleRadius: { base: 2, rand: 1 }
+});
+
+// After: Responsive config
+/* Simpler CSS */
+#canvas { width: 100%; height: auto; }
+
+// JavaScript (responsive config)
+initParticleJS('#canvas', {
+  fontSize: {
+    xs: 50,   // Proportional to mobile height
+    lg: 100   // Proportional to desktop height
+  },
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 2, rand: 1 }
+  }
+});`}
+  language="javascript"
+/>
+
+## Debugging Breakpoints
+
+### Console Debugging
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'DEBUG',
+  particleRadius: {
+    xs: { base: 1, rand: 1 },
+    lg: { base: 3, rand: 2 }
+  }
+});
+
+// Debug helper
+function debugBreakpoints() {
+  const bp = instance.getCurrentBreakpoint();
+  console.log('Current breakpoint:', bp);
+  console.log('Window width:', window.innerWidth);
+
+  // Check what value is being used
+  const config = instance.config || instance;
+  console.log('Active particleRadius:', config.particleRadius);
+}
+
+// Call on load
+debugBreakpoints();
+
+// Call on resize
+window.addEventListener('resize', debugBreakpoints);`}
+  language="javascript"
+/>
+
+### Visual Debugging Overlay
+
+<CodePreview
+  code={`// Add visual indicator to page
+const indicator = document.createElement('div');
+indicator.id = 'breakpoint-indicator';
+indicator.style.cssText = \`
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 10px 20px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 16px;
+  z-index: 9999;
+\`;
+document.body.appendChild(indicator);
+
+function updateIndicator() {
+  const bp = instance.getCurrentBreakpoint();
+  const width = window.innerWidth;
+  indicator.textContent = \`\${bp.toUpperCase()} (\${width}px)\`;
+}
+
+updateIndicator();
+window.addEventListener('resize', updateIndicator);`}
+  language="javascript"
+/>
+
+## Best Practices Summary
+
+1. **Always specify at least xs and lg** for mobile and desktop
+2. **Test on real devices**, not just browser resize
+3. **Use mobile-first approach** for better performance
+4. **Include sm/md for tablets** to avoid abrupt transitions
+5. **Keep values proportional** across breakpoints
+6. **Optimize mobile performance** with larger particles
+7. **Document your breakpoint strategy** in code comments
+8. **Consider touch vs mouse** when setting explosion radius
+9. **Use getCurrentBreakpoint()** for debugging
+10. **Test all 9 breakpoints** if your audience is diverse
+
+## Further Reading
+
+- [Responsive Breakpoints Example](/examples/responsive/breakpoints/) - Live examples and patterns
+- [API Reference - Configuration](/api-reference/configuration/) - All responsive properties
+- [Performance Optimization](/guides/performance-optimization/) - Mobile performance tips
+- [Particle Density](/examples/particles/density/) - Responsive particle sizing
+- [Explosion Radius](/examples/particles/explosion-radius/) - Touch-optimized interaction

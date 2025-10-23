@@ -1,6 +1,618 @@
 ---
-title: Restricted Tracking
-description: Restricting cursor tracking to specific elements
+title: Restricted Cursor Tracking
+description: Control when particles respond to cursor movement
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+By default, ParticleText.js tracks cursor position globally across the entire page. The `trackCursorOnlyInsideCanvas` option lets you restrict particle reactions to only occur when the cursor is within the canvas boundaries, providing precise control over interaction zones.
+
+## How It Works
+
+### Default Behavior (Unrestricted)
+
+<CodePreview
+  code={`// Default: Particles track cursor anywhere on the page
+const instance = initParticleJS('#canvas', {
+  text: 'GLOBAL',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: false  // Default
+});
+
+// Particles react even when cursor is outside canvas
+// Creates smooth anticipation as cursor approaches`}
+  language="javascript"
+/>
+
+**Behavior:**
+- Mouse position is tracked globally via `window.addEventListener('mousemove')`
+- Particles calculate distance to cursor regardless of canvas position
+- Smooth transitions as cursor approaches from outside
+- Creates anticipatory effects
+
+### Restricted Mode
+
+<CodePreview
+  code={`// Restricted: Particles only react inside canvas
+const instance = initParticleJS('#canvas', {
+  text: 'BOUNDED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// When cursor leaves canvas:
+// - Mouse position resets to (-9999, -9999)
+// - All particles immediately return to rest positions
+// - Clear boundary for interaction zone`}
+  language="javascript"
+/>
+
+**Behavior:**
+- Checks if cursor is within canvas `getBoundingClientRect()`
+- If outside: `mouse.x = -9999; mouse.y = -9999`
+- Particles immediately return to original positions
+- Clear visual feedback for interaction boundaries
+
+## Configuration
+
+### Basic Setup
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'RESTRICTED',
+  colors: ['#695aa6'],
+
+  // Enable restricted tracking
+  trackCursorOnlyInsideCanvas: true,
+
+  // Optional: Increase explosion radius for better interaction
+  explosionRadius: {
+    xs: 100,
+    lg: 150
+  }
+});`}
+  language="javascript"
+/>
+
+### Touch Device Support
+
+Restricted tracking works seamlessly with touch devices:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'TOUCH',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// On touch devices:
+// - Tracks first touch only (touches[0])
+// - Same boundary checking as mouse
+// - touchend event resets mouse position`}
+  language="javascript"
+/>
+
+## Use Cases
+
+### 1. Multiple Canvas Instances
+
+Prevent interference between adjacent particle effects:
+
+<CodePreview
+  code={`// Side-by-side canvases
+const canvas1 = initParticleJS('#canvas1', {
+  text: 'LEFT',
+  colors: ['#FF6B6B'],
+  trackCursorOnlyInsideCanvas: true  // Only react to own canvas
+});
+
+const canvas2 = initParticleJS('#canvas2', {
+  text: 'RIGHT',
+  colors: ['#4ECDC4'],
+  trackCursorOnlyInsideCanvas: true  // Independent tracking
+});
+
+// Without restriction:
+// - Cursor over canvas1 would affect canvas2
+// - Confusing user experience
+// - Particles react to distant cursor
+
+// With restriction:
+// - Each canvas is independent
+// - Clear interaction boundaries
+// - Better UX for multiple instances`}
+  language="javascript"
+/>
+
+### 2. Interactive Galleries
+
+Define clear interaction zones for gallery items:
+
+<CodePreview
+  code={`// Gallery with multiple particle text items
+const galleryItems = document.querySelectorAll('.gallery-item canvas');
+
+galleryItems.forEach((canvas, index) => {
+  initParticleJS(canvas, {
+    text: \`ITEM \${index + 1}\`,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true,  // Each item independent
+
+    explosionRadius: {
+      xs: 80,
+      lg: 120
+    }
+  });
+});
+
+// User can clearly see which item they're interacting with
+// No cross-contamination between gallery items`}
+  language="javascript"
+/>
+
+### 3. Page with Interactive Elements
+
+Prevent particle effects from interfering with buttons/links:
+
+<CodePreview
+  code={`<div class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <button class="cta-button">Get Started</button>
+</div>
+
+<script>
+const instance = initParticleJS('#hero-canvas', {
+  text: 'HERO',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Benefits:
+// - Particles don't react when user hovers button
+// - Clearer focus on interactive elements
+// - Better accessibility
+// - Reduced distraction
+</script>`}
+  language="javascript"
+/>
+
+### 4. Performance Optimization
+
+Reduce unnecessary calculations when cursor is far away:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'OPTIMIZED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true,
+
+  // Large canvas with many particles
+  fontSize: 200,
+  maxParticles: 5000
+});
+
+// Performance benefits:
+// - No explosion calculations when cursor outside
+// - Particles return to rest (simpler physics)
+// - Especially beneficial for large canvases
+// - Reduces CPU usage when not interacting`}
+  language="javascript"
+/>
+
+### 5. UI/UX Clarity
+
+Make interaction zones explicit:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'EXPLICIT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Add visual cue for canvas boundary
+canvas.style.border = '2px solid #695aa6';
+canvas.style.borderRadius = '8px';
+canvas.style.cursor = 'crosshair';
+
+// Users immediately understand:
+// - Where they can interact
+// - Boundary of effect zone
+// - Expected behavior`}
+  language="javascript"
+/>
+
+### 6. Fixed Position Elements
+
+Prevent issues with fixed/sticky elements:
+
+<CodePreview
+  code={`<header style="position: fixed; top: 0;">
+  <canvas id="header-canvas"></canvas>
+</header>
+
+<script>
+const instance = initParticleJS('#header-canvas', {
+  text: 'HEADER',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Prevents:
+// - Particles reacting when scrolling past header
+// - Unexpected behavior with fixed positioning
+// - Confusion about scroll vs hover
+</script>`}
+  language="javascript"
+/>
+
+## Implementation Details
+
+### Boundary Detection
+
+<CodePreview
+  code={`// How ParticleText.js detects boundaries
+function onMouseMove(e) {
+  const rect = element.getBoundingClientRect();
+  const relativeX = e.clientX - rect.left;
+  const relativeY = e.clientY - rect.top;
+
+  if (trackCursorOnlyInsideCanvas) {
+    // Check if cursor is outside bounds
+    if (relativeX < 0 ||
+        relativeX > rect.width ||
+        relativeY < 0 ||
+        relativeY > rect.height) {
+
+      // Reset to far-away position
+      mouse.x = -9999;
+      mouse.y = -9999;
+      return;  // Don't update position
+    }
+  }
+
+  // Update mouse position (inside or unrestricted)
+  mouse.x = relativeX * (canvas.width / rect.width);
+  mouse.y = relativeY * (canvas.height / rect.height);
+}`}
+  language="javascript"
+/>
+
+### Touch Handling
+
+<CodePreview
+  code={`// Touch events use same logic
+function onTouchMove(e) {
+  if (e.touches.length > 0) {
+    const rect = element.getBoundingClientRect();
+    const relativeX = e.touches[0].clientX - rect.left;
+    const relativeY = e.touches[0].clientY - rect.top;
+
+    if (trackCursorOnlyInsideCanvas) {
+      if (relativeX < 0 ||
+          relativeX > rect.width ||
+          relativeY < 0 ||
+          relativeY > rect.height) {
+        mouse.x = -9999;
+        mouse.y = -9999;
+        return;
+      }
+    }
+
+    mouse.x = relativeX * (canvas.width / rect.width);
+    mouse.y = relativeY * (canvas.height / rect.height);
+  }
+}
+
+// Touch end always resets
+function onTouchEnd(e) {
+  mouse.x = -9999;
+  mouse.y = -9999;
+}`}
+  language="javascript"
+/>
+
+## Visual Feedback
+
+### Add Border to Canvas
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'BORDERED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Style canvas to show interaction boundary
+const canvas = document.getElementById('canvas');
+canvas.style.border = '3px solid #695aa6';
+canvas.style.borderRadius = '10px';
+canvas.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+canvas.style.cursor = 'crosshair';  // Clear affordance`}
+  language="javascript"
+/>
+
+### Hover State Indicator
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'HOVER',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+const canvas = document.getElementById('canvas');
+
+// Visual feedback on hover
+canvas.addEventListener('mouseenter', () => {
+  canvas.style.borderColor = '#4ECDC4';
+  canvas.style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.5)';
+});
+
+canvas.addEventListener('mouseleave', () => {
+  canvas.style.borderColor = '#695aa6';
+  canvas.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+});`}
+  language="javascript"
+/>
+
+### Status Indicator
+
+<CodePreview
+  code={`<div id="status">Outside canvas</div>
+<canvas id="canvas"></canvas>
+
+<script>
+const instance = initParticleJS('#canvas', {
+  text: 'STATUS',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+const canvas = document.getElementById('canvas');
+const status = document.getElementById('status');
+
+canvas.addEventListener('mouseenter', () => {
+  status.textContent = 'Inside canvas - Particles active';
+  status.style.color = '#4CAF50';
+});
+
+canvas.addEventListener('mouseleave', () => {
+  status.textContent = 'Outside canvas - Particles at rest';
+  status.style.color = '#999';
+});
+</script>`}
+  language="javascript"
+/>
+
+## Combining with Other Features
+
+### With Explosion Radius
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'COMBINED',
+  colors: ['#695aa6'],
+
+  // Restrict tracking to canvas
+  trackCursorOnlyInsideCanvas: true,
+
+  // Large explosion radius for dramatic effect within boundary
+  explosionRadius: {
+    xs: 150,
+    lg: 250
+  }
+});
+
+// Result:
+// - No reaction outside canvas
+// - Dramatic explosions inside canvas
+// - Clear on/off behavior`}
+  language="javascript"
+/>
+
+### With Custom Breakpoints
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Override breakpoint logic
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+};
+
+// Restricted tracking works with custom breakpoints
+// Boundary detection is breakpoint-independent`}
+  language="javascript"
+/>
+
+### With Manual Control
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'MANUAL',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true,
+  autoAnimate: false
+});
+
+const canvas = document.getElementById('canvas');
+
+// Start animation only when mouse enters
+canvas.addEventListener('mouseenter', () => {
+  instance.startAnimation();
+});
+
+// Stop when mouse leaves
+canvas.addEventListener('mouseleave', () => {
+  instance.destroy();
+});
+
+// Combine restricted tracking with manual animation control
+// Very efficient: only animates when needed`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Use for Multiple Canvases
+
+<CodePreview
+  code={`// ✅ Good: Independent canvases
+document.querySelectorAll('.particle-canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true  // Each independent
+  });
+});
+
+// ❌ Bad: Overlapping effects
+document.querySelectorAll('.particle-canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: false  // All affect each other
+  });
+});`}
+  language="javascript"
+/>
+
+### 2. Provide Visual Cues
+
+<CodePreview
+  code={`// ✅ Good: Clear boundaries
+const instance = initParticleJS('#canvas', {
+  text: 'CLEAR',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+canvas.style.border = '2px solid #695aa6';
+canvas.style.cursor = 'crosshair';
+
+// ❌ Bad: No visual indication
+const instance = initParticleJS('#canvas', {
+  text: 'UNCLEAR',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+// Users don't know where interaction zone is`}
+  language="javascript"
+/>
+
+### 3. Consider Touch Devices
+
+<CodePreview
+  code={`// ✅ Good: Works well on touch
+const instance = initParticleJS('#canvas', {
+  text: 'TOUCH FRIENDLY',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true,
+
+  // Larger explosion radius for fingers
+  explosionRadius: {
+    xs: 80,   // Larger for touch
+    lg: 120
+  }
+});
+
+// ❌ Bad: Too precise for touch
+const instance = initParticleJS('#canvas', {
+  text: 'TOO PRECISE',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true,
+  explosionRadius: {
+    xs: 20,  // Too small for fingers
+    lg: 30
+  }
+});`}
+  language="javascript"
+/>
+
+### 4. Test with Fixed/Sticky Elements
+
+<CodePreview
+  code={`// ✅ Good: Explicit testing
+const instance = initParticleJS('#fixed-header-canvas', {
+  text: 'FIXED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Test:
+// - Scroll past header
+// - Hover over header
+// - Resize window
+// Verify particles only react when cursor is over canvas
+
+// ❌ Bad: Assume it works
+// Don't test edge cases with positioning`}
+  language="javascript"
+/>
+
+### 5. Document Your Choice
+
+<CodePreview
+  code={`// ✅ Good: Clear intent
+const instance = initParticleJS('#canvas', {
+  text: 'GALLERY ITEM',
+  colors: ['#695aa6'],
+
+  // Restricted to prevent interference between gallery items
+  trackCursorOnlyInsideCanvas: true
+});
+
+// ❌ Bad: Unclear why
+const instance = initParticleJS('#canvas', {
+  text: 'SOMETHING',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true  // Why?
+});`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Particles don't react at all?**
+- Check `trackCursorOnlyInsideCanvas` is `true`, not `'true'` (string)
+- Verify canvas is visible and has dimensions
+- Check browser console for errors
+- Ensure animation is running (`instance.isAnimating`)
+
+**Particles react outside canvas?**
+- Verify `trackCursorOnlyInsideCanvas: true` in config
+- Check for multiple instances with different settings
+- Clear browser cache
+- Check that correct instance is being configured
+
+**Touch not working on mobile?**
+- Touch events are automatically handled
+- Ensure canvas is touchable (no `pointer-events: none`)
+- Test with `touchmove` event listener
+- Check for conflicting touch handlers
+
+**Boundary detection off by a few pixels?**
+- This can happen with CSS transforms
+- Check `getBoundingClientRect()` in console
+- Verify canvas doesn't have unusual positioning
+- Test without CSS transforms
+
+**Works on desktop but not mobile?**
+- Touch uses `touches[0]` (first touch)
+- Multi-touch devices: only first touch tracked
+- Ensure canvas is large enough for finger
+- Test with actual device, not emulator
+
+## Related Documentation
+
+- [trackCursorOnlyInsideCanvas (API Reference)](/api-reference/configuration/#trackcursoronlyinsidecanvas) - Configuration option
+- [Cursor Tracking Comparison](/examples/cursor/comparison/) - Compare restricted vs unrestricted
+- [Explosion Radius](/examples/particles/explosion-radius/) - Control interaction distance
+- [Multiple Canvases](/examples/advanced/multiple-canvases/) - Managing multiple instances
+- [Manual Control](/examples/advanced/manual-control/) - Combine with animation control

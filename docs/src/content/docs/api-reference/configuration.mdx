@@ -75,21 +75,67 @@ The text to display as particles. Overrides the `data-text` attribute if both ar
 
 ### colors
 
-**Type:** `String | Array<String>`
-**Default:** `['#000000']`
+**Type:** `String | Array<String> | Array<Object>`
+**Default:** `[{ color: '#000000', weight: 1 }]`
 **Format:** 6-digit hex color (#RRGGBB)
 
-Colors are randomly assigned to particles. Use a single color for uniformity or multiple colors for variety.
+Colors are assigned to particles based on weights. Use a single color for uniformity, multiple colors for variety, or weighted colors for controlled distribution.
+
+#### Basic Usage (String Format)
 
 <CodePreview
   code={`// Single color (provide as array)
 colors: ['#FF6B6B']
 
-// Multiple colors (random assignment)
+// Multiple colors (equal distribution)
 colors: ['#695aa6', '#8b7bb8', '#a89bc9']
 
 // Single string (auto-converted to array)
 colors: '#FF6B6B'`}
+  language="javascript"
+/>
+
+#### Weighted Colors (Object Format)
+
+Control the color distribution by specifying weights. Higher weights mean more particles with that color.
+
+<CodePreview
+  code={`// Weighted color distribution
+colors: [
+  { color: '#FF6B6B', weight: 5 },  // 5x more red particles
+  { color: '#4ECDC4', weight: 2 },  // 2x more cyan particles
+  { color: '#695aa6', weight: 1 }   // baseline purple particles
+]
+
+// Mix formats (strings default to weight: 1)
+colors: [
+  { color: '#FF6B6B', weight: 3 },
+  '#4ECDC4',  // Automatically gets weight: 1
+  '#695aa6'   // Automatically gets weight: 1
+]`}
+  language="javascript"
+/>
+
+**Weight Rules:**
+- Must be a **positive integer** (no decimals, no zero, no negatives)
+- Default weight is `1` if not specified
+- Relative to other weights (weight: 3 means 3x more than weight: 1)
+- Configuration errors will show a browser alert
+
+<CodePreview
+  code={`// ✅ Valid weights
+colors: [
+  { color: '#FF0000', weight: 1 },
+  { color: '#00FF00', weight: 10 },
+  { color: '#0000FF', weight: 100 }
+]
+
+// ❌ Invalid - will show alert and throw error
+colors: [
+  { color: '#FF0000', weight: 0 },      // Zero not allowed
+  { color: '#00FF00', weight: -5 },     // Negative not allowed
+  { color: '#0000FF', weight: 2.5 }     // Decimals not allowed
+]`}
   language="javascript"
 />
 
@@ -98,16 +144,34 @@ colors: '#FF6B6B'`}
 ```javascript
 // ✅ Valid
 colors: ['#FF6B6B', '#4ECDC4']
+colors: [{ color: '#FF6B6B', weight: 3 }]
 
 // ❌ Invalid - will throw error
 colors: ['#F6B', 'red', 'rgb(255,0,0)']
+colors: [{ color: '#F6B', weight: 1 }]
 ```
 
 <CanvasExample
-  title="Multiple Colors"
+  title="Equal Distribution"
   config={{
     text: 'RAINBOW',
     colors: ['#FF6B6B', '#FFD93D', '#6BCF7F', '#4ECDC4', '#695aa6'],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+<CanvasExample
+  title="Weighted Distribution (Red: 80%, Others: 5% each)"
+  config={{
+    text: 'WEIGHTED',
+    colors: [
+      { color: '#FF6B6B', weight: 16 },
+      { color: '#FFD93D', weight: 1 },
+      { color: '#6BCF7F', weight: 1 },
+      { color: '#4ECDC4', weight: 1 },
+      { color: '#695aa6', weight: 1 }
+    ],
     fontSize: 100
   }}
   height={300}

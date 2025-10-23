@@ -1,6 +1,995 @@
 ---
 title: Error Handling
-description: Handling errors gracefully in ParticleText.js
+description: Gracefully handle configuration and runtime errors
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+ParticleText.js includes comprehensive error handling to help you identify configuration issues quickly and recover from runtime errors gracefully. Understanding the error system helps you build robust, production-ready applications.
+
+## Types of Errors
+
+ParticleText.js handles two types of errors:
+
+1. **Configuration Errors** - Invalid configuration caught during initialization
+2. **Runtime Errors** - Unexpected errors during animation execution
+
+### Configuration Errors
+
+These occur immediately when calling `initParticleJS()` with invalid configuration. The library validates your config and shows a browser alert listing all issues found.
+
+<CodePreview
+  code={`// This will trigger a configuration error
+const instance = initParticleJS('#canvas', {
+  // Missing required 'text' property
+  colors: ['#FF0000'],
+  particleRadius: {
+    invalid: { base: 2, rand: 1 }  // Invalid breakpoint name
+  }
+});
+
+// Browser alert appears:
+// ParticleText.js Configuration Errors:
+//   1. Missing required 'text' property
+//   2. Invalid breakpoint 'invalid' in particleRadius...`}
+  language="javascript"
+/>
+
+**Behavior:**
+- Browser alert shows all validation errors
+- Exception is thrown to stop execution
+- Animation does not start
+- Console logs the error
+
+### Runtime Errors
+
+These occur during animation execution due to unexpected conditions (browser issues, DOM manipulation, etc.). Runtime errors trigger the `onError` callback.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'SAFE',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation error:', error);
+    // Handle error gracefully
+  }
+});
+
+// If error occurs during animation:
+// 1. Animation stops automatically
+// 2. onError callback is called with error object
+// 3. isAnimating becomes false`}
+  language="javascript"
+/>
+
+**Behavior:**
+- Animation stops automatically (cancelAnimationFrame)
+- `onError` callback is called with Error object
+- Falls back to `console.error()` if no callback provided
+- `isAnimating` property becomes `false`
+
+## The onError Callback
+
+The `onError` configuration option lets you handle runtime errors gracefully instead of breaking your application.
+
+### Basic Usage
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'ERROR DEMO',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // error is an Error object with:
+    // - error.message: Error description
+    // - error.stack: Stack trace
+    // - error.name: Error type
+
+    console.error('ParticleText error:', error.message);
+  }
+});`}
+  language="javascript"
+/>
+
+### Display Error to User
+
+<CodePreview
+  code={`function showErrorMessage(message) {
+  const errorDiv = document.getElementById('error-display');
+  errorDiv.textContent = 'Animation error: ' + message;
+  errorDiv.style.display = 'block';
+}
+
+const instance = initParticleJS('#canvas', {
+  text: 'USER FRIENDLY',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // Log for developers
+    console.error('ParticleText error:', error);
+
+    // Show friendly message to users
+    showErrorMessage('Animation temporarily unavailable');
+  }
+});`}
+  language="javascript"
+/>
+
+### Error Logging Service
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'PRODUCTION',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // Log to error tracking service (Sentry, Rollbar, etc.)
+    if (window.Sentry) {
+      Sentry.captureException(error, {
+        tags: {
+          component: 'ParticleText',
+          canvas: '#canvas'
+        },
+        extra: {
+          isAnimating: instance.isAnimating,
+          particleCount: instance.particleList.length
+        }
+      });
+    }
+
+    // Still log locally
+    console.error('ParticleText error:', error);
+  }
+});`}
+  language="javascript"
+/>
+
+### Automatic Retry
+
+<CodePreview
+  code={`let retryCount = 0;
+const MAX_RETRIES = 3;
+
+const instance = initParticleJS('#canvas', {
+  text: 'RETRY',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation error:', error);
+
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.log(\`Retrying animation (attempt \${retryCount}/\${MAX_RETRIES})...\`);
+
+      // Wait 1 second, then retry
+      setTimeout(() => {
+        instance.startAnimation();
+      }, 1000);
+    } else {
+      console.error('Max retries reached. Animation stopped.');
+      alert('Animation could not be started. Please refresh the page.');
+    }
+  }
+});`}
+  language="javascript"
+/>
+
+## Configuration Validation Errors
+
+ParticleText.js validates all configuration options and provides detailed error messages.
+
+### Missing Required Text
+
+<CodePreview
+  code={`// ❌ Error: Missing required 'text' property
+initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});
+
+// ✅ Fix: Provide text
+initParticleJS('#canvas', {
+  text: 'HELLO',
+  colors: ['#695aa6']
+});
+
+// ✅ Alternative: Use data-text attribute
+// <canvas id="canvas" data-text="HELLO"></canvas>
+initParticleJS('#canvas', {
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+### Invalid Color Format
+
+<CodePreview
+  code={`// ❌ Error: Invalid hex color format
+initParticleJS('#canvas', {
+  text: 'COLOR',
+  colors: ['red', '#FFF', 'rgb(255,0,0)']  // Wrong formats
+});
+
+// ✅ Fix: Use 6-digit hex colors
+initParticleJS('#canvas', {
+  text: 'COLOR',
+  colors: ['#FF0000', '#FFFFFF', '#00FF00']  // Correct format
+});`}
+  language="javascript"
+/>
+
+### Invalid Color Weights
+
+<CodePreview
+  code={`// ❌ Error: Weight must be positive integer
+initParticleJS('#canvas', {
+  text: 'WEIGHT',
+  colors: [
+    { color: '#FF0000', weight: 0 },      // Must be > 0
+    { color: '#00FF00', weight: 2.5 },    // No decimals
+    { color: '#0000FF', weight: -1 }      // No negatives
+  ]
+});
+
+// ✅ Fix: Use positive integers
+initParticleJS('#canvas', {
+  text: 'WEIGHT',
+  colors: [
+    { color: '#FF0000', weight: 1 },
+    { color: '#00FF00', weight: 3 },
+    { color: '#0000FF', weight: 5 }
+  ]
+});`}
+  language="javascript"
+/>
+
+### Invalid Breakpoint Names
+
+<CodePreview
+  code={`// ❌ Error: Invalid breakpoint names
+initParticleJS('#canvas', {
+  text: 'BREAKPOINT',
+  colors: ['#695aa6'],
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },    // Not a valid breakpoint
+    desktop: { base: 4, rand: 2 }    // Not a valid breakpoint
+  }
+});
+
+// ✅ Fix: Use valid breakpoints
+initParticleJS('#canvas', {
+  text: 'BREAKPOINT',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 2, rand: 1 },        // Valid breakpoint
+    lg: { base: 4, rand: 2 }         // Valid breakpoint
+  }
+});
+
+// Valid breakpoints: xxxs, xxs, xs, sm, md, lg, xl, xxl, xxxl`}
+  language="javascript"
+/>
+
+### Invalid Particle Radius Structure
+
+<CodePreview
+  code={`// ❌ Error: Missing base or rand properties
+initParticleJS('#canvas', {
+  text: 'RADIUS',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 2 }  // Missing 'rand'
+  }
+});
+
+// ✅ Fix: Provide both base and rand
+initParticleJS('#canvas', {
+  text: 'RADIUS',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 2, rand: 1 }  // Both required
+  }
+});`}
+  language="javascript"
+/>
+
+### Invalid Friction Structure
+
+<CodePreview
+  code={`// ❌ Error: Invalid friction format
+initParticleJS('#canvas', {
+  text: 'FRICTION',
+  colors: ['#695aa6'],
+  friction: 0.9  // Must be object or function
+});
+
+// ✅ Fix: Use object with base and rand
+initParticleJS('#canvas', {
+  text: 'FRICTION',
+  colors: ['#695aa6'],
+  friction: { base: 0.9, rand: 0.03 }
+});
+
+// ✅ Alternative: Use function
+initParticleJS('#canvas', {
+  text: 'FRICTION',
+  colors: ['#695aa6'],
+  friction: function() {
+    return { base: 0.9, rand: 0.03 };
+  }
+});`}
+  language="javascript"
+/>
+
+### Type Errors
+
+<CodePreview
+  code={`// ❌ Error: Wrong types
+initParticleJS('#canvas', {
+  text: 'TYPES',
+  colors: ['#695aa6'],
+  renderTimeThreshold: '100',  // Must be number, not string
+  trackCursorOnlyInsideCanvas: 'true'  // Must be boolean, not string
+});
+
+// ✅ Fix: Use correct types
+initParticleJS('#canvas', {
+  text: 'TYPES',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 100,  // Number
+  trackCursorOnlyInsideCanvas: true  // Boolean
+});`}
+  language="javascript"
+/>
+
+## Common Error Messages Reference
+
+### Configuration Errors
+
+| Error Message | Cause | Solution |
+|--------------|-------|----------|
+| `Missing required 'text' property` | No text provided | Add `text: 'YOUR TEXT'` or `data-text` attribute |
+| `Color at index 0 ('red') is not a valid hex color` | Invalid color format | Use 6-digit hex: `'#FF0000'` |
+| `'colors' array must contain at least one color` | Empty colors array | Provide at least one color |
+| `Weight at index 0 must be greater than 0` | Zero or negative weight | Use positive integers only |
+| `Weight at index 0 must be an integer` | Decimal weight | Use whole numbers only |
+| `Invalid breakpoint 'mobile' in particleRadius` | Wrong breakpoint name | Use: xxxs, xxs, xs, sm, md, lg, xl, xxl, xxxl |
+| `particleRadius.xs must have 'base' and 'rand' properties` | Missing properties | Provide both: `{ base: 2, rand: 1 }` |
+| `particleRadius.xs.base and .rand must be numbers` | Wrong type | Use numbers, not strings |
+| `'friction' must have 'base' and 'rand' properties` | Wrong friction format | Use: `{ base: 0.9, rand: 0.03 }` |
+| `'renderTimeThreshold' must be a number` | Wrong type | Use number: `100` not `'100'` |
+| `'trackCursorOnlyInsideCanvas' must be a boolean` | Wrong type | Use: `true` or `false` |
+
+### Runtime Errors
+
+Runtime errors are rare but can occur due to:
+- Browser compatibility issues
+- DOM manipulation during animation
+- Memory constraints on slow devices
+- Canvas context loss
+
+## Error Recovery Patterns
+
+### Graceful Degradation
+
+<CodePreview
+  code={`let animationFailed = false;
+
+const instance = initParticleJS('#canvas', {
+  text: 'GRACEFUL',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation failed:', error);
+    animationFailed = true;
+
+    // Hide canvas, show static fallback
+    document.getElementById('canvas').style.display = 'none';
+    document.getElementById('fallback-text').style.display = 'block';
+  }
+});
+
+// HTML:
+// <canvas id="canvas"></canvas>
+// <h1 id="fallback-text" style="display:none;">GRACEFUL</h1>`}
+  language="javascript"
+/>
+
+### User Notification
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'NOTIFY',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // Log error
+    console.error('ParticleText error:', error);
+
+    // Show non-intrusive notification
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.textContent = 'Animation unavailable';
+    notification.style.cssText =
+      'position: fixed; bottom: 20px; right: 20px; ' +
+      'background: #f44336; color: white; padding: 12px 20px; ' +
+      'border-radius: 4px; font-size: 14px; z-index: 1000;';
+
+    document.body.appendChild(notification);
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+});`}
+  language="javascript"
+/>
+
+### Feature Detection
+
+<CodePreview
+  code={`// Check for required features before initializing
+function canRunParticleText() {
+  return (
+    typeof window.requestAnimationFrame !== 'undefined' &&
+    typeof document.querySelector !== 'undefined' &&
+    !!document.createElement('canvas').getContext
+  );
+}
+
+if (canRunParticleText()) {
+  const instance = initParticleJS('#canvas', {
+    text: 'FEATURE',
+    colors: ['#695aa6'],
+
+    onError: function(error) {
+      console.error('Unexpected error:', error);
+    }
+  });
+} else {
+  console.warn('ParticleText not supported in this browser');
+  // Show fallback content
+}`}
+  language="javascript"
+/>
+
+### Try-Catch Wrapper
+
+<CodePreview
+  code={`function safeInitParticleJS(selector, config) {
+  try {
+    const instance = initParticleJS(selector, config);
+
+    // Add error handler if not provided
+    if (!config.onError) {
+      instance.onError = function(error) {
+        console.error('ParticleText runtime error:', error);
+      };
+    }
+
+    return instance;
+  } catch (error) {
+    // Configuration error occurred
+    console.error('ParticleText initialization failed:', error.message);
+
+    // Extract useful info from error
+    const errors = error.message.split('\\n').slice(1);
+    console.table(errors.map(e => ({ Error: e.trim() })));
+
+    return null;
+  }
+}
+
+// Usage
+const instance = safeInitParticleJS('#canvas', {
+  text: 'SAFE',
+  colors: ['#695aa6']
+});
+
+if (instance) {
+  console.log('ParticleText initialized successfully');
+} else {
+  console.log('ParticleText initialization failed - using fallback');
+}`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Always Provide onError in Production
+
+<CodePreview
+  code={`// ✅ Good: Handle errors gracefully
+const instance = initParticleJS('#canvas', {
+  text: 'PRODUCTION',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation error:', error);
+    // Handle gracefully
+  }
+});
+
+// ❌ Bad: No error handling
+const instance = initParticleJS('#canvas', {
+  text: 'PRODUCTION',
+  colors: ['#695aa6']
+  // Errors only go to console
+});`}
+  language="javascript"
+/>
+
+### 2. Log Errors to Monitoring Service
+
+<CodePreview
+  code={`// ✅ Good: Track errors in production
+const instance = initParticleJS('#canvas', {
+  text: 'MONITORED',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // Send to error tracking
+    if (typeof Sentry !== 'undefined') {
+      Sentry.captureException(error);
+    }
+
+    // Also log locally
+    console.error('ParticleText error:', error);
+  }
+});`}
+  language="javascript"
+/>
+
+### 3. Validate Config During Development
+
+<CodePreview
+  code={`// ✅ Good: Validate early in development
+const config = {
+  text: 'VALIDATE',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 2, rand: 1 },
+    lg: { base: 4, rand: 2 }
+  }
+};
+
+// Development-only validation
+if (process.env.NODE_ENV === 'development') {
+  console.log('Initializing ParticleText with config:', config);
+}
+
+const instance = initParticleJS('#canvas', config);`}
+  language="javascript"
+/>
+
+### 4. Provide User Feedback
+
+<CodePreview
+  code={`// ✅ Good: Let users know what happened
+const instance = initParticleJS('#canvas', {
+  text: 'FEEDBACK',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation error:', error);
+
+    // Show user-friendly message
+    document.getElementById('error-message').textContent =
+      'Animation temporarily unavailable. Page functionality is not affected.';
+  }
+});
+
+// ❌ Bad: Silent failure
+const instance = initParticleJS('#canvas', {
+  text: 'SILENT',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    // User has no idea anything went wrong
+  }
+});`}
+  language="javascript"
+/>
+
+### 5. Clean Up on Error
+
+<CodePreview
+  code={`// ✅ Good: Clean up resources
+const instance = initParticleJS('#canvas', {
+  text: 'CLEANUP',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Animation error:', error);
+
+    // Clean up
+    instance.destroy();
+
+    // Clear canvas
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Remove from DOM if needed
+    // canvas.remove();
+  }
+});`}
+  language="javascript"
+/>
+
+## Debugging Errors
+
+### Enable Verbose Logging
+
+<CodePreview
+  code={`const DEBUG = true;
+
+const instance = initParticleJS('#canvas', {
+  text: 'DEBUG',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    if (DEBUG) {
+      console.group('ParticleText Error Details');
+      console.error('Error:', error);
+      console.log('Error message:', error.message);
+      console.log('Stack trace:', error.stack);
+      console.log('Animation state:', {
+        isAnimating: instance.isAnimating,
+        particleCount: instance.particleList.length,
+        currentBreakpoint: instance.getCurrentBreakpoint()
+      });
+      console.groupEnd();
+    } else {
+      console.error('Animation error:', error.message);
+    }
+  }
+});`}
+  language="javascript"
+/>
+
+### Catch Configuration Errors
+
+<CodePreview
+  code={`function debugInitParticleJS(selector, config) {
+  console.log('Attempting to initialize ParticleText...');
+  console.log('Selector:', selector);
+  console.log('Config:', config);
+
+  try {
+    const instance = initParticleJS(selector, config);
+    console.log('✓ ParticleText initialized successfully');
+    return instance;
+  } catch (error) {
+    console.error('✗ ParticleText initialization failed');
+    console.error('Error:', error.message);
+
+    // Parse error message to show each issue
+    if (error.message.includes('Configuration Errors:')) {
+      const errorLines = error.message.split('\\n');
+      console.group('Configuration Issues:');
+      errorLines.slice(1).forEach(line => {
+        if (line.trim()) console.error(line.trim());
+      });
+      console.groupEnd();
+    }
+
+    return null;
+  }
+}
+
+// Usage
+const instance = debugInitParticleJS('#canvas', {
+  text: 'DEBUG',
+  colors: ['invalid-color']  // Will trigger error
+});`}
+  language="javascript"
+/>
+
+### Monitor Animation State
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'MONITOR',
+  colors: ['#695aa6'],
+
+  onError: function(error) {
+    console.error('Error occurred:', error);
+  }
+});
+
+// Monitor state periodically
+setInterval(() => {
+  console.log('Animation Status:', {
+    isAnimating: instance.isAnimating,
+    particleCount: instance.particleList.length,
+    breakpoint: instance.getCurrentBreakpoint()
+  });
+}, 5000);
+
+// Monitor for animation stops
+let wasAnimating = instance.isAnimating;
+setInterval(() => {
+  if (wasAnimating && !instance.isAnimating) {
+    console.warn('Animation stopped unexpectedly!');
+  }
+  wasAnimating = instance.isAnimating;
+}, 1000);`}
+  language="javascript"
+/>
+
+## Framework Integration
+
+### React Error Boundary
+
+<CodePreview
+  code={`import { Component } from 'react';
+
+class ParticleTextErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ParticleText error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-fallback">
+          <h2>Animation Unavailable</h2>
+          <p>The particle animation could not be loaded.</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Usage
+function App() {
+  return (
+    <ParticleTextErrorBoundary>
+      <ParticleTextComponent />
+    </ParticleTextErrorBoundary>
+  );
+}`}
+  language="javascript"
+/>
+
+### React Hook with Error State
+
+<CodePreview
+  code={`import { useEffect, useState } from 'react';
+
+function useParticleText(selector, config) {
+  const [error, setError] = useState(null);
+  const [instance, setInstance] = useState(null);
+
+  useEffect(() => {
+    try {
+      const particleInstance = initParticleJS(selector, {
+        ...config,
+        onError: (err) => {
+          setError(err);
+          if (config.onError) {
+            config.onError(err);
+          }
+        }
+      });
+
+      setInstance(particleInstance);
+
+      return () => {
+        particleInstance.destroy();
+      };
+    } catch (err) {
+      setError(err);
+    }
+  }, [selector, config]);
+
+  return { instance, error };
+}
+
+// Usage
+function ParticleTextComponent() {
+  const { instance, error } = useParticleText('#canvas', {
+    text: 'REACT',
+    colors: ['#61DAFB']
+  });
+
+  if (error) {
+    return <div className="error">Animation failed: {error.message}</div>;
+  }
+
+  return <canvas id="canvas" width="1800" height="400" />;
+}`}
+  language="javascript"
+/>
+
+### Vue Error Handling
+
+<CodePreview
+  code={`export default {
+  name: 'ParticleText',
+
+  data() {
+    return {
+      instance: null,
+      error: null
+    };
+  },
+
+  mounted() {
+    try {
+      this.instance = initParticleJS('#canvas', {
+        text: 'VUE',
+        colors: ['#42B883'],
+
+        onError: (error) => {
+          this.error = error;
+          console.error('ParticleText error:', error);
+        }
+      });
+    } catch (error) {
+      this.error = error;
+      console.error('ParticleText initialization failed:', error);
+    }
+  },
+
+  beforeUnmount() {
+    if (this.instance) {
+      this.instance.destroy();
+    }
+  },
+
+  errorCaptured(err, instance, info) {
+    console.error('Vue error boundary caught:', err, info);
+    return false;  // Propagate error
+  }
+};`}
+  language="javascript"
+/>
+
+## Production Error Handling
+
+### Complete Production Setup
+
+<CodePreview
+  code={`// Production-ready error handling
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+function initParticleTextSafely(selector, config) {
+  // Feature detection
+  if (!window.requestAnimationFrame || !document.createElement('canvas').getContext) {
+    console.warn('ParticleText not supported');
+    return null;
+  }
+
+  // Add production error handler
+  const productionConfig = {
+    ...config,
+    onError: function(error) {
+      // Log to monitoring service
+      if (IS_PRODUCTION && window.Sentry) {
+        Sentry.captureException(error, {
+          tags: { component: 'ParticleText' },
+          extra: {
+            selector,
+            configKeys: Object.keys(config)
+          }
+        });
+      }
+
+      // Log locally
+      console.error('ParticleText error:', error);
+
+      // Show user feedback
+      const errorDiv = document.getElementById('animation-error');
+      if (errorDiv) {
+        errorDiv.textContent = 'Animation temporarily unavailable';
+        errorDiv.style.display = 'block';
+      }
+
+      // Call custom error handler
+      if (config.onError) {
+        config.onError(error);
+      }
+    }
+  };
+
+  try {
+    return initParticleJS(selector, productionConfig);
+  } catch (error) {
+    // Configuration error
+    if (IS_PRODUCTION && window.Sentry) {
+      Sentry.captureException(error, {
+        tags: { component: 'ParticleText', phase: 'initialization' }
+      });
+    }
+
+    console.error('ParticleText init failed:', error.message);
+    return null;
+  }
+}
+
+// Usage
+const instance = initParticleTextSafely('#canvas', {
+  text: 'PRODUCTION',
+  colors: ['#695aa6']
+});
+
+if (!instance) {
+  // Show fallback
+  document.getElementById('fallback-content').style.display = 'block';
+}`}
+  language="javascript"
+/>
+
+## Testing Error Scenarios
+
+### Simulate Configuration Errors
+
+<CodePreview
+  code={`// Test invalid configurations during development
+const testConfigs = [
+  { name: 'Missing text', config: { colors: ['#695aa6'] } },
+  { name: 'Invalid color', config: { text: 'TEST', colors: ['red'] } },
+  { name: 'Invalid weight', config: { text: 'TEST', colors: [{ color: '#FF0000', weight: -1 }] } },
+  { name: 'Invalid breakpoint', config: { text: 'TEST', particleRadius: { mobile: { base: 2, rand: 1 } } } }
+];
+
+testConfigs.forEach(({ name, config }) => {
+  console.log(\`Testing: \${name}\`);
+  try {
+    initParticleJS('#test-canvas', config);
+    console.log('✗ Expected error but succeeded');
+  } catch (error) {
+    console.log('✓ Correctly caught error:', error.message.split('\\n')[0]);
+  }
+});`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Animation stops without calling onError?**
+- Check browser console for errors
+- Verify canvas element exists and is visible
+- Check if destroy() was called elsewhere
+
+**onError not being called?**
+- Ensure you're testing runtime errors, not configuration errors
+- Configuration errors throw before onError can be registered
+- Check that animation actually started
+
+**Multiple error alerts appearing?**
+- Each call to `initParticleJS()` validates independently
+- Store instance and reuse instead of reinitializing
+- Check for duplicate initialization code
+
+**Error messages unclear?**
+- Enable verbose logging in development
+- Check browser console for full stack trace
+- Review configuration against API documentation
+
+**Can't recover from error?**
+- Call `destroy()` before attempting restart
+- Check that canvas element is still in DOM
+- Verify no memory leaks from previous instances
+
+## Related Documentation
+
+- [Configuration Reference](/api-reference/configuration/) - All configuration options
+- [Methods Reference](/api-reference/methods/) - Available methods including destroy()
+- [Manual Control](/examples/advanced/manual-control/) - Controlling animation lifecycle
+- [Performance Optimization](/guides/performance-optimization/) - Prevent performance-related errors

@@ -1,6 +1,1062 @@
 ---
 title: Custom Breakpoints
-description: Creating custom responsive breakpoints
+description: Override default breakpoints with custom responsive logic
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+ParticleText.js includes a default 9-tier breakpoint system, but you can completely replace it with your own custom breakpoint logic. This is perfect for matching your existing CSS framework (Tailwind, Bootstrap, Material Design), simplifying to mobile/tablet/desktop, or creating completely unique responsive behavior.
+
+## Understanding Custom Breakpoints
+
+The default breakpoint system uses 9 breakpoints (xxxs through xxxl) based on standard device widths. However, you might want to:
+
+- **Match existing frameworks** - Align with Tailwind CSS, Bootstrap, or Material Design breakpoints
+- **Simplify** - Use just mobile/tablet/desktop instead of 9 tiers
+- **Custom logic** - Base breakpoints on device capabilities, not just width
+- **Dynamic breakpoints** - Change breakpoints based on user preferences or context
+
+## How It Works
+
+ParticleText.js exposes the `getCurrentBreakpoint()` method on every instance. You can override this method with your own function that returns a breakpoint string.
+
+### Default Implementation
+
+<CodePreview
+  code={`// This is what ParticleText.js does by default
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 320) return 'xxxs';
+  if (width < 375) return 'xxs';
+  if (width < 500) return 'xs';
+  if (width < 768) return 'sm';
+  if (width < 1024) return 'md';
+  if (width < 1440) return 'lg';
+  if (width < 1920) return 'xl';
+  if (width < 2560) return 'xxl';
+  return 'xxxl';
+};`}
+  language="javascript"
+/>
+
+### Custom Override
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+  colors: ['#695aa6']
+});
+
+// Replace with your own logic
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 600) return 'mobile';
+  if (width < 1200) return 'tablet';
+  return 'desktop';
+};`}
+  language="javascript"
+/>
+
+**Important:** Your configuration must use the same breakpoint keys you define in `getCurrentBreakpoint()`.
+
+## Live Demo: Mobile/Tablet/Desktop
+
+<CanvasExample
+  title="Simple 3-Tier Breakpoints"
+  config={{
+    text: 'CUSTOM',
+    colors: ['#E74C3C', '#C0392B'],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+
+  // Use your custom breakpoint names
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    tablet: { base: 3, rand: 1.5 },
+    desktop: { base: 4, rand: 2 }
+  },
+
+  explosionRadius: {
+    mobile: 50,
+    tablet: 100,
+    desktop: 150
+  },
+
+  colors: ['#E74C3C', '#C0392B']
+});
+
+// Override breakpoint logic
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 600) return 'mobile';
+  if (width < 1200) return 'tablet';
+  return 'desktop';
+};`}
+  language="javascript"
+/>
+
+## Common Patterns
+
+### 1. Tailwind CSS Breakpoints
+
+Match Tailwind's responsive system exactly:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 640) return 'sm';   // Tailwind: 640px
+  if (width < 768) return 'md';   // Tailwind: 768px
+  if (width < 1024) return 'lg';  // Tailwind: 1024px
+  if (width < 1280) return 'xl';  // Tailwind: 1280px
+  return '2xl';                   // Tailwind: 1536px+
+};
+
+// Configuration using Tailwind breakpoints
+const instance = initParticleJS('#canvas', {
+  text: 'TAILWIND',
+
+  particleRadius: {
+    sm: { base: 2, rand: 1 },     // < 640px
+    md: { base: 2.5, rand: 1 },   // 640-768px
+    lg: { base: 3, rand: 1.5 },   // 768-1024px
+    xl: { base: 3.5, rand: 1.5 }, // 1024-1280px
+    '2xl': { base: 4, rand: 2 }   // 1280px+
+  },
+
+  explosionRadius: {
+    sm: 50,
+    md: 75,
+    lg: 100,
+    xl: 125,
+    '2xl': 150
+  },
+
+  colors: [
+    { color: '#06B6D4', weight: 5 },  // Tailwind cyan
+    { color: '#3B82F6', weight: 3 }   // Tailwind blue
+  ]
+});`}
+  language="javascript"
+/>
+
+### 2. Bootstrap Breakpoints
+
+Match Bootstrap's grid system:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 576) return 'xs';   // Bootstrap: Extra small
+  if (width < 768) return 'sm';   // Bootstrap: Small
+  if (width < 992) return 'md';   // Bootstrap: Medium
+  if (width < 1200) return 'lg';  // Bootstrap: Large
+  if (width < 1400) return 'xl';  // Bootstrap: Extra large
+  return 'xxl';                   // Bootstrap: XXL
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'BOOTSTRAP',
+
+  particleRadius: {
+    xs: { base: 2, rand: 1 },
+    sm: { base: 2.5, rand: 1 },
+    md: { base: 3, rand: 1.5 },
+    lg: { base: 3.5, rand: 1.5 },
+    xl: { base: 4, rand: 2 },
+    xxl: { base: 4.5, rand: 2 }
+  },
+
+  explosionRadius: {
+    xs: 40,
+    sm: 60,
+    md: 80,
+    lg: 100,
+    xl: 120,
+    xxl: 150
+  },
+
+  colors: ['#0d6efd', '#6610f2']  // Bootstrap primary & indigo
+});`}
+  language="javascript"
+/>
+
+### 3. Material Design Breakpoints
+
+Match Material Design's responsive grid:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 600) return 'xs';      // Material: Handset
+  if (width < 960) return 'sm';      // Material: Tablet
+  if (width < 1280) return 'md';     // Material: Laptop
+  if (width < 1920) return 'lg';     // Material: Desktop
+  return 'xl';                       // Material: 4K and ultra-wide
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'MATERIAL',
+
+  particleRadius: {
+    xs: { base: 2, rand: 1 },    // Handset
+    sm: { base: 3, rand: 1.5 },  // Tablet
+    md: { base: 3.5, rand: 1.5 },// Laptop
+    lg: { base: 4, rand: 2 },    // Desktop
+    xl: { base: 5, rand: 2 }     // 4K
+  },
+
+  explosionRadius: {
+    xs: 50,
+    sm: 80,
+    md: 110,
+    lg: 140,
+    xl: 180
+  },
+
+  colors: [
+    { color: '#6200EE', weight: 5 },  // Material purple
+    { color: '#03DAC6', weight: 2 }   // Material teal
+  ]
+});`}
+  language="javascript"
+/>
+
+### 4. Simplified Mobile/Desktop
+
+Just two breakpoints for simple projects:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'SIMPLE',
+
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    desktop: { base: 4, rand: 2 }
+  },
+
+  explosionRadius: {
+    mobile: 50,
+    desktop: 120
+  },
+
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+### 5. Portrait vs Landscape
+
+Base breakpoints on orientation instead of width:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const isPortrait = window.innerHeight > window.innerWidth;
+  const width = window.innerWidth;
+
+  if (isPortrait) {
+    return width < 600 ? 'portrait-small' : 'portrait-large';
+  } else {
+    return width < 1024 ? 'landscape-small' : 'landscape-large';
+  }
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'ORIENT',
+
+  particleRadius: {
+    'portrait-small': { base: 2, rand: 1 },
+    'portrait-large': { base: 3, rand: 1.5 },
+    'landscape-small': { base: 3, rand: 1.5 },
+    'landscape-large': { base: 4, rand: 2 }
+  },
+
+  explosionRadius: {
+    'portrait-small': 60,
+    'portrait-large': 80,
+    'landscape-small': 100,
+    'landscape-large': 140
+  },
+
+  colors: ['#FF6B6B', '#4ECDC4']
+});`}
+  language="javascript"
+/>
+
+## Advanced Techniques
+
+### Device-Based Logic
+
+Use User Agent or device capabilities:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+  const hasTouch = 'ontouchstart' in window;
+
+  if (isMobile && !isTablet) return 'mobile-phone';
+  if (isTablet) return 'tablet';
+  if (hasTouch) return 'touch-desktop';
+  return 'desktop';
+};`}
+  language="javascript"
+/>
+
+### Container Query Based
+
+Base on container size instead of viewport:
+
+<CodePreview
+  code={`const container = document.getElementById('canvas-container');
+
+instance.getCurrentBreakpoint = function() {
+  const width = container.offsetWidth;
+
+  if (width < 400) return 'xs';
+  if (width < 800) return 'sm';
+  if (width < 1200) return 'md';
+  return 'lg';
+};
+
+// Update on resize
+const resizeObserver = new ResizeObserver(() => {
+  // Trigger re-render with new breakpoint
+  instance.forceRequestAnimationFrame();
+});
+resizeObserver.observe(container);`}
+  language="javascript"
+/>
+
+### Dynamic Breakpoints Based on Pixel Density
+
+Adjust for high-DPI displays:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const dpr = window.devicePixelRatio || 1;
+
+  // Adjust breakpoints for high-DPI displays
+  const adjustedWidth = width * dpr;
+
+  if (adjustedWidth < 640) return 'xs';
+  if (adjustedWidth < 1536) return 'sm';
+  if (adjustedWidth < 3072) return 'md';
+  return 'lg';
+};`}
+  language="javascript"
+/>
+
+### User Preference Based
+
+Respect user's motion or data preferences:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const saveData = navigator.connection?.saveData;
+
+  // Use simpler/smaller particles for reduced motion or save-data
+  if (prefersReducedMotion || saveData) {
+    return 'minimal';
+  }
+
+  if (width < 768) return 'mobile';
+  if (width < 1440) return 'desktop';
+  return 'desktop-large';
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'ACCESSIBLE',
+
+  particleRadius: {
+    minimal: { base: 3, rand: 0 },      // Fewer, larger particles
+    mobile: { base: 2, rand: 1 },
+    desktop: { base: 3, rand: 1.5 },
+    'desktop-large': { base: 4, rand: 2 }
+  },
+
+  explosionRadius: {
+    minimal: 30,                        // Smaller interaction radius
+    mobile: 50,
+    desktop: 100,
+    'desktop-large': 150
+  }
+});`}
+  language="javascript"
+/>
+
+### Time-Based Breakpoints
+
+Change behavior based on time of day:
+
+<CodePreview
+  code={`instance.getCurrentBreakpoint = function() {
+  const hour = new Date().getHours();
+  const width = window.innerWidth;
+
+  // Night mode (8 PM - 6 AM)
+  if (hour >= 20 || hour < 6) {
+    return width < 768 ? 'night-mobile' : 'night-desktop';
+  }
+
+  // Day mode
+  return width < 768 ? 'day-mobile' : 'day-desktop';
+};
+
+const instance = initParticleJS('#canvas', {
+  text: 'TIME',
+
+  particleRadius: {
+    'night-mobile': { base: 2.5, rand: 1 },   // Larger particles at night
+    'night-desktop': { base: 4, rand: 2 },
+    'day-mobile': { base: 2, rand: 1 },
+    'day-desktop': { base: 3, rand: 1.5 }
+  },
+
+  colors: {
+    'night-mobile': ['#2C3E50', '#34495E'],   // Dark colors
+    'night-desktop': ['#2C3E50', '#34495E'],
+    'day-mobile': ['#3498DB', '#2980B9'],     // Bright colors
+    'day-desktop': ['#3498DB', '#2980B9']
+  }
+});`}
+  language="javascript"
+/>
+
+## Configuration Integration
+
+### Matching Breakpoints in Config
+
+**Critical Rule:** Your configuration breakpoint keys must match what `getCurrentBreakpoint()` returns.
+
+<CodePreview
+  code={`// ❌ WRONG: Mismatch between config and getCurrentBreakpoint
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    xs: { base: 2, rand: 1 },    // Using 'xs'
+    lg: { base: 4, rand: 2 }     // Using 'lg'
+  }
+});
+
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';  // Returns 'mobile'/'desktop'
+};
+// ParticleText.js looks for 'mobile' and 'desktop' keys but finds 'xs' and 'lg'!
+
+// ✅ CORRECT: Matching keys
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    desktop: { base: 4, rand: 2 }
+  }
+});
+
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+};`}
+  language="javascript"
+/>
+
+### Fallback Values
+
+Provide fallback for all breakpoint-dependent properties:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'FALLBACK',
+
+  // Use object syntax with fallback
+  particleRadius: function() {
+    const bp = this.getCurrentBreakpoint();
+
+    const config = {
+      mobile: { base: 2, rand: 1 },
+      tablet: { base: 3, rand: 1.5 },
+      desktop: { base: 4, rand: 2 }
+    };
+
+    return config[bp] || config.mobile;  // Fallback to mobile
+  },
+
+  explosionRadius: function() {
+    const bp = this.getCurrentBreakpoint();
+
+    const config = {
+      mobile: 50,
+      tablet: 100,
+      desktop: 150
+    };
+
+    return config[bp] || 50;  // Fallback to 50
+  }
+});`}
+  language="javascript"
+/>
+
+### Dynamic Reconfiguration
+
+Update breakpoints at runtime:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'DYNAMIC',
+  colors: ['#695aa6']
+});
+
+// Start with standard breakpoints
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'xs';
+  return 'lg';
+};
+
+// Later, switch to custom breakpoints
+function enableCustomBreakpoints() {
+  instance.getCurrentBreakpoint = function() {
+    const width = window.innerWidth;
+    if (width < 600) return 'mobile';
+    if (width < 1200) return 'tablet';
+    return 'desktop';
+  };
+
+  // Force re-render with new breakpoint
+  instance.forceRequestAnimationFrame();
+}
+
+document.getElementById('switch-btn').onclick = enableCustomBreakpoints;`}
+  language="javascript"
+/>
+
+## Debugging Custom Breakpoints
+
+### Check Current Breakpoint
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'DEBUG',
+  colors: ['#695aa6']
+});
+
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  const bp = width < 768 ? 'mobile' : 'desktop';
+
+  console.log(\`Window width: \${width}px → Breakpoint: \${bp}\`);
+
+  return bp;
+};
+
+// Test on resize
+window.addEventListener('resize', () => {
+  const bp = instance.getCurrentBreakpoint();
+  console.log('New breakpoint:', bp);
+});`}
+  language="javascript"
+/>
+
+### Display Breakpoint on Screen
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'MONITOR',
+  colors: ['#695aa6']
+});
+
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  return width < 768 ? 'mobile' : 'desktop';
+};
+
+// Create debug display
+const debugDiv = document.createElement('div');
+debugDiv.style.cssText = 'position: fixed; top: 10px; right: 10px; ' +
+  'background: rgba(0,0,0,0.8); color: white; padding: 10px; ' +
+  'border-radius: 4px; font-family: monospace;';
+document.body.appendChild(debugDiv);
+
+function updateDebug() {
+  const bp = instance.getCurrentBreakpoint();
+  const width = window.innerWidth;
+  debugDiv.textContent = \`\${bp} (\${width}px)\`;
+}
+
+updateDebug();
+window.addEventListener('resize', updateDebug);`}
+  language="javascript"
+/>
+
+### Validate Configuration Keys
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'VALIDATE',
+
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    desktop: { base: 4, rand: 2 }
+  },
+
+  explosionRadius: {
+    mobile: 50,
+    desktop: 120
+  },
+
+  colors: ['#695aa6']
+});
+
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+};
+
+// Validate that all config breakpoints exist
+function validateBreakpoints() {
+  const allBreakpoints = new Set();
+
+  // Simulate different widths
+  [300, 600, 1000, 1500].forEach(width => {
+    window.innerWidth = width;  // Note: This doesn't actually work
+    const bp = instance.getCurrentBreakpoint();
+    allBreakpoints.add(bp);
+  });
+
+  console.log('Breakpoints used:', Array.from(allBreakpoints));
+  console.log('Expected: mobile, desktop');
+}
+
+validateBreakpoints();`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Keep It Simple
+
+<CodePreview
+  code={`// ✅ Good: Clear, simple logic
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  if (width < 1440) return 'desktop';
+  return 'wide';
+};
+
+// ❌ Bad: Overly complex
+instance.getCurrentBreakpoint = function() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const dpr = window.devicePixelRatio;
+  const orientation = w > h ? 'landscape' : 'portrait';
+
+  // Too many variables, hard to predict
+  return \`\${orientation}-\${w}-\${dpr}\`;
+};`}
+  language="javascript"
+/>
+
+### 2. Consistent Naming
+
+<CodePreview
+  code={`// ✅ Good: Consistent naming across config
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    tablet: { base: 3, rand: 1.5 },
+    desktop: { base: 4, rand: 2 }
+  },
+  explosionRadius: {
+    mobile: 50,
+    tablet: 100,
+    desktop: 150
+  }
+});
+
+// ❌ Bad: Inconsistent naming
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    sm: { base: 2, rand: 1 },
+    md: { base: 3, rand: 1.5 },
+    lg: { base: 4, rand: 2 }
+  },
+  explosionRadius: {
+    mobile: 50,     // Different names!
+    tablet: 100,
+    desktop: 150
+  }
+});`}
+  language="javascript"
+/>
+
+### 3. Provide Fallbacks
+
+<CodePreview
+  code={`// ✅ Good: Always return a value
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 768) return 'mobile';
+  if (width < 1440) return 'desktop';
+  return 'desktop';  // Fallback for very wide screens
+};
+
+// ❌ Bad: Could return undefined
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  if (width < 768) return 'mobile';
+  if (width < 1440) return 'desktop';
+  // What happens if width >= 1440? Returns undefined!
+};`}
+  language="javascript"
+/>
+
+### 4. Test Resize Behavior
+
+<CodePreview
+  code={`// ✅ Good: Test breakpoint transitions
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  return 'desktop';
+};
+
+// Test resize manually
+console.log('Current:', instance.getCurrentBreakpoint());
+
+window.addEventListener('resize', () => {
+  console.log('After resize:', instance.getCurrentBreakpoint());
+});`}
+  language="javascript"
+/>
+
+### 5. Document Your Breakpoints
+
+<CodePreview
+  code={`// ✅ Good: Clear documentation
+/**
+ * Custom breakpoint system matching our design system:
+ * - mobile: 0-767px (phones)
+ * - tablet: 768-1439px (tablets, small laptops)
+ * - desktop: 1440px+ (large screens)
+ */
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  if (width < 1440) return 'tablet';
+  return 'desktop';
+};`}
+  language="javascript"
+/>
+
+## Framework Integration
+
+### React
+
+<CodePreview
+  code={`import { useEffect, useRef } from 'react';
+
+function ParticleText() {
+  const instanceRef = useRef(null);
+
+  useEffect(() => {
+    const instance = initParticleJS('#canvas', {
+      text: 'REACT',
+
+      particleRadius: {
+        mobile: { base: 2, rand: 1 },
+        desktop: { base: 4, rand: 2 }
+      },
+
+      explosionRadius: {
+        mobile: 50,
+        desktop: 120
+      },
+
+      colors: ['#61DAFB']
+    });
+
+    // Custom breakpoint logic
+    instance.getCurrentBreakpoint = function() {
+      return window.innerWidth < 768 ? 'mobile' : 'desktop';
+    };
+
+    instanceRef.current = instance;
+
+    return () => {
+      instance.destroy();
+    };
+  }, []);
+
+  return <canvas id="canvas" width="1800" height="400" data-text="REACT" />;
+}`}
+  language="javascript"
+/>
+
+### Vue
+
+<CodePreview
+  code={`export default {
+  name: 'ParticleText',
+
+  data() {
+    return {
+      instance: null
+    };
+  },
+
+  mounted() {
+    this.instance = initParticleJS('#canvas', {
+      text: 'VUE',
+
+      particleRadius: {
+        mobile: { base: 2, rand: 1 },
+        desktop: { base: 4, rand: 2 }
+      },
+
+      explosionRadius: {
+        mobile: 50,
+        desktop: 120
+      },
+
+      colors: ['#42B883']
+    });
+
+    // Custom breakpoint matching Tailwind
+    this.instance.getCurrentBreakpoint = function() {
+      const width = window.innerWidth;
+
+      if (width < 640) return 'sm';
+      if (width < 1024) return 'md';
+      return 'lg';
+    };
+  },
+
+  beforeUnmount() {
+    if (this.instance) {
+      this.instance.destroy();
+    }
+  }
+};`}
+  language="javascript"
+/>
+
+### Svelte
+
+<CodePreview
+  code={`<script>
+  import { onMount, onDestroy } from 'svelte';
+
+  let instance;
+
+  onMount(() => {
+    instance = initParticleJS('#canvas', {
+      text: 'SVELTE',
+
+      particleRadius: {
+        mobile: { base: 2, rand: 1 },
+        desktop: { base: 4, rand: 2 }
+      },
+
+      explosionRadius: {
+        mobile: 50,
+        desktop: 120
+      },
+
+      colors: ['#FF3E00']
+    });
+
+    // Bootstrap-style breakpoints
+    instance.getCurrentBreakpoint = function() {
+      const width = window.innerWidth;
+
+      if (width < 576) return 'xs';
+      if (width < 992) return 'md';
+      return 'lg';
+    };
+  });
+
+  onDestroy(() => {
+    if (instance) {
+      instance.destroy();
+    }
+  });
+</script>
+
+<canvas id="canvas" width="1800" height="400" data-text="SVELTE" />`}
+  language="javascript"
+/>
+
+## Performance Considerations
+
+Custom breakpoint logic runs frequently, especially during resize events. Keep it performant:
+
+### Fast Breakpoint Logic
+
+<CodePreview
+  code={`// ✅ Good: Simple comparisons (O(1))
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  return 'desktop';
+};
+
+// ❌ Bad: Complex calculations
+instance.getCurrentBreakpoint = function() {
+  // Expensive operations
+  const elements = document.querySelectorAll('.heavy-selector');
+  const averageWidth = Array.from(elements).reduce((sum, el) =>
+    sum + el.offsetWidth, 0) / elements.length;
+
+  // This runs on every frame during resize!
+  return averageWidth < 500 ? 'mobile' : 'desktop';
+};`}
+  language="javascript"
+/>
+
+### Cache Breakpoint Results
+
+<CodePreview
+  code={`// Cache to avoid repeated calculations
+let cachedBreakpoint = null;
+let lastWidth = -1;
+
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+
+  // Return cached result if width hasn't changed
+  if (width === lastWidth && cachedBreakpoint !== null) {
+    return cachedBreakpoint;
+  }
+
+  // Calculate breakpoint
+  let breakpoint;
+  if (width < 768) {
+    breakpoint = 'mobile';
+  } else if (width < 1440) {
+    breakpoint = 'desktop';
+  } else {
+    breakpoint = 'wide';
+  }
+
+  // Update cache
+  cachedBreakpoint = breakpoint;
+  lastWidth = width;
+
+  return breakpoint;
+};`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Particles not responding to breakpoint changes?**
+- Ensure configuration keys match `getCurrentBreakpoint()` return values
+- Check browser console for errors
+- Call `instance.forceRequestAnimationFrame()` after changing breakpoint logic
+
+**Configuration values not updating?**
+- Verify your configuration uses the exact same keys as `getCurrentBreakpoint()` returns
+- Check for typos in breakpoint names (case-sensitive!)
+- Use object syntax for all breakpoint-dependent properties
+
+**Performance issues on resize?**
+- Keep `getCurrentBreakpoint()` logic simple
+- Avoid DOM queries or expensive calculations
+- Consider caching breakpoint results
+
+**Breakpoint logic not being called?**
+- Ensure you override `getCurrentBreakpoint` AFTER calling `initParticleJS()`
+- Check that you're not reassigning the entire instance object
+
+**Default breakpoints still being used?**
+- Verify override happens before animation starts
+- Check console for errors in your custom function
+
+## Common Mistakes
+
+### 1. Overriding Before Initialization
+
+<CodePreview
+  code={`// ❌ WRONG: Can't override before instance exists
+let instance;
+instance.getCurrentBreakpoint = function() { /* ... */ };  // ERROR!
+instance = initParticleJS('#canvas', { /* ... */ });
+
+// ✅ CORRECT: Override after initialization
+const instance = initParticleJS('#canvas', { /* ... */ });
+instance.getCurrentBreakpoint = function() { /* ... */ };`}
+  language="javascript"
+/>
+
+### 2. Returning Undefined
+
+<CodePreview
+  code={`// ❌ WRONG: Could return undefined
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  // Missing else/default case!
+};
+
+// ✅ CORRECT: Always return a value
+instance.getCurrentBreakpoint = function() {
+  const width = window.innerWidth;
+  if (width < 768) return 'mobile';
+  return 'desktop';  // Default case
+};`}
+  language="javascript"
+/>
+
+### 3. Mismatched Configuration
+
+<CodePreview
+  code={`// ❌ WRONG: Config uses different keys
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    xs: { base: 2, rand: 1 },    // Uses 'xs'
+    lg: { base: 4, rand: 2 }     // Uses 'lg'
+  }
+});
+
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';  // Returns 'mobile'/'desktop'
+};
+
+// ✅ CORRECT: Matching keys
+const instance = initParticleJS('#canvas', {
+  particleRadius: {
+    mobile: { base: 2, rand: 1 },
+    desktop: { base: 4, rand: 2 }
+  }
+});
+
+instance.getCurrentBreakpoint = function() {
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+};`}
+  language="javascript"
+/>
+
+## Related Documentation
+
+- [Breakpoint System (Technical Guide)](/guides/breakpoint-system/) - Deep dive into default breakpoints
+- [Responsive Breakpoints (Examples)](/examples/responsive/breakpoints/) - Using default breakpoints
+- [getCurrentBreakpoint() (API Reference)](/api-reference/methods/#getcurrentbreakpoint) - Method documentation
+- [Configuration Reference](/api-reference/configuration/) - All configuration options

@@ -1,6 +1,727 @@
 ---
-title: Manual Control
-description: Manually controlling particle behavior
+title: Manual Animation Control
+description: Programmatic control over animation lifecycle and rendering
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+ParticleText.js provides complete programmatic control over the animation lifecycle. Instead of starting automatically, you can control when animations start, stop, and even render individual frames manually. This is essential for creating sophisticated interactions, optimizing performance, and coordinating with other page elements.
+
+## Understanding Auto Animation
+
+By default, ParticleText.js starts animating immediately after initialization. Setting `autoAnimate: false` disables this behavior, giving you full control.
+
+### Default Behavior (Auto Animation)
+
+<CodePreview
+  code={`// Starts animating immediately
+const instance = initParticleJS('#canvas', {
+  text: 'AUTO',
+  colors: ['#695aa6']
+  // autoAnimate: true (default)
+});
+
+// Animation loop is running
+console.log(instance.isAnimating);  // true`}
+  language="javascript"
+/>
+
+### Manual Control Mode
+
+<CodePreview
+  code={`// Waits for your command
+const instance = initParticleJS('#canvas', {
+  text: 'MANUAL',
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't start automatically
+});
+
+// Animation not running yet
+console.log(instance.isAnimating);  // false
+
+// Start when you're ready
+instance.startAnimation();`}
+  language="javascript"
+/>
+
+## Core Control Methods
+
+### startAnimation()
+
+Starts the animation loop. Safe to call multiple times - will not create duplicate animation loops.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'START',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+// Start the animation
+instance.startAnimation();
+
+// Safe to call again - no effect
+instance.startAnimation();
+instance.startAnimation();  // Still only one loop running`}
+  language="javascript"
+/>
+
+**When to use:**
+- Delayed animation start
+- Restart after stopping
+- Conditional animation based on user action
+- Animation triggered by scroll position
+
+### destroy()
+
+Stops the animation loop and cleans up resources. This cancels the `requestAnimationFrame` and prevents memory leaks.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'STOP',
+  colors: ['#695aa6']
+});
+
+// Stop the animation
+instance.destroy();
+
+console.log(instance.isAnimating);  // false
+
+// Can restart if needed
+instance.startAnimation();`}
+  language="javascript"
+/>
+
+**When to use:**
+- Pause animation temporarily
+- Clean up when component unmounts
+- Stop animation when tab is not visible
+- Performance optimization
+
+### forceRequestAnimationFrame()
+
+Renders a single frame without starting the animation loop. Useful for manual frame-by-frame control or static rendering.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'FRAME',
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't animate
+});
+
+// Render a single frame
+instance.forceRequestAnimationFrame();
+
+// Render another frame
+instance.forceRequestAnimationFrame();
+
+// Each call renders one frame, no continuous loop`}
+  language="javascript"
+/>
+
+**When to use:**
+- Frame-by-frame animation
+- Step debugging
+- Synchronize with external timing
+- Screenshot/export functionality
+
+## Properties
+
+### isAnimating
+
+Boolean property indicating whether the animation loop is currently running.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'STATUS',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+console.log(instance.isAnimating);  // false
+
+instance.startAnimation();
+console.log(instance.isAnimating);  // true
+
+instance.destroy();
+console.log(instance.isAnimating);  // false`}
+  language="javascript"
+/>
+
+### particleList
+
+Array containing all particle objects. Useful for debugging or custom manipulation.
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'PARTICLES',
+  colors: ['#695aa6']
+});
+
+console.log('Particle count:', instance.particleList.length);
+
+// Access individual particles
+instance.particleList.forEach((particle, index) => {
+  console.log(\`Particle \${index}:\`, {
+    x: particle.x,
+    y: particle.y,
+    color: particle.color,
+    radius: particle.r
+  });
+});`}
+  language="javascript"
+/>
+
+## Common Use Cases
+
+### 1. Start on User Interaction
+
+Start animation only when user clicks a button:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CLICK TO START',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  instance.startAnimation();
+});`}
+  language="javascript"
+/>
+
+### 2. Scroll-Based Animation
+
+Start animation when element enters viewport:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'SCROLL',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      instance.startAnimation();
+    } else {
+      instance.destroy();  // Stop when not visible
+    }
+  });
+});
+
+observer.observe(document.getElementById('canvas'));`}
+  language="javascript"
+/>
+
+### 3. Tab Visibility Optimization
+
+Pause animation when tab is not visible:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'VISIBILITY',
+  colors: ['#695aa6']
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    instance.destroy();
+    console.log('Tab hidden - animation paused');
+  } else {
+    instance.startAnimation();
+    console.log('Tab visible - animation resumed');
+  }
+});`}
+  language="javascript"
+/>
+
+### 4. Conditional Animation Based on Device
+
+Only animate on desktop (performance optimization):
+
+<CodePreview
+  code={`const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+const instance = initParticleJS('#canvas', {
+  text: 'RESPONSIVE',
+  colors: ['#695aa6'],
+  autoAnimate: !isMobile  // Auto-start only on desktop
+});
+
+// Mobile users can click to enable
+if (isMobile) {
+  document.getElementById('enable-btn').addEventListener('click', () => {
+    instance.startAnimation();
+  });
+}`}
+  language="javascript"
+/>
+
+### 5. Synchronized Multi-Canvas Animation
+
+Control multiple canvas instances together:
+
+<CodePreview
+  code={`const canvas1 = initParticleJS('#canvas1', {
+  text: 'ONE',
+  colors: ['#FF6B6B'],
+  autoAnimate: false
+});
+
+const canvas2 = initParticleJS('#canvas2', {
+  text: 'TWO',
+  colors: ['#4ECDC4'],
+  autoAnimate: false
+});
+
+const canvas3 = initParticleJS('#canvas3', {
+  text: 'THREE',
+  colors: ['#FFD93D'],
+  autoAnimate: false
+});
+
+// Start all at once
+function startAll() {
+  canvas1.startAnimation();
+  canvas2.startAnimation();
+  canvas3.startAnimation();
+}
+
+// Stop all at once
+function stopAll() {
+  canvas1.destroy();
+  canvas2.destroy();
+  canvas3.destroy();
+}
+
+document.getElementById('start-all').onclick = startAll;
+document.getElementById('stop-all').onclick = stopAll;`}
+  language="javascript"
+/>
+
+### 6. Frame-by-Frame Scrubbing
+
+Control animation frame-by-frame (e.g., timeline scrubber):
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'SCRUB',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+const slider = document.getElementById('timeline-slider');
+
+slider.addEventListener('input', (e) => {
+  const frame = parseInt(e.target.value);
+
+  // Render specific number of frames
+  for (let i = 0; i < frame; i++) {
+    instance.forceRequestAnimationFrame();
+  }
+});`}
+  language="javascript"
+/>
+
+### 7. Timed Animation Sequence
+
+Run animation for specific duration:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'TIMED',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+function animateForDuration(ms) {
+  instance.startAnimation();
+
+  setTimeout(() => {
+    instance.destroy();
+    console.log(\`Animation ran for \${ms}ms\`);
+  }, ms);
+}
+
+// Animate for 5 seconds
+animateForDuration(5000);`}
+  language="javascript"
+/>
+
+### 8. Custom Animation Loop
+
+Integrate with custom game loop or animation framework:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+  colors: ['#695aa6'],
+  autoAnimate: false  // We'll control the loop
+});
+
+let lastTime = 0;
+const targetFPS = 30;  // Custom frame rate
+const frameInterval = 1000 / targetFPS;
+
+function customLoop(currentTime) {
+  const deltaTime = currentTime - lastTime;
+
+  if (deltaTime >= frameInterval) {
+    // Render ParticleText frame
+    instance.forceRequestAnimationFrame();
+
+    // Your other animations
+    updateOtherAnimations(deltaTime);
+
+    lastTime = currentTime;
+  }
+
+  requestAnimationFrame(customLoop);
+}
+
+requestAnimationFrame(customLoop);`}
+  language="javascript"
+/>
+
+### 9. Pause/Resume Toggle
+
+Create a pause/resume button:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'TOGGLE',
+  colors: ['#695aa6']
+});
+
+let isPaused = false;
+
+document.getElementById('toggle-btn').addEventListener('click', () => {
+  if (isPaused) {
+    instance.startAnimation();
+    isPaused = false;
+    console.log('Resumed');
+  } else {
+    instance.destroy();
+    isPaused = true;
+    console.log('Paused');
+  }
+});`}
+  language="javascript"
+/>
+
+### 10. Battery-Aware Animation
+
+Stop animation when battery is low:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'BATTERY',
+  colors: ['#695aa6']
+});
+
+if ('getBattery' in navigator) {
+  navigator.getBattery().then(battery => {
+    function updateAnimationState() {
+      if (battery.level < 0.2 || !battery.charging) {
+        instance.destroy();
+        console.log('Low battery - animation paused');
+      } else {
+        instance.startAnimation();
+      }
+    }
+
+    battery.addEventListener('levelchange', updateAnimationState);
+    battery.addEventListener('chargingchange', updateAnimationState);
+
+    updateAnimationState();
+  });
+}`}
+  language="javascript"
+/>
+
+## Performance Optimization Patterns
+
+### Lazy Loading
+
+Don't start animation until canvas is near viewport:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'LAZY',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      instance.startAnimation();
+      observer.disconnect();  // Only start once
+    }
+  });
+}, {
+  rootMargin: '100px'  // Start 100px before entering viewport
+});
+
+observer.observe(document.getElementById('canvas'));`}
+  language="javascript"
+/>
+
+### Throttled Animation
+
+Reduce frame rate on slow devices:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'THROTTLE',
+  colors: ['#695aa6'],
+  autoAnimate: false
+});
+
+const isSlowDevice = /iPhone 6|iPhone 7|Android 4/i.test(navigator.userAgent);
+const frameSkip = isSlowDevice ? 2 : 1;  // Render every 2nd frame on slow devices
+
+let frameCount = 0;
+
+function throttledLoop() {
+  frameCount++;
+
+  if (frameCount % frameSkip === 0) {
+    instance.forceRequestAnimationFrame();
+  }
+
+  requestAnimationFrame(throttledLoop);
+}
+
+throttledLoop();`}
+  language="javascript"
+/>
+
+### Memory Cleanup
+
+Properly clean up when component unmounts:
+
+<CodePreview
+  code={`// React example
+useEffect(() => {
+  const instance = initParticleJS('#canvas', {
+    text: 'CLEANUP',
+    colors: ['#695aa6']
+  });
+
+  // Cleanup function
+  return () => {
+    instance.destroy();
+    console.log('Animation cleaned up');
+  };
+}, []);
+
+// Vue example
+export default {
+  mounted() {
+    this.instance = initParticleJS('#canvas', {
+      text: 'CLEANUP',
+      colors: ['#695aa6']
+    });
+  },
+  beforeUnmount() {
+    this.instance.destroy();
+  }
+};
+
+// Vanilla JS - page navigation
+window.addEventListener('beforeunload', () => {
+  instance.destroy();
+});`}
+  language="javascript"
+/>
+
+## Debugging and Monitoring
+
+### Animation State Monitoring
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'DEBUG',
+  colors: ['#695aa6']
+});
+
+// Monitor state changes
+setInterval(() => {
+  console.log({
+    isAnimating: instance.isAnimating,
+    particleCount: instance.particleList.length,
+    currentBreakpoint: instance.getCurrentBreakpoint()
+  });
+}, 1000);`}
+  language="javascript"
+/>
+
+### Frame Rate Monitoring
+
+<CodePreview
+  code={`let frameCount = 0;
+let lastTime = performance.now();
+
+const instance = initParticleJS('#canvas', {
+  text: 'FPS',
+  colors: ['#695aa6']
+});
+
+setInterval(() => {
+  const currentTime = performance.now();
+  const elapsed = currentTime - lastTime;
+  const fps = Math.round((frameCount * 1000) / elapsed);
+
+  console.log(\`FPS: \${fps}\`);
+
+  frameCount = 0;
+  lastTime = currentTime;
+}, 1000);
+
+// Count frames
+const originalRender = instance.forceRequestAnimationFrame;
+instance.forceRequestAnimationFrame = function() {
+  frameCount++;
+  originalRender.call(instance);
+};`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Always Clean Up
+
+<CodePreview
+  code={`// ✅ Good: Clean up when done
+const instance = initParticleJS('#canvas', {
+  text: 'CLEANUP',
+  colors: ['#695aa6']
+});
+
+// When component unmounts or page changes
+instance.destroy();
+
+// ❌ Bad: Memory leak - animation keeps running
+const instance = initParticleJS('#canvas', {
+  text: 'LEAK',
+  colors: ['#695aa6']
+});
+// Never calls destroy() - animation loop continues forever`}
+  language="javascript"
+/>
+
+### 2. Check State Before Acting
+
+<CodePreview
+  code={`// ✅ Good: Check before action
+if (!instance.isAnimating) {
+  instance.startAnimation();
+}
+
+// ❌ Unnecessary: startAnimation() already checks
+// But doesn't hurt - method is safe to call multiple times
+instance.startAnimation();
+instance.startAnimation();  // Safe but redundant`}
+  language="javascript"
+/>
+
+### 3. Use Visibility API
+
+<CodePreview
+  code={`// ✅ Good: Respect tab visibility
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    instance.destroy();
+  } else {
+    instance.startAnimation();
+  }
+});
+
+// ❌ Bad: Waste resources when tab is hidden
+// Animation runs even when user can't see it`}
+  language="javascript"
+/>
+
+### 4. Coordinate Multiple Instances
+
+<CodePreview
+  code={`// ✅ Good: Manage all instances
+const instances = [];
+
+instances.push(initParticleJS('#canvas1', { /* ... */ }));
+instances.push(initParticleJS('#canvas2', { /* ... */ }));
+instances.push(initParticleJS('#canvas3', { /* ... */ }));
+
+// Stop all at once
+function cleanupAll() {
+  instances.forEach(instance => instance.destroy());
+}
+
+// ❌ Bad: Lose reference to instances
+initParticleJS('#canvas1', { /* ... */ });  // Can't control later
+initParticleJS('#canvas2', { /* ... */ });  // Can't control later`}
+  language="javascript"
+/>
+
+### 5. Handle Errors Gracefully
+
+<CodePreview
+  code={`// ✅ Good: Defensive programming
+try {
+  const instance = initParticleJS('#canvas', {
+    text: 'SAFE',
+    colors: ['#695aa6']
+  });
+
+  if (instance && instance.startAnimation) {
+    instance.startAnimation();
+  }
+} catch (error) {
+  console.error('Animation failed:', error);
+}
+
+// ❌ Bad: Assumes success
+const instance = initParticleJS('#canvas', { /* ... */ });
+instance.startAnimation();  // Might fail if canvas not found`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Animation doesn't start?**
+- Check `autoAnimate` is not false
+- Verify `startAnimation()` is called
+- Ensure canvas element exists
+- Check browser console for errors
+
+**Can't stop animation?**
+- Call `destroy()` method
+- Check `isAnimating` property
+- Ensure you have reference to instance
+
+**Multiple animation loops running?**
+- `startAnimation()` is safe to call multiple times
+- Only one loop will run per instance
+- Check you're not creating multiple instances
+
+**Memory leak issues?**
+- Always call `destroy()` when done
+- Use visibility API to pause hidden tabs
+- Clean up in component unmount hooks
+
+**Frame rate too low?**
+- Use `autoAnimate: false` and custom loop
+- Implement frame skipping for slow devices
+- Reduce particle count with `maxParticles`
+
+## Related Documentation
+
+- [autoAnimate (API Reference)](/api-reference/configuration/#autoanimate) - Configuration option
+- [Performance Optimization](/guides/performance-optimization/) - Optimize animation performance
+- [Visibility API](/examples/advanced/visibility-control/) - Tab visibility control
+- [Multiple Canvases](/examples/advanced/multiple-canvases/) - Manage multiple instances

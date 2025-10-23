@@ -1,6 +1,777 @@
 ---
-title: Slow Browser
-description: Optimizing for slower browsers and devices
+title: Slow Browser Detection
+description: Automatic performance optimization for slower devices and browsers
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+ParticleText.js includes intelligent performance monitoring that automatically detects slow browsers or devices and optimizes the animation to maintain smooth performance. This ensures your animation works well on both high-end desktops and older mobile devices without manual intervention.
+
+## How It Works
+
+ParticleText.js continuously monitors frame render time during animation. When it detects that rendering is taking too long (exceeding `renderTimeThreshold`), it automatically applies performance optimizations.
+
+### Performance Monitoring
+
+<CodePreview
+  code={`// Monitoring happens in three phases:
+
+// 1. Initial test (first frame)
+//    → Checks render time immediately
+
+// 2. Early monitoring (first 10 seconds)
+//    → Checks every 2 seconds (5 checks total)
+
+// 3. Ongoing monitoring (after 10 seconds)
+//    → Checks every 30 seconds to catch performance degradation`}
+  language="javascript"
+/>
+
+**Detection Criteria:**
+- If a single frame takes longer than `renderTimeThreshold` (default: 15ms)
+- System automatically switches to optimized mode
+- Once triggered, optimization remains active (no switching back)
+
+### Automatic Optimizations
+
+When slow browser/device is detected, ParticleText.js automatically:
+
+1. **Reduces Canvas Resolution** - Renders at 1/3 scale (3x smaller canvas) and upscales with CSS
+2. **Simplifies Particle Rendering** - Reduces particle size to minimum (1-2px)
+3. **Adjusts Physics** - Increases acceleration and reduces friction for faster convergence
+4. **Optimizes Explosion Radius** - Scales down explosion radius proportionally
+
+## Basic Configuration
+
+### Default Behavior
+
+<CodePreview
+  code={`// Performance monitoring is always active
+const instance = initParticleJS('#canvas', {
+  text: 'AUTO OPTIMIZE',
+  colors: ['#695aa6']
+  // renderTimeThreshold: 15 (default)
+  // Automatically optimizes if frame time > 15ms
+});`}
+  language="javascript"
+/>
+
+### Custom Threshold
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'CUSTOM',
+  colors: ['#695aa6'],
+
+  // More aggressive optimization (triggers sooner)
+  renderTimeThreshold: 10  // Optimize if frame > 10ms
+});
+
+// Less aggressive (allows lower performance before optimizing)
+const instance2 = initParticleJS('#canvas2', {
+  text: 'LENIENT',
+  colors: ['#4ECDC4'],
+
+  renderTimeThreshold: 25  // Only optimize if frame > 25ms
+});`}
+  language="javascript"
+/>
+
+### Slow Browser Callback
+
+Get notified when optimization is triggered:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'NOTIFICATION',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 15,
+
+  slowBrowserDetected: function() {
+    console.log('Performance optimization activated');
+
+    // Notify user (optional)
+    showNotification('Optimizing animation for your device...');
+
+    // Track analytics
+    if (window.gtag) {
+      gtag('event', 'performance_optimization', {
+        event_category: 'ParticleText',
+        event_label: 'Slow Browser Detected'
+      });
+    }
+  }
+});`}
+  language="javascript"
+/>
+
+## Render Time Threshold
+
+The `renderTimeThreshold` determines how long (in milliseconds) a single frame can take before triggering optimization.
+
+### Choosing the Right Threshold
+
+| Threshold | Target FPS | When to Use | Performance Impact |
+|-----------|-----------|-------------|-------------------|
+| **8-10ms** | 100-125 FPS | High-refresh displays, gaming monitors | Very aggressive optimization |
+| **12-15ms** | 66-83 FPS | Standard displays (default) | Balanced approach |
+| **16-20ms** | 50-62 FPS | Older devices, complex scenes | Conservative optimization |
+| **25-30ms** | 33-40 FPS | Very slow devices only | Minimal optimization |
+
+### Frame Time Targets
+
+<CodePreview
+  code={`// Target 60 FPS (16.67ms per frame)
+renderTimeThreshold: 15  // Optimize before dropping below 60 FPS
+
+// Target 30 FPS (33.33ms per frame)
+renderTimeThreshold: 30  // Allow lower performance before optimizing
+
+// Target 120 FPS (8.33ms per frame)
+renderTimeThreshold: 8   // Optimize aggressively for high refresh rate`}
+  language="javascript"
+/>
+
+**Rule of Thumb:** Set threshold slightly below your target frame time to optimize before performance drops.
+
+## Optimization Details
+
+### Canvas Resolution Scaling
+
+<CodePreview
+  code={`// Normal mode (full resolution)
+canvas.width = 1800;
+canvas.height = 400;
+canvas.style.transform = 'scale(1)';
+
+// Optimized mode (1/3 resolution, scaled up)
+canvas.width = 600;   // 1800 / 3
+canvas.height = 133;  // 400 / 3
+canvas.style.transform = 'scale(3)';  // CSS upscale
+canvas.style.transformOrigin = '0 0';
+
+// Exception: Very small screens (≤320px)
+// scale = 1 (no optimization needed)`}
+  language="javascript"
+/>
+
+**Performance Gain:** Rendering 1/9 the pixels (3x smaller width × 3x smaller height)
+
+### Particle Size Reduction
+
+<CodePreview
+  code={`// Normal mode
+particleRadius: { xs: { base: 2, rand: 1 } }  // 2-3px particles
+
+// Optimized mode (automatically applied)
+// Screen ≤ 2048px: radius = 1px (fixed)
+// Screen 2048-3000px: radius = rand * 1 + 2 (2-3px)
+// Screen > 3000px: radius = rand * 3 + 3 (3-6px)`}
+  language="javascript"
+/>
+
+### Physics Acceleration
+
+<CodePreview
+  code={`// Normal mode
+particle.accX = (dest.x - particle.x) / 100;
+particle.accY = (dest.y - particle.y) / 100;
+
+// Optimized mode
+particle.accX = (dest.x - particle.x) / 100 * 8;  // 8x faster
+particle.accY = (dest.y - particle.y) / 100 * 8;
+
+// Explosion physics
+// Normal: acc = (particle - mouse) / 10
+// Optimized: acc = (particle - mouse) / 10 * 4  // 4x faster`}
+  language="javascript"
+/>
+
+**Effect:** Particles reach destinations faster, reducing animation complexity
+
+### Friction Adjustment
+
+<CodePreview
+  code={`// Normal mode
+friction: { base: 0.9, rand: 0.05 }  // 0.85-0.95
+
+// Optimized mode
+friction = friction / 1.1  // Reduces to ~0.77-0.86
+
+// Lower friction = faster settling = less computation`}
+  language="javascript"
+/>
+
+### Explosion Radius Scaling
+
+<CodePreview
+  code={`// Explosion radius scaled proportionally
+// Normal: explosionRadius from config
+// Optimized: explosionRadius / scaleToFit (1/3 the radius)
+
+// Example:
+explosionRadius: { xs: 50, lg: 100 }
+
+// On slow device:
+// Effective radius: xs: ~16px, lg: ~33px`}
+  language="javascript"
+/>
+
+## Use Cases
+
+### 1. Mobile-First Applications
+
+Optimize aggressively for mobile devices:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'MOBILE APP',
+  colors: ['#695aa6'],
+
+  // Aggressive optimization for mobile
+  renderTimeThreshold: 12,  // Trigger at 12ms (83 FPS)
+
+  slowBrowserDetected: function() {
+    console.log('Mobile optimization active');
+
+    // Optionally reduce particle count further
+    // (handled automatically, but you can track it)
+  }
+});`}
+  language="javascript"
+/>
+
+### 2. Desktop Hero Sections
+
+Allow more complex animations on desktop:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'HERO',
+  colors: ['#FF6B6B', '#4ECDC4'],
+  fontSize: 150,
+
+  // Less aggressive - allow complex visuals
+  renderTimeThreshold: 20,  // Trigger at 20ms (50 FPS)
+
+  particleRadius: {
+    xs: { base: 3, rand: 2 },    // Larger particles
+    lg: { base: 5, rand: 3 }
+  },
+
+  slowBrowserDetected: function() {
+    // Even on slow devices, maintain decent quality
+    console.log('Optimized for smooth performance');
+  }
+});`}
+  language="javascript"
+/>
+
+### 3. Analytics Tracking
+
+Track optimization events:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'ANALYTICS',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 15,
+
+  slowBrowserDetected: function() {
+    // Track in Google Analytics
+    if (window.gtag) {
+      gtag('event', 'slow_device_detected', {
+        event_category: 'Performance',
+        event_label: 'ParticleText Optimization',
+        value: 1
+      });
+    }
+
+    // Track in Mixpanel
+    if (window.mixpanel) {
+      mixpanel.track('Slow Device Detected', {
+        component: 'ParticleText',
+        threshold: 15,
+        userAgent: navigator.userAgent
+      });
+    }
+
+    // Log to server
+    fetch('/api/analytics/performance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'slow_browser_detected',
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      })
+    });
+  }
+});`}
+  language="javascript"
+/>
+
+### 4. User Notification
+
+Inform users about optimization:
+
+<CodePreview
+  code={`function showOptimizationNotice() {
+  const notice = document.createElement('div');
+  notice.className = 'optimization-notice';
+  notice.innerHTML = \`
+    <p>🎨 Animation optimized for your device</p>
+    <button onclick="this.parentElement.remove()">Got it</button>
+  \`;
+  notice.style.cssText = \`
+    position: fixed; bottom: 20px; right: 20px;
+    background: #4CAF50; color: white; padding: 15px 20px;
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: sans-serif; z-index: 1000;
+  \`;
+  document.body.appendChild(notice);
+
+  // Auto-hide after 5 seconds
+  setTimeout(() => notice.remove(), 5000);
+}
+
+const instance = initParticleJS('#canvas', {
+  text: 'NOTIFICATION',
+  colors: ['#695aa6'],
+  slowBrowserDetected: showOptimizationNotice
+});`}
+  language="javascript"
+/>
+
+### 5. Conditional Features
+
+Disable advanced features on slow devices:
+
+<CodePreview
+  code={`let isOptimized = false;
+
+const instance = initParticleJS('#canvas', {
+  text: 'FEATURES',
+  colors: ['#695aa6'],
+
+  slowBrowserDetected: function() {
+    isOptimized = true;
+
+    // Disable expensive features
+    disableParallaxEffect();
+    disableBackgroundBlur();
+    reduceParticleColors();
+  }
+});
+
+function disableParallaxEffect() {
+  document.querySelectorAll('.parallax').forEach(el => {
+    el.style.transform = 'none';
+  });
+}
+
+function reduceParticleColors() {
+  if (isOptimized) {
+    // Use fewer colors for better performance
+    instance.colors = ['#695aa6'];  // Single color
+  }
+}`}
+  language="javascript"
+/>
+
+## Performance Monitoring
+
+### Check Optimization Status
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'STATUS',
+  colors: ['#695aa6']
+});
+
+// Check if optimization is active
+// Note: No direct API, but you can track via callback
+let isOptimized = false;
+
+const instance2 = initParticleJS('#canvas2', {
+  text: 'TRACKED',
+  colors: ['#695aa6'],
+
+  slowBrowserDetected: function() {
+    isOptimized = true;
+  }
+});
+
+// Later in your code
+if (isOptimized) {
+  console.log('Running in optimized mode');
+}`}
+  language="javascript"
+/>
+
+### Display Performance Indicator
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'INDICATOR',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 15,
+
+  slowBrowserDetected: function() {
+    const indicator = document.getElementById('perf-indicator');
+    indicator.textContent = '⚡ Optimized Mode';
+    indicator.style.background = '#FFC107';
+  }
+});
+
+// HTML:
+// <div id="perf-indicator">🚀 Full Quality</div>`}
+  language="javascript"
+/>
+
+### Debug Performance
+
+<CodePreview
+  code={`const DEBUG = true;
+
+const instance = initParticleJS('#canvas', {
+  text: 'DEBUG',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 15,
+
+  slowBrowserDetected: function() {
+    if (DEBUG) {
+      console.group('Performance Optimization Triggered');
+      console.log('Threshold:', 15, 'ms');
+      console.log('Canvas Resolution:', 'Reduced to 1/3');
+      console.log('Particle Size:', 'Reduced to 1-2px');
+      console.log('Physics:', 'Accelerated 4-8x');
+      console.log('User Agent:', navigator.userAgent);
+      console.log('Screen Size:', window.innerWidth + 'x' + window.innerHeight);
+      console.groupEnd();
+    }
+  }
+});`}
+  language="javascript"
+/>
+
+## Threshold Guidelines by Device
+
+### Mobile Devices
+
+<CodePreview
+  code={`// iOS devices (iPhone, iPad)
+renderTimeThreshold: 12  // Optimize at 12ms (83 FPS)
+
+// Android devices
+renderTimeThreshold: 15  // Optimize at 15ms (66 FPS)
+
+// Older mobile devices (iPhone 6, Android 4.x)
+renderTimeThreshold: 10  // Optimize aggressively at 10ms (100 FPS)`}
+  language="javascript"
+/>
+
+### Desktop Browsers
+
+<CodePreview
+  code={`// Modern desktop (Chrome, Firefox, Safari, Edge)
+renderTimeThreshold: 20  // Allow complex visuals, optimize at 20ms (50 FPS)
+
+// Older desktop browsers (IE11, old Safari)
+renderTimeThreshold: 15  // Standard optimization
+
+// High-refresh monitors (120Hz, 144Hz)
+renderTimeThreshold: 8   // Target high frame rates (125 FPS)`}
+  language="javascript"
+/>
+
+### Adaptive Threshold
+
+<CodePreview
+  code={`// Detect device type and set appropriate threshold
+function getOptimalThreshold() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isOldMobile = /iPhone [1-6]|Android [1-4]/i.test(navigator.userAgent);
+  const isHighRefresh = window.screen.refreshRate > 60;
+
+  if (isOldMobile) return 10;      // Aggressive
+  if (isMobile) return 12;         // Mobile standard
+  if (isHighRefresh) return 8;     // High refresh
+  return 15;                       // Desktop standard
+}
+
+const instance = initParticleJS('#canvas', {
+  text: 'ADAPTIVE',
+  colors: ['#695aa6'],
+  renderTimeThreshold: getOptimalThreshold()
+});`}
+  language="javascript"
+/>
+
+## Best Practices
+
+### 1. Use Default Threshold
+
+<CodePreview
+  code={`// ✅ Good: Trust the default (15ms)
+const instance = initParticleJS('#canvas', {
+  text: 'DEFAULT',
+  colors: ['#695aa6']
+  // renderTimeThreshold: 15 (default)
+});
+
+// ❌ Bad: Arbitrary threshold without testing
+const instance = initParticleJS('#canvas', {
+  text: 'ARBITRARY',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 50  // Too high, allows poor performance
+});`}
+  language="javascript"
+/>
+
+### 2. Monitor Callback Usage
+
+<CodePreview
+  code={`// ✅ Good: Use callback for analytics/logging
+slowBrowserDetected: function() {
+  console.log('Optimization triggered');
+  trackAnalytics('slow_browser');
+}
+
+// ❌ Bad: Heavy operations in callback
+slowBrowserDetected: function() {
+  // Don't do expensive operations here!
+  recalculateEntireLayout();
+  reloadAllImages();
+  reinitializeApp();
+}`}
+  language="javascript"
+/>
+
+### 3. Test on Real Devices
+
+<CodePreview
+  code={`// ✅ Good: Test threshold on target devices
+// Test on:
+// - iPhone 6/7 (older iOS)
+// - Android 5.0 devices
+// - Desktop with throttled CPU (Chrome DevTools)
+
+renderTimeThreshold: 15  // Verified on real devices
+
+// ❌ Bad: Only test on powerful development machine
+renderTimeThreshold: 30  // Allows terrible performance on real devices`}
+  language="javascript"
+/>
+
+### 4. Don't Disable Monitoring
+
+<CodePreview
+  code={`// ✅ Good: Let monitoring happen
+const instance = initParticleJS('#canvas', {
+  text: 'MONITORED',
+  colors: ['#695aa6']
+  // Monitoring always active
+});
+
+// ❌ Bad: Setting threshold too high effectively disables it
+const instance = initParticleJS('#canvas', {
+  text: 'DISABLED',
+  colors: ['#695aa6'],
+  renderTimeThreshold: 1000  // Will never trigger (1 second!)
+});`}
+  language="javascript"
+/>
+
+### 5. Consider User Experience
+
+<CodePreview
+  code={`// ✅ Good: Notify users of optimization
+slowBrowserDetected: function() {
+  showNotification('Animation optimized for smooth performance');
+}
+
+// ✅ Also good: Silent optimization
+slowBrowserDetected: function() {
+  console.log('Optimized silently');
+  // User doesn't need to know
+}
+
+// ❌ Bad: Disruptive notification
+slowBrowserDetected: function() {
+  alert('Your device is slow! Animation quality reduced!');
+}`}
+  language="javascript"
+/>
+
+## Advanced Techniques
+
+### Progressive Threshold
+
+<CodePreview
+  code={`// Start with lenient threshold, tighten over time
+let currentThreshold = 25;
+
+function createAdaptiveInstance() {
+  const instance = initParticleJS('#canvas', {
+    text: 'PROGRESSIVE',
+    colors: ['#695aa6'],
+    renderTimeThreshold: currentThreshold,
+
+    slowBrowserDetected: function() {
+      console.log(\`Optimized at threshold: \${currentThreshold}ms\`);
+
+      // Don't tighten further - optimization is active
+    }
+  });
+
+  // Reduce threshold every 5 seconds (first 20s)
+  let iterations = 0;
+  const interval = setInterval(() => {
+    iterations++;
+    currentThreshold = Math.max(15, 25 - (iterations * 5));
+
+    if (iterations >= 4 || currentThreshold === 15) {
+      clearInterval(interval);
+    }
+  }, 5000);
+
+  return instance;
+}`}
+  language="javascript"
+/>
+
+### Device-Specific Optimization
+
+<CodePreview
+  code={`function getDeviceProfile() {
+  const ua = navigator.userAgent;
+  const width = window.innerWidth;
+
+  // Detect specific devices
+  if (/iPhone [1-7]/.test(ua)) {
+    return { threshold: 10, particleLimit: 2000 };
+  }
+
+  if (/iPad/.test(ua)) {
+    return { threshold: 12, particleLimit: 3000 };
+  }
+
+  if (/Android [4-6]/.test(ua)) {
+    return { threshold: 12, particleLimit: 2500 };
+  }
+
+  if (width < 768) {
+    return { threshold: 15, particleLimit: 3000 };
+  }
+
+  return { threshold: 15, particleLimit: 5000 };
+}
+
+const profile = getDeviceProfile();
+
+const instance = initParticleJS('#canvas', {
+  text: 'DEVICE PROFILE',
+  colors: ['#695aa6'],
+  renderTimeThreshold: profile.threshold,
+  maxParticles: profile.particleLimit
+});`}
+  language="javascript"
+/>
+
+### A/B Testing Thresholds
+
+<CodePreview
+  code={`// A/B test different thresholds
+function getExperimentThreshold() {
+  const userId = getUserId();
+  const variant = userId % 3;
+
+  switch(variant) {
+    case 0: return 10;  // Aggressive
+    case 1: return 15;  // Standard
+    case 2: return 20;  // Lenient
+  }
+}
+
+const instance = initParticleJS('#canvas', {
+  text: 'EXPERIMENT',
+  colors: ['#695aa6'],
+  renderTimeThreshold: getExperimentThreshold(),
+
+  slowBrowserDetected: function() {
+    // Track which variant triggered optimization
+    trackExperiment('threshold_test', {
+      threshold: getExperimentThreshold(),
+      optimized: true
+    });
+  }
+});`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Optimization triggers immediately?**
+- Your device/browser is genuinely slow
+- Threshold is too low (increase from 15ms)
+- Too many particles (reduce with `maxParticles`)
+- Very large canvas (reduce `fontSize`)
+
+**Optimization never triggers?**
+- Threshold is too high
+- Device is very fast
+- Canvas is very small
+- Few particles in scene
+
+**Performance still poor after optimization?**
+- Reduce `maxParticles` (default 5000)
+- Use smaller `fontSize`
+- Simplify colors (fewer colors = better performance)
+- Consider disabling animation on very old devices
+
+**Callback not firing?**
+- Check console for errors
+- Verify callback is a function
+- Ensure animation is actually running
+- Wait a few seconds (monitoring takes time)
+
+**Canvas looks blurry after optimization?**
+- This is expected (1/3 resolution scaled up)
+- Trade-off for smooth performance
+- On very slow devices, this is preferable to stuttering
+
+## Performance Impact
+
+### Before Optimization
+
+<CodePreview
+  code={`// Full resolution rendering
+Canvas: 1800 × 400 = 720,000 pixels
+Particles: ~5,000 (based on text)
+Frame Time: ~18-25ms (40-55 FPS)
+CPU Usage: High`}
+  language="javascript"
+/>
+
+### After Optimization
+
+<CodePreview
+  code={`// Optimized rendering
+Canvas: 600 × 133 = 79,800 pixels (11% of original)
+Particles: Same count but 1px size
+Frame Time: ~8-12ms (83-125 FPS)
+CPU Usage: Low-Medium
+
+Performance Gain: 2-3x faster rendering`}
+  language="javascript"
+/>
+
+## Related Documentation
+
+- [renderTimeThreshold (API Reference)](/api-reference/configuration/#rendertimethreshold) - Configuration option
+- [slowBrowserDetected (API Reference)](/api-reference/configuration/#slowbrowserdetected) - Callback configuration
+- [Performance Optimization](/guides/performance-optimization/) - General performance tips
+- [maxParticles](/api-reference/configuration/#maxparticles) - Limit particle count
+- [Manual Control](/examples/advanced/manual-control/) - Control animation lifecycle

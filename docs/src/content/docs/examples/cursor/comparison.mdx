@@ -1,6 +1,663 @@
 ---
-title: Comparison
-description: Comparing different cursor tracking modes
+title: Cursor Tracking Comparison
+description: Understanding the difference between restricted and unrestricted cursor tracking
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+The `trackCursorOnlyInsideCanvas` setting fundamentally changes how particles respond to cursor movement. This guide compares both modes to help you choose the right approach for your project.
+
+## Quick Comparison
+
+| Feature | Unrestricted (Default) | Restricted |
+|---------|----------------------|------------|
+| **Configuration** | `trackCursorOnlyInsideCanvas: false` | `trackCursorOnlyInsideCanvas: true` |
+| **Tracking Scope** | Entire page | Canvas boundaries only |
+| **Cursor Outside Canvas** | Particles still react | Particles return to rest |
+| **Transition** | Smooth approach | Sharp on/off |
+| **Performance** | Constant calculations | Reduced when cursor outside |
+| **Best For** | Single canvas, fluid UX | Multiple canvases, clear boundaries |
+| **User Experience** | Anticipatory, fluid | Explicit, bounded |
+
+## Side-by-Side Demonstration
+
+### Unrestricted Tracking (Default)
+
+<CanvasExample
+  title="Unrestricted - Tracks Everywhere"
+  config={{
+    text: 'ANYWHERE',
+    colors: ['#4facfe', '#00f2fe'],
+    fontSize: 100,
+    trackCursorOnlyInsideCanvas: false
+  }}
+  height={300}
+/>
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'ANYWHERE',
+  colors: ['#4facfe', '#00f2fe'],
+  trackCursorOnlyInsideCanvas: false  // Default
+});
+
+// Behavior:
+// - Particles react to cursor anywhere on page
+// - Smooth transitions as cursor approaches
+// - Creates anticipation effect
+// - Constant tracking and calculations`}
+  language="javascript"
+/>
+
+**Try it:** Move your cursor around the page - particles react even when you're far from the canvas.
+
+### Restricted Tracking
+
+<CanvasExample
+  title="Restricted - Inside Only"
+  config={{
+    text: 'INSIDE',
+    colors: ['#f093fb', '#f5576c'],
+    fontSize: 100,
+    trackCursorOnlyInsideCanvas: true
+  }}
+  height={300}
+/>
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'INSIDE',
+  colors: ['#f093fb', '#f5576c'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// Behavior:
+// - Particles only react when cursor is inside canvas
+// - Immediate return to rest when cursor leaves
+// - Clear interaction boundary
+// - Reduced calculations when cursor outside`}
+  language="javascript"
+/>
+
+**Try it:** Move your cursor into and out of the canvas - notice the sharp transition.
+
+## Technical Differences
+
+### Mouse Position Handling
+
+<CodePreview
+  code={`// UNRESTRICTED (default)
+function onMouseMove(e) {
+  const rect = element.getBoundingClientRect();
+  const relativeX = e.clientX - rect.left;
+  const relativeY = e.clientY - rect.top;
+
+  // Always update mouse position
+  mouse.x = relativeX * (canvas.width / rect.width);
+  mouse.y = relativeY * (canvas.height / rect.height);
+
+  // Particles calculate distance to this position
+  // Even if it's outside canvas bounds
+}
+
+// RESTRICTED
+function onMouseMove(e) {
+  const rect = element.getBoundingClientRect();
+  const relativeX = e.clientX - rect.left;
+  const relativeY = e.clientY - rect.top;
+
+  // Check if cursor is outside canvas
+  if (relativeX < 0 || relativeX > rect.width ||
+      relativeY < 0 || relativeY > rect.height) {
+
+    // Reset to far-away position
+    mouse.x = -9999;
+    mouse.y = -9999;
+    return;  // Don't process further
+  }
+
+  // Only update if inside
+  mouse.x = relativeX * (canvas.width / rect.width);
+  mouse.y = relativeY * (canvas.height / rect.height);
+}`}
+  language="javascript"
+/>
+
+### Particle Behavior
+
+<CodePreview
+  code={`// In both modes, particles check distance to mouse
+function particleUpdate() {
+  const dx = particle.x - mouse.x;
+  const dy = particle.y - mouse.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance < explosionRadius) {
+    // Push particle away from mouse
+    particle.vx += (particle.x - mouse.x) / 10;
+    particle.vy += (particle.y - mouse.y) / 10;
+  }
+}
+
+// UNRESTRICTED:
+// mouse.x, mouse.y = actual cursor position (even if outside canvas)
+// distance = real distance from cursor to particle
+// Particles may be pushed even when cursor is far away
+
+// RESTRICTED:
+// mouse.x, mouse.y = (-9999, -9999) when cursor outside
+// distance = very large number
+// distance > explosionRadius, so no explosion effect
+// Particles naturally return to rest position`}
+  language="javascript"
+/>
+
+## When to Use Each Mode
+
+### Use Unrestricted (Default) When:
+
+<CodePreview
+  code={`// 1. Single canvas taking up most of viewport
+const heroInstance = initParticleJS('#hero-canvas', {
+  text: 'WELCOME',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: false  // Smooth experience
+});
+
+// 2. Full-page background effect
+const bgInstance = initParticleJS('#bg-canvas', {
+  text: 'BACKGROUND',
+  colors: ['#E0E0E0'],
+  trackCursorOnlyInsideCanvas: false  // Seamless integration
+});
+
+// 3. Creating anticipation before interaction
+const calloutInstance = initParticleJS('#callout', {
+  text: 'CLICK ME',
+  colors: ['#FF6B6B'],
+  trackCursorOnlyInsideCanvas: false  // Particles react as you approach
+});
+
+// 4. Smooth, fluid user experience is priority
+const fluidInstance = initParticleJS('#canvas', {
+  text: 'FLUID',
+  colors: ['#4ECDC4'],
+  trackCursorOnlyInsideCanvas: false  // No jarring transitions
+});`}
+  language="javascript"
+/>
+
+**Advantages:**
+- Smooth, fluid transitions
+- Creates anticipation and visual interest
+- Natural feel as particles respond to approaching cursor
+- Good for immersive experiences
+- Works well for single, prominent canvas
+
+**Disadvantages:**
+- Can interfere with multiple canvases
+- Particles react even when user isn't focused on canvas
+- Slightly higher CPU usage (constant calculations)
+- Less clear interaction boundaries
+
+### Use Restricted When:
+
+<CodePreview
+  code={`// 1. Multiple canvas instances on same page
+document.querySelectorAll('.gallery-item canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true  // Each independent
+  });
+});
+
+// 2. Canvas near interactive elements
+const headerInstance = initParticleJS('#header-canvas', {
+  text: 'HEADER',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true  // Don't interfere with buttons
+});
+
+// 3. Explicit interaction zones needed
+const zoneInstance = initParticleJS('#zone-canvas', {
+  text: 'ZONE',
+  colors: ['#4ECDC4'],
+  trackCursorOnlyInsideCanvas: true  // Clear boundary
+});
+
+// 4. Performance optimization
+const largeInstance = initParticleJS('#large-canvas', {
+  text: 'LARGE',
+  colors: ['#FF6B6B'],
+  trackCursorOnlyInsideCanvas: true,  // Reduce calculations
+  maxParticles: 5000
+});`}
+  language="javascript"
+/>
+
+**Advantages:**
+- Clear, explicit interaction boundaries
+- No interference between multiple canvases
+- Reduced calculations when cursor outside
+- Better for galleries, grids, lists
+- Explicit user intent required
+
+**Disadvantages:**
+- Abrupt on/off transition
+- No anticipatory effect
+- Requires cursor to be inside canvas
+- Less fluid user experience
+
+## Common Scenarios
+
+### Scenario 1: Full-Screen Hero Section
+
+<CodePreview
+  code={`// Recommendation: UNRESTRICTED
+// Reasoning: Single prominent canvas, fluid experience desired
+
+<section class="hero" style="height: 100vh;">
+  <canvas id="hero-canvas"></canvas>
+  <h1>Welcome to Our Site</h1>
+</section>
+
+<script>
+const instance = initParticleJS('#hero-canvas', {
+  text: 'HERO',
+  colors: ['#667eea', '#764ba2'],
+  trackCursorOnlyInsideCanvas: false,  // Smooth, immersive
+
+  explosionRadius: {
+    xs: 100,
+    lg: 200  // Large radius for dramatic effect
+  }
+});
+</script>
+
+// Why unrestricted:
+// - Canvas takes up entire viewport
+// - Smooth interaction is key
+// - No other canvases to interfere with
+// - Creates immersive experience`}
+  language="javascript"
+/>
+
+### Scenario 2: Portfolio Grid
+
+<CodePreview
+  code={`// Recommendation: RESTRICTED
+// Reasoning: Multiple canvases, clear boundaries needed
+
+<div class="portfolio-grid">
+  <div class="project"><canvas data-text="PROJECT 1"></canvas></div>
+  <div class="project"><canvas data-text="PROJECT 2"></canvas></div>
+  <div class="project"><canvas data-text="PROJECT 3"></canvas></div>
+  <div class="project"><canvas data-text="PROJECT 4"></canvas></div>
+</div>
+
+<script>
+document.querySelectorAll('.project canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true,  // Independent items
+
+    explosionRadius: {
+      xs: 60,
+      lg: 100
+    }
+  });
+});
+</script>
+
+// Why restricted:
+// - Multiple canvases in proximity
+// - User needs to know which project they're interacting with
+// - Clear visual feedback
+// - Prevents cross-contamination`}
+  language="javascript"
+/>
+
+### Scenario 3: Fixed Header
+
+<CodePreview
+  code={`// Recommendation: RESTRICTED
+// Reasoning: Fixed positioning, other page elements present
+
+<header style="position: fixed; top: 0; width: 100%;">
+  <canvas id="header-canvas"></canvas>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+</header>
+
+<script>
+const instance = initParticleJS('#header-canvas', {
+  text: 'HEADER',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true  // Don't interfere with nav
+});
+</script>
+
+// Why restricted:
+// - Navigation links present
+// - Don't want particles reacting while scrolling
+// - Clear separation of canvas vs nav interaction
+// - Better accessibility`}
+  language="javascript"
+/>
+
+### Scenario 4: Background Wallpaper
+
+<CodePreview
+  code={`// Recommendation: UNRESTRICTED
+// Reasoning: Background effect, subtle interaction
+
+<div class="page-background">
+  <canvas id="bg-canvas" style="position: fixed; z-index: -1;"></canvas>
+</div>
+
+<script>
+const instance = initParticleJS('#bg-canvas', {
+  text: 'BACKGROUND',
+  colors: ['#E0E0E0'],
+  trackCursorOnlyInsideCanvas: false,  // Seamless background
+
+  explosionRadius: {
+    xs: 150,
+    lg: 250  // Wide radius for subtle effect
+  },
+
+  friction: { base: 0.95, rand: 0.03 }  // Slow, gentle movement
+});
+</script>
+
+// Why unrestricted:
+// - Background spans entire page
+// - Subtle, ambient effect
+// - Should respond throughout page
+// - No other canvases to conflict with`}
+  language="javascript"
+/>
+
+## Hybrid Approach
+
+You can mix both modes on the same page:
+
+<CodePreview
+  code={`// Hero section: Unrestricted (immersive)
+const hero = initParticleJS('#hero-canvas', {
+  text: 'HERO',
+  colors: ['#667eea'],
+  trackCursorOnlyInsideCanvas: false
+});
+
+// Gallery items: Restricted (clear boundaries)
+document.querySelectorAll('.gallery canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#4ECDC4'],
+    trackCursorOnlyInsideCanvas: true
+  });
+});
+
+// Footer: Unrestricted (subtle effect)
+const footer = initParticleJS('#footer-canvas', {
+  text: 'FOOTER',
+  colors: ['#95a5a6'],
+  trackCursorOnlyInsideCanvas: false
+});
+
+// This gives you:
+// - Immersive hero
+// - Clear gallery interaction
+// - Subtle footer effect
+// Each canvas optimized for its context`}
+  language="javascript"
+/>
+
+## Performance Comparison
+
+### Unrestricted Mode
+
+<CodePreview
+  code={`// CPU Usage Pattern (Unrestricted)
+// Cursor anywhere on page: HIGH (constant calculations)
+// Cursor over canvas: HIGH (explosion calculations)
+// Cursor off-page: MEDIUM (tracking, no explosions)
+
+// Frame time: ~12-18ms (60 FPS achievable)
+// Recommended for: Single canvas, fluid UX`}
+  language="javascript"
+/>
+
+### Restricted Mode
+
+<CodePreview
+  code={`// CPU Usage Pattern (Restricted)
+// Cursor outside canvas: LOW (particles at rest)
+// Cursor inside canvas: HIGH (explosion calculations)
+// Cursor off-page: LOW (no tracking)
+
+// Frame time: ~8-12ms outside, ~15-20ms inside
+// Recommended for: Multiple canvases, performance-critical`}
+  language="javascript"
+/>
+
+### Performance Test
+
+<CodePreview
+  code={`// Measure performance difference
+let frameCount = 0;
+let lastTime = performance.now();
+
+const unrestrictedInstance = initParticleJS('#canvas1', {
+  text: 'UNRESTRICTED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: false
+});
+
+const restrictedInstance = initParticleJS('#canvas2', {
+  text: 'RESTRICTED',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+setInterval(() => {
+  const now = performance.now();
+  const elapsed = now - lastTime;
+  const fps = Math.round((frameCount * 1000) / elapsed);
+
+  console.log(\`FPS: \${fps}\`);
+  console.log(\`Cursor outside restricted canvas: likely higher FPS\`);
+
+  frameCount = 0;
+  lastTime = now;
+}, 1000);`}
+  language="javascript"
+/>
+
+## User Experience Considerations
+
+### Unrestricted: Fluid & Anticipatory
+
+<CodePreview
+  code={`// User Experience Flow:
+
+// 1. User scrolls page
+//    → Particles begin to react as cursor approaches
+
+// 2. Cursor gets closer to canvas
+//    → Particles react more strongly
+
+// 3. Cursor directly over canvas
+//    → Full explosion effect
+
+// 4. Cursor moves away
+//    → Gradual decrease in effect
+
+// Result: Smooth, natural, fluid experience
+// Feels: Organic, responsive, immersive
+// Good for: Artistic sites, portfolios, hero sections`}
+  language="javascript"
+/>
+
+### Restricted: Explicit & Bounded
+
+<CodePreview
+  code={`// User Experience Flow:
+
+// 1. User scrolls page
+//    → No particle reaction
+
+// 2. Cursor enters canvas boundary
+//    → IMMEDIATE full effect
+
+// 3. Cursor inside canvas
+//    → Full explosion effect
+
+// 4. Cursor exits canvas boundary
+//    → IMMEDIATE return to rest
+
+// Result: Clear on/off behavior
+// Feels: Explicit, intentional, controlled
+// Good for: Galleries, grids, interactive elements`}
+  language="javascript"
+/>
+
+## Migration Between Modes
+
+### Switching from Unrestricted to Restricted
+
+<CodePreview
+  code={`// Before (unrestricted)
+const instance = initParticleJS('#canvas', {
+  text: 'TEXT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: false
+});
+
+// After (restricted)
+const instance = initParticleJS('#canvas', {
+  text: 'TEXT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true,  // Changed
+
+  // Consider adding visual boundary
+});
+
+// Add border to show interaction zone
+document.getElementById('canvas').style.border = '2px solid #695aa6';
+
+// Might want to increase explosion radius
+// Since particles only react inside, make the effect stronger
+explosionRadius: {
+  xs: 100,  // Larger than before
+  lg: 150
+}`}
+  language="javascript"
+/>
+
+### Switching from Restricted to Unrestricted
+
+<CodePreview
+  code={`// Before (restricted)
+const instance = initParticleJS('#canvas', {
+  text: 'TEXT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true
+});
+
+// After (unrestricted)
+const instance = initParticleJS('#canvas', {
+  text: 'TEXT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: false,  // Changed
+
+  // Might want to reduce explosion radius
+  // Since effect is always active, make it more subtle
+  explosionRadius: {
+    xs: 60,   // Smaller than before
+    lg: 100
+  },
+
+  // Consider gentler friction for smoother transitions
+  friction: { base: 0.92, rand: 0.03 }
+});
+
+// Remove border if present
+document.getElementById('canvas').style.border = 'none';`}
+  language="javascript"
+/>
+
+## Decision Flowchart
+
+<CodePreview
+  code={`// Choose the right mode with this decision tree:
+
+START → Do you have multiple canvases on the page?
+        ├─ YES → Use RESTRICTED (trackCursorOnlyInsideCanvas: true)
+        └─ NO → Continue...
+
+        Is your canvas near interactive elements (buttons, links)?
+        ├─ YES → Use RESTRICTED
+        └─ NO → Continue...
+
+        Do you want explicit, clear interaction boundaries?
+        ├─ YES → Use RESTRICTED
+        └─ NO → Continue...
+
+        Is smooth, fluid UX more important than performance?
+        ├─ YES → Use UNRESTRICTED (trackCursorOnlyInsideCanvas: false)
+        └─ NO → Use RESTRICTED
+
+// Summary:
+// - RESTRICTED: Multiple canvases, clear boundaries, performance
+// - UNRESTRICTED: Single canvas, smooth UX, immersive`}
+  language="javascript"
+/>
+
+## Testing Both Modes
+
+<CodePreview
+  code={`// Quick test to compare both modes
+function testBothModes() {
+  const config = {
+    text: 'TEST',
+    colors: ['#695aa6'],
+    explosionRadius: { xs: 100, lg: 150 }
+  };
+
+  // Test unrestricted
+  console.log('Testing UNRESTRICTED mode...');
+  const unrestricted = initParticleJS('#canvas1', {
+    ...config,
+    trackCursorOnlyInsideCanvas: false
+  });
+
+  // Test restricted
+  console.log('Testing RESTRICTED mode...');
+  const restricted = initParticleJS('#canvas2', {
+    ...config,
+    trackCursorOnlyInsideCanvas: true
+  });
+
+  // Move cursor around both canvases
+  // Observe differences in behavior
+}
+
+testBothModes();`}
+  language="javascript"
+/>
+
+## Related Documentation
+
+- [Restricted Tracking](/examples/cursor/restricted-tracking/) - Detailed restricted mode guide
+- [trackCursorOnlyInsideCanvas (API Reference)](/api-reference/configuration/#trackcursoronlyinsidecanvas) - Configuration option
+- [Explosion Radius](/examples/particles/explosion-radius/) - Control interaction distance
+- [Performance Optimization](/guides/performance-optimization/) - Optimize animation performance
+- [Multiple Canvases](/examples/advanced/multiple-canvases/) - Managing multiple instances

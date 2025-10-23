@@ -1,16 +1,12 @@
 ---
 title: Multiple Colors
-description: Create vibrant, rainbow-like effects with randomly distributed particle colors
+description: Create vibrant, rainbow-like effects with controlled or random color distribution
 ---
-
-<!-- TODO: Update this documentation to demonstrate the new color weight system -->
-<!-- New format: colors: [{ color: '#FF6B6B', weight: 3 }, { color: '#4ECDC4', weight: 1 }] -->
-<!-- Higher weights = more particles with that color for controlled distribution -->
 
 import CanvasExample from '../../../../components/CanvasExample.astro';
 import CodePreview from '../../../../components/CodePreview.astro';
 
-This example demonstrates the multi-color feature where each particle is randomly assigned one of the specified colors. This creates a vibrant, rainbow-like effect that makes the text more dynamic and eye-catching.
+This example demonstrates the multi-color feature where particles can be assigned colors with equal or weighted distribution. Create vibrant, rainbow-like effects or precisely control which colors appear more frequently.
 
 ## Live Demo
 
@@ -52,6 +48,79 @@ This example demonstrates the multi-color feature where each particle is randoml
 ## How It Works
 
 When multiple colors are provided, each particle is assigned a random color from the array during initialization. The color distribution is random, so you'll see a nice mix of all colors throughout the text. Each time the page loads, particles get randomly distributed colors from the palette.
+
+## Weighted Color Distribution
+
+Control exactly how colors are distributed by using weighted colors. This gives you precise control over color frequency.
+
+### Equal Distribution (Default)
+
+<CodePreview
+  code={`// All colors have equal probability
+colors: ['#FF6B6B', '#4ECDC4', '#45B7D1']`}
+  language="javascript"
+/>
+
+### Weighted Distribution
+
+<CodePreview
+  code={`// Red appears 80% of the time, others 10% each
+colors: [
+  { color: '#FF6B6B', weight: 8 },   // 8x more red
+  { color: '#4ECDC4', weight: 1 },   // baseline cyan
+  { color: '#45B7D1', weight: 1 }    // baseline blue
+]`}
+  language="javascript"
+/>
+
+<CanvasExample
+  title="Weighted Colors (Red Dominant)"
+  config={{
+    text: 'WEIGHTED',
+    colors: [
+      { color: '#FF6B6B', weight: 10 },
+      { color: '#4ECDC4', weight: 1 },
+      { color: '#45B7D1', weight: 1 },
+      { color: '#FFA07A', weight: 1 }
+    ],
+    fontSize: 100
+  }}
+  height={300}
+/>
+
+### Weight Rules
+
+- **Positive integers only**: 1, 2, 3, 10, 100, etc.
+- **No decimals**: ❌ `2.5`, `0.5`, `1.75`
+- **No zero or negatives**: ❌ `0`, `-1`
+- **Default weight**: If not specified, defaults to `1`
+- **Relative values**: A weight of 5 means 5x more than weight 1
+
+### Common Use Cases for Weights
+
+<CodePreview
+  code={`// Brand color with accent colors
+colors: [
+  { color: '#695aa6', weight: 10 },  // Primary brand color (dominant)
+  { color: '#8b7bb8', weight: 2 },   // Secondary accent
+  { color: '#ffffff', weight: 1 }    // Subtle highlight
+]
+
+// Gradient effect (emphasize middle)
+colors: [
+  { color: '#FF0000', weight: 1 },   // Less red
+  { color: '#FF8800', weight: 5 },   // More orange (middle tone)
+  { color: '#FFFF00', weight: 1 }    // Less yellow
+]
+
+// Seasonal theme (mostly green with red accents)
+colors: [
+  { color: '#228B22', weight: 12 },  // Forest green (dominant)
+  { color: '#DC143C', weight: 3 },   // Crimson red (accent)
+  { color: '#FFD700', weight: 1 }    // Gold (sparkle)
+]`}
+  language="javascript"
+/>
 
 ## Best Practices
 

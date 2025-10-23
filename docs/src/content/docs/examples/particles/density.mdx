@@ -1,6 +1,314 @@
 ---
-title: Density
-description: Controlling particle density in your text
+title: Particle Density
+description: Control visual density and detail through particle size configuration
 ---
 
-Documentation coming soon.
+import CanvasExample from '../../../../components/CanvasExample.astro';
+import CodePreview from '../../../../components/CodePreview.astro';
+
+Particle density determines how detailed or loose your text appears. By controlling the `particleRadius` configuration, you can create everything from ultra-dense, smooth text to artistic, loosely-spaced compositions.
+
+## Understanding Particle Density
+
+Particle density is controlled by the **size** of individual particles, not the number of particles. Smaller particles create denser text with more detail, while larger particles create a more spacious, artistic look.
+
+### The particleRadius Formula
+
+```
+Final Particle Radius = base + random(0, rand)
+```
+
+- **base**: Minimum radius in pixels
+- **rand**: Random variation added to each particle
+- A particle with `{ base: 2, rand: 1 }` will be between 2-3px
+
+## Live Demos
+
+### Dense Small Particles
+
+Fine detail with tiny 1-1.5px particles creates smooth, dense text.
+
+<CanvasExample
+  title="Dense Small Particles (1-1.5px)"
+  config={{
+    text: 'DENSE',
+    particleRadius: { xs: { base: 1, rand: 0.5 } },
+    colors: ['#4ECDC4', '#45B7D1'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'DENSE',
+  particleRadius: {
+    xs: { base: 1, rand: 0.5 }  // 1-1.5px particles
+  },
+  colors: ['#4ECDC4', '#45B7D1']
+});`}
+  language="javascript"
+/>
+
+### Medium Density
+
+Balanced 2-3px particles - the standard recommended size for most use cases.
+
+<CanvasExample
+  title="Medium Density (2-3px)"
+  config={{
+    text: 'MEDIUM',
+    particleRadius: { xs: { base: 2, rand: 1 } },
+    colors: ['#FF6B6B', '#FFA07A'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'MEDIUM',
+  particleRadius: {
+    xs: { base: 2, rand: 1 }  // 2-3px particles
+  },
+  colors: ['#FF6B6B', '#FFA07A']
+});`}
+  language="javascript"
+/>
+
+### Sparse Large Particles
+
+Large 4-7px particles create an artistic, looser composition.
+
+<CanvasExample
+  title="Sparse Large Particles (4-7px)"
+  config={{
+    text: 'SPARSE',
+    particleRadius: { xs: { base: 4, rand: 3 } },
+    colors: ['#9B59B6', '#8E44AD'],
+    fontSize: 80
+  }}
+  height={250}
+/>
+
+<CodePreview
+  code={`initParticleJS('#canvas', {
+  text: 'SPARSE',
+  particleRadius: {
+    xs: { base: 4, rand: 3 }  // 4-7px particles
+  },
+  colors: ['#9B59B6', '#8E44AD']
+});`}
+  language="javascript"
+/>
+
+## Responsive Particle Sizes
+
+You can define different particle sizes for different screen sizes using breakpoints.
+
+<CodePreview
+  code={`particleRadius: {
+  xxxs: { base: 1, rand: 0.5 },  // Mobile: 1-1.5px (dense)
+  xs: { base: 1, rand: 0.5 },    // Small mobile: 1-1.5px
+  sm: { base: 2, rand: 1 },      // Tablet: 2-3px (medium)
+  md: { base: 2, rand: 1 },      // Desktop: 2-3px
+  lg: { base: 3, rand: 1 },      // Large: 3-4px
+  xl: { base: 3, rand: 2 }       // Extra large: 3-5px
+}`}
+  language="javascript"
+/>
+
+**Tip:** Use smaller particles on mobile devices to maintain readability despite the smaller screen size.
+
+## Dynamic Particle Sizes (Function)
+
+For complete control, use a function to calculate particle radius dynamically.
+
+<CodePreview
+  code={`particleRadius: function() {
+  // Random sizes between 1-4px
+  return Math.random() * 3 + 1;
+}
+
+// Varied sizes for artistic effect
+particleRadius: function() {
+  const sizes = [1, 2, 2, 3, 4, 5];
+  return sizes[Math.floor(Math.random() * sizes.length)];
+}
+
+// Size based on screen width
+particleRadius: function() {
+  const screenWidth = window.innerWidth;
+  if (screenWidth < 768) {
+    return Math.random() * 1 + 1;  // 1-2px on mobile
+  } else {
+    return Math.random() * 2 + 2;  // 2-4px on desktop
+  }
+}`}
+  language="javascript"
+/>
+
+## Choosing the Right Density
+
+| Particle Size | Range | Best For | Performance |
+|--------------|-------|----------|-------------|
+| **Dense** | 1-2px | Professional sites, fine detail, small text, crisp appearance | Excellent |
+| **Medium** | 2-4px | Most use cases, balanced look, standard text | Good |
+| **Sparse** | 4-7px | Artistic projects, large displays, creative portfolios | Excellent |
+| **Very Sparse** | 7-10px | Abstract art, decorative headers, unique effects | Excellent |
+
+## Visual Density Guide
+
+### When to Use Dense Particles (1-2px)
+
+- Corporate/professional websites
+- Small to medium text sizes
+- When detail is important
+- Reading-heavy content
+- Minimalist designs
+
+### When to Use Medium Particles (2-4px)
+
+- General purpose applications
+- Hero sections
+- Landing pages
+- Marketing sites
+- Balanced visual appeal
+
+### When to Use Sparse Particles (4-7px)
+
+- Creative portfolios
+- Artistic projects
+- Large display text (>150px)
+- Bold, impactful headers
+- Abstract/decorative effects
+
+## Performance Considerations
+
+**Larger particles = Better performance**, but the difference is minimal in most cases.
+
+<CodePreview
+  code={`// High performance (larger particles)
+particleRadius: { xs: { base: 4, rand: 2 } }
+
+// Lower performance (smaller, more particles visible)
+particleRadius: { xs: { base: 1, rand: 0.5 } }
+
+// Tip: Combine with maxParticles for best results
+maxParticles: 3000,  // Limit total particles
+particleRadius: { xs: { base: 1, rand: 1 } }`}
+  language="javascript"
+/>
+
+## Randomness and Variation
+
+The `rand` parameter adds visual interest by creating size variation.
+
+<CodePreview
+  code={`// No variation (uniform size)
+particleRadius: { xs: { base: 2, rand: 0 } }
+// All particles are exactly 2px
+
+// Small variation (subtle)
+particleRadius: { xs: { base: 2, rand: 1 } }
+// Particles range from 2-3px
+
+// Large variation (dynamic)
+particleRadius: { xs: { base: 2, rand: 4 } }
+// Particles range from 2-6px (creates depth)`}
+  language="javascript"
+/>
+
+**Recommended:** Use `rand` values between 0.5-2 for natural-looking variation.
+
+## Common Patterns
+
+### Professional/Corporate
+
+<CodePreview
+  code={`{
+  particleRadius: { xs: { base: 1, rand: 1 } },
+  colors: ['#2C3E50', '#34495E']
+}`}
+  language="javascript"
+/>
+
+### Creative/Artistic
+
+<CodePreview
+  code={`{
+  particleRadius: { xs: { base: 3, rand: 3 } },
+  colors: [
+    { color: '#E74C3C', weight: 5 },
+    { color: '#F39C12', weight: 2 },
+    { color: '#9B59B6', weight: 1 }
+  ]
+}`}
+  language="javascript"
+/>
+
+### High Performance
+
+<CodePreview
+  code={`{
+  particleRadius: { xs: { base: 3, rand: 2 } },
+  maxParticles: 2000,
+  supportSlowBrowsers: true
+}`}
+  language="javascript"
+/>
+
+## Best Practices
+
+1. **Start with defaults**: Use `{ base: 2, rand: 1 }` as your starting point
+2. **Test responsively**: Different screen sizes may need different densities
+3. **Match text size**: Larger text can handle larger particles
+4. **Consider background**: Dark backgrounds work better with slightly larger particles
+5. **Performance first**: If targeting older devices, use larger particles
+6. **Consistency**: Keep particle sizes consistent across your site
+
+## Advanced Techniques
+
+### Gradient Density Effect
+
+Create visual interest by having particles grow from the center outward (requires custom implementation).
+
+### Mixed Sizes for Depth
+
+Use the function approach to create depth perception:
+
+<CodePreview
+  code={`particleRadius: function() {
+  // 70% small particles, 30% large (creates depth)
+  return Math.random() < 0.7 ?
+    Math.random() * 1 + 1 :  // 1-2px (small)
+    Math.random() * 3 + 3;   // 3-6px (large)
+}`}
+  language="javascript"
+/>
+
+## Troubleshooting
+
+**Text looks too sparse?**
+- Decrease `base` and `rand` values
+- Example: `{ base: 1, rand: 0.5 }`
+
+**Text looks too dense/solid?**
+- Increase `base` value
+- Example: `{ base: 3, rand: 2 }`
+
+**Inconsistent density across screen sizes?**
+- Set explicit breakpoint values
+- Test on multiple devices
+
+**Performance issues?**
+- Increase particle size
+- Set `maxParticles` limit
+- Enable `supportSlowBrowsers`
+
+## Related Examples
+
+- [Particle Radius (API Reference)](/api-reference/configuration/#particleradius) - Full configuration options
+- [Explosion Radius](/examples/particles/explosion-radius/) - Control interaction distance
+- [Friction Effects](/examples/particles/friction/) - Particle movement behavior
+- [Performance Optimization](/guides/performance-optimization/) - Optimize for speed

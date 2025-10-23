@@ -1,6 +1,931 @@
 ---
 title: Performance Optimization
-description: Tips and techniques for optimizing performance
+description: Comprehensive guide to optimizing ParticleText.js performance
 ---
 
-Documentation coming soon.
+import CodePreview from '../../../components/CodePreview.astro';
+
+ParticleText.js is designed to be performant out of the box, but there are numerous techniques to optimize performance for your specific use case. This guide covers all optimization strategies from basic to advanced.
+
+## Performance Overview
+
+ParticleText.js performance is primarily determined by:
+
+1. **Particle Count** - Number of particles being animated
+2. **Particle Size** - Radius affects rendering cost
+3. **Canvas Resolution** - Larger canvas = more pixels to process
+4. **Physics Complexity** - Explosion calculations per frame
+5. **Browser/Device Capabilities** - CPU, GPU, display refresh rate
+
+### Performance Targets
+
+<CodePreview
+  code={`// Target Performance by Device Type:
+
+// Desktop (Modern)
+// - 60 FPS (16.67ms per frame)
+// - 3000-5000 particles
+// - Full resolution canvas
+
+// Desktop (Older)
+// - 30-60 FPS (16-33ms per frame)
+// - 2000-3000 particles
+// - Full or scaled resolution
+
+// Mobile (Modern)
+// - 30-60 FPS
+// - 1500-2500 particles
+// - May need scaled resolution
+
+// Mobile (Older)
+// - 20-30 FPS (33-50ms per frame)
+// - 500-1500 particles
+// - Scaled resolution recommended`}
+  language="javascript"
+/>
+
+## Quick Wins
+
+### 1. Limit Particle Count
+
+The single most effective optimization:
+
+<CodePreview
+  code={`// Default (high quality, may be slow on older devices)
+const instance = initParticleJS('#canvas', {
+  text: 'DEFAULT',
+  colors: ['#695aa6']
+  // maxParticles: 5000 (default)
+});
+
+// Optimized (good balance)
+const instance = initParticleJS('#canvas', {
+  text: 'OPTIMIZED',
+  colors: ['#695aa6'],
+  maxParticles: 2000  // 60% fewer particles, much faster
+});
+
+// Mobile-optimized
+const instance = initParticleJS('#canvas', {
+  text: 'MOBILE',
+  colors: ['#695aa6'],
+  maxParticles: 1000  // Fast on all devices
+});`}
+  language="javascript"
+/>
+
+**Impact:** Reducing particles from 5000 → 2000 can improve performance by 2-3x.
+
+### 2. Increase Particle Size
+
+Fewer, larger particles = better performance:
+
+<CodePreview
+  code={`// Many small particles (slower)
+const instance = initParticleJS('#canvas', {
+  text: 'DENSE',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 1, rand: 0.5 }  // 1-1.5px particles, many needed
+  }
+});
+
+// Fewer large particles (faster)
+const instance = initParticleJS('#canvas', {
+  text: 'SPARSE',
+  colors: ['#695aa6'],
+  particleRadius: {
+    xs: { base: 3, rand: 1.5 }  // 3-4.5px particles, fewer needed
+  },
+  maxParticles: 2000  // Combined with particle limit
+});`}
+  language="javascript"
+/>
+
+**Impact:** Larger particles allow you to reduce `maxParticles` while maintaining visual quality.
+
+### 3. Use Restricted Cursor Tracking
+
+Reduce calculations when cursor is outside canvas:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'EFFICIENT',
+  colors: ['#695aa6'],
+  trackCursorOnlyInsideCanvas: true  // Only calculate when cursor inside
+});
+
+// Performance benefit:
+// - No explosion calculations when cursor outside
+// - Particles at rest use less CPU
+// - Especially helpful for multiple canvases`}
+  language="javascript"
+/>
+
+**Impact:** Can reduce CPU usage by 30-50% when cursor is outside canvas.
+
+### 4. Enable Slow Browser Detection
+
+Automatically optimize for slow devices:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'AUTO OPTIMIZE',
+  colors: ['#695aa6'],
+
+  // Automatic optimization (default: 15ms threshold)
+  renderTimeThreshold: 15,
+
+  slowBrowserDetected: function() {
+    console.log('Performance optimizations applied');
+    // Automatically reduces:
+    // - Canvas resolution (1/3 scale)
+    // - Particle size (1-2px)
+    // - Physics complexity (8x faster convergence)
+  }
+});`}
+  language="javascript"
+/>
+
+**Impact:** 2-3x performance improvement on slow devices when triggered.
+
+### 5. Reduce Explosion Radius
+
+Smaller radius = fewer particles affected:
+
+<CodePreview
+  code={`// Large radius (more particles affected, slower)
+const instance = initParticleJS('#canvas', {
+  text: 'LARGE',
+  colors: ['#695aa6'],
+  explosionRadius: {
+    xs: 150,
+    lg: 250  // Many particles affected
+  }
+});
+
+// Smaller radius (fewer particles affected, faster)
+const instance = initParticleJS('#canvas', {
+  text: 'SMALL',
+  colors: ['#695aa6'],
+  explosionRadius: {
+    xs: 60,
+    lg: 100  // Only nearby particles affected
+  }
+});`}
+  language="javascript"
+/>
+
+**Impact:** Smaller explosion radius reduces distance calculations per frame.
+
+## Device-Specific Optimization
+
+### Adaptive Configuration
+
+Detect device and optimize accordingly:
+
+<CodePreview
+  code={`function getOptimizedConfig() {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isLowEnd = /iPhone [1-7]|Android [1-5]/i.test(navigator.userAgent);
+  const width = window.innerWidth;
+
+  if (isLowEnd) {
+    return {
+      maxParticles: 800,
+      renderTimeThreshold: 10,  // Aggressive optimization
+      particleRadius: { xs: { base: 3, rand: 1 } },  // Larger particles
+      explosionRadius: { xs: 50, lg: 80 }
+    };
+  }
+
+  if (isMobile) {
+    return {
+      maxParticles: 1500,
+      renderTimeThreshold: 12,
+      particleRadius: { xs: { base: 2.5, rand: 1 } },
+      explosionRadius: { xs: 70, lg: 100 }
+    };
+  }
+
+  if (width < 1440) {
+    return {
+      maxParticles: 2500,
+      renderTimeThreshold: 15,
+      particleRadius: { xs: { base: 2, rand: 1 } },
+      explosionRadius: { xs: 80, lg: 120 }
+    };
+  }
+
+  // High-end desktop
+  return {
+    maxParticles: 5000,
+    renderTimeThreshold: 20,
+    particleRadius: { xs: { base: 2, rand: 1 } },
+    explosionRadius: { xs: 100, lg: 150 }
+  };
+}
+
+const config = getOptimizedConfig();
+
+const instance = initParticleJS('#canvas', {
+  text: 'ADAPTIVE',
+  colors: ['#695aa6'],
+  ...config
+});`}
+  language="javascript"
+/>
+
+### Mobile-Specific Optimizations
+
+<CodePreview
+  code={`const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+const instance = initParticleJS('#canvas', {
+  text: 'MOBILE OPTIMIZED',
+  colors: ['#695aa6'],
+
+  // Reduce particle count on mobile
+  maxParticles: isMobile ? 1500 : 3500,
+
+  // Larger particles on mobile (easier to see, fewer needed)
+  particleRadius: isMobile
+    ? { xs: { base: 3, rand: 1.5 } }
+    : { xs: { base: 2, rand: 1 } },
+
+  // Smaller explosion radius on mobile (touch is less precise)
+  explosionRadius: isMobile
+    ? { xs: 60, lg: 90 }
+    : { xs: 100, lg: 150 },
+
+  // More aggressive optimization threshold
+  renderTimeThreshold: isMobile ? 12 : 15,
+
+  // Higher friction on mobile (faster convergence)
+  friction: isMobile
+    ? { base: 0.88, rand: 0.04 }
+    : { base: 0.9, rand: 0.05 }
+});`}
+  language="javascript"
+/>
+
+## Canvas Size Optimization
+
+### Reduce Canvas Resolution
+
+<CodePreview
+  code={`// Instead of full resolution
+const canvas = document.getElementById('canvas');
+canvas.width = 1800;   // Full HD width
+canvas.height = 600;
+
+// Use smaller canvas
+canvas.width = 1200;   // 33% fewer pixels
+canvas.height = 400;
+
+// Or adapt to viewport
+canvas.width = Math.min(window.innerWidth * 0.9, 1400);
+canvas.height = Math.min(window.innerHeight * 0.3, 400);
+
+const instance = initParticleJS('#canvas', {
+  text: 'OPTIMIZED SIZE',
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+### Responsive Canvas Sizing
+
+<CodePreview
+  code={`function getOptimalCanvasSize() {
+  const width = window.innerWidth;
+
+  if (width < 768) {
+    return { width: width * 0.95, height: 200 };  // Mobile
+  }
+
+  if (width < 1440) {
+    return { width: width * 0.9, height: 300 };   // Tablet/small desktop
+  }
+
+  return { width: Math.min(width * 0.8, 1600), height: 400 };  // Desktop
+}
+
+const { width, height } = getOptimalCanvasSize();
+
+const canvas = document.getElementById('canvas');
+canvas.width = width;
+canvas.height = height;
+
+const instance = initParticleJS('#canvas', {
+  text: 'RESPONSIVE',
+  colors: ['#695aa6']
+});`}
+  language="javascript"
+/>
+
+## Particle Configuration
+
+### Optimal Particle Count by Use Case
+
+<CodePreview
+  code={`// Subtle background effect
+const bg = initParticleJS('#bg-canvas', {
+  text: 'BG',
+  colors: ['#E0E0E0'],
+  maxParticles: 800,  // Low count, subtle
+  particleRadius: { xs: { base: 2, rand: 1 } }
+});
+
+// Standard hero section
+const hero = initParticleJS('#hero-canvas', {
+  text: 'HERO',
+  colors: ['#695aa6'],
+  maxParticles: 2500,  // Balanced
+  particleRadius: { xs: { base: 2.5, rand: 1 } }
+});
+
+// High-detail showcase
+const showcase = initParticleJS('#showcase-canvas', {
+  text: 'SHOWCASE',
+  colors: ['#FF6B6B'],
+  maxParticles: 4500,  // High detail
+  particleRadius: { xs: { base: 2, rand: 1 } }
+});
+
+// Mobile app
+const mobile = initParticleJS('#mobile-canvas', {
+  text: 'APP',
+  colors: ['#4ECDC4'],
+  maxParticles: 1000,  // Mobile-optimized
+  particleRadius: { xs: { base: 3, rand: 1.5 } }
+});`}
+  language="javascript"
+/>
+
+### Particle Density vs Count Trade-off
+
+<CodePreview
+  code={`// Approach 1: Many small particles (slower, more detailed)
+const detailed = initParticleJS('#canvas1', {
+  text: 'DETAILED',
+  colors: ['#695aa6'],
+  maxParticles: 5000,
+  particleRadius: { xs: { base: 1.5, rand: 0.5 } }  // 1.5-2px
+});
+
+// Approach 2: Fewer large particles (faster, still good quality)
+const optimized = initParticleJS('#canvas2', {
+  text: 'OPTIMIZED',
+  colors: ['#695aa6'],
+  maxParticles: 2000,
+  particleRadius: { xs: { base: 3, rand: 1 } }  // 3-4px
+});
+
+// Visual quality: Similar
+// Performance: Optimized is 2-3x faster`}
+  language="javascript"
+/>
+
+## Physics Optimization
+
+### Friction Settings
+
+Higher friction = faster convergence = less computation:
+
+<CodePreview
+  code={`// Low friction (slower convergence, more bouncy)
+const bouncy = initParticleJS('#canvas', {
+  text: 'BOUNCY',
+  colors: ['#695aa6'],
+  friction: { base: 0.85, rand: 0.05 }  // 0.80-0.90, slow to settle
+});
+
+// Medium friction (balanced)
+const balanced = initParticleJS('#canvas', {
+  text: 'BALANCED',
+  colors: ['#695aa6'],
+  friction: { base: 0.9, rand: 0.05 }  // 0.85-0.95 (default)
+});
+
+// High friction (fast convergence, performance-optimized)
+const fast = initParticleJS('#canvas', {
+  text: 'FAST',
+  colors: ['#695aa6'],
+  friction: { base: 0.94, rand: 0.03 }  // 0.91-0.97, settles quickly
+});
+
+// Performance tip: Higher friction means particles return to rest faster,
+// reducing overall physics calculations`}
+  language="javascript"
+/>
+
+## Animation Control
+
+### Pause When Not Visible
+
+Use Page Visibility API to pause animation when tab is hidden:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'EFFICIENT',
+  colors: ['#695aa6']
+});
+
+// Pause when tab is hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    instance.destroy();  // Stop animation
+    console.log('Animation paused');
+  } else {
+    instance.startAnimation();  // Resume animation
+    console.log('Animation resumed');
+  }
+});
+
+// Performance benefit:
+// - Zero CPU usage when tab is hidden
+// - Extends battery life on mobile
+// - Reduces heat generation`}
+  language="javascript"
+/>
+
+### Lazy Loading with Intersection Observer
+
+Only start animation when canvas is visible:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'LAZY',
+  colors: ['#695aa6'],
+  autoAnimate: false  // Don't start automatically
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      // Canvas is visible, start animation
+      instance.startAnimation();
+      console.log('Animation started (visible)');
+    } else {
+      // Canvas not visible, stop animation
+      instance.destroy();
+      console.log('Animation stopped (not visible)');
+    }
+  });
+}, {
+  threshold: 0.1  // Start when 10% visible
+});
+
+const canvas = document.getElementById('canvas');
+observer.observe(canvas);
+
+// Performance benefit:
+// - No animation when scrolled out of view
+// - Especially helpful for long pages with multiple canvases`}
+  language="javascript"
+/>
+
+### Throttle Animation Frame Rate
+
+Custom animation loop for lower frame rates:
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'THROTTLED',
+  colors: ['#695aa6'],
+  autoAnimate: false  // We'll control the loop
+});
+
+const targetFPS = 30;  // Half of 60 FPS
+const frameInterval = 1000 / targetFPS;
+let lastFrameTime = 0;
+
+function throttledLoop(currentTime) {
+  const elapsed = currentTime - lastFrameTime;
+
+  if (elapsed >= frameInterval) {
+    // Render frame
+    instance.forceRequestAnimationFrame();
+    lastFrameTime = currentTime - (elapsed % frameInterval);
+  }
+
+  requestAnimationFrame(throttledLoop);
+}
+
+requestAnimationFrame(throttledLoop);
+
+// Performance benefit:
+// - 30 FPS uses 50% less CPU than 60 FPS
+// - Still smooth enough for most use cases
+// - Great for battery-powered devices`}
+  language="javascript"
+/>
+
+## Multiple Canvas Optimization
+
+### Stagger Initialization
+
+Don't initialize all canvases at once:
+
+<CodePreview
+  code={`const canvases = document.querySelectorAll('.particle-canvas');
+
+// ❌ Bad: Initialize all at once (CPU spike)
+canvases.forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6']
+  });
+});
+
+// ✅ Good: Stagger initialization
+canvases.forEach((canvas, index) => {
+  setTimeout(() => {
+    initParticleJS(canvas, {
+      text: canvas.dataset.text,
+      colors: ['#695aa6'],
+      maxParticles: 1500  // Lower count for multiple canvases
+    });
+  }, index * 200);  // 200ms delay between each
+});`}
+  language="javascript"
+/>
+
+### Reduce Per-Canvas Particle Count
+
+<CodePreview
+  code={`const canvasCount = document.querySelectorAll('.particle-canvas').length;
+const particlesPerCanvas = Math.floor(5000 / canvasCount);  // Distribute budget
+
+document.querySelectorAll('.particle-canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    maxParticles: particlesPerCanvas  // Share particle budget
+  });
+});
+
+// Example:
+// 1 canvas: 5000 particles each
+// 2 canvases: 2500 particles each
+// 4 canvases: 1250 particles each`}
+  language="javascript"
+/>
+
+### Use Restricted Tracking for Multiple Canvases
+
+<CodePreview
+  code={`document.querySelectorAll('.particle-canvas').forEach(canvas => {
+  initParticleJS(canvas, {
+    text: canvas.dataset.text,
+    colors: ['#695aa6'],
+    trackCursorOnlyInsideCanvas: true,  // Only active canvas calculates
+    maxParticles: 2000
+  });
+});
+
+// Performance benefit:
+// - Only one canvas doing explosion calculations at a time
+// - Others are at rest (minimal CPU)
+// - Scales well with many canvases`}
+  language="javascript"
+/>
+
+## Color Optimization
+
+### Reduce Color Variety
+
+Fewer colors = simpler rendering:
+
+<CodePreview
+  code={`// Many colors (slightly slower)
+const colorful = initParticleJS('#canvas', {
+  text: 'COLORFUL',
+  colors: [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+  ]  // 8 colors
+});
+
+// Fewer colors (slightly faster)
+const simple = initParticleJS('#canvas', {
+  text: 'SIMPLE',
+  colors: ['#695aa6', '#4ECDC4']  // 2 colors
+});
+
+// Single color (fastest)
+const mono = initParticleJS('#canvas', {
+  text: 'MONO',
+  colors: ['#695aa6']  // 1 color
+});
+
+// Impact is minor, but measurable with many particles`}
+  language="javascript"
+/>
+
+### Use Weighted Colors Efficiently
+
+<CodePreview
+  code={`// Dominant color optimization
+const instance = initParticleJS('#canvas', {
+  text: 'WEIGHTED',
+  colors: [
+    { color: '#695aa6', weight: 10 },  // 90% of particles
+    { color: '#4ECDC4', weight: 1 }    // 10% of particles
+  ]
+});
+
+// Most particles are the same color
+// Browser can optimize rendering of similar elements`}
+  language="javascript"
+/>
+
+## Memory Management
+
+### Clean Up Unused Instances
+
+<CodePreview
+  code={`// Store instances in a Map for easy cleanup
+const instances = new Map();
+
+function createParticleText(selector, config) {
+  const instance = initParticleJS(selector, config);
+  instances.set(selector, instance);
+  return instance;
+}
+
+function destroyParticleText(selector) {
+  const instance = instances.get(selector);
+  if (instance) {
+    instance.destroy();  // Stop animation, remove listeners
+    instances.delete(selector);
+  }
+}
+
+// Clean up when navigating away
+window.addEventListener('beforeunload', () => {
+  instances.forEach(instance => {
+    instance.destroy();
+  });
+  instances.clear();
+});`}
+  language="javascript"
+/>
+
+### Avoid Memory Leaks
+
+<CodePreview
+  code={`// ❌ Bad: Recreating without cleanup
+function badReinit() {
+  // Old instance still running in background!
+  initParticleJS('#canvas', {
+    text: 'LEAK',
+    colors: ['#695aa6']
+  });
+}
+
+// ✅ Good: Clean up first
+let currentInstance = null;
+
+function goodReinit() {
+  // Destroy old instance
+  if (currentInstance) {
+    currentInstance.destroy();
+  }
+
+  // Create new instance
+  currentInstance = initParticleJS('#canvas', {
+    text: 'CLEAN',
+    colors: ['#695aa6']
+  });
+}
+
+// ✅ Good: Framework integration
+// React
+useEffect(() => {
+  const instance = initParticleJS('#canvas', config);
+  return () => instance.destroy();  // Cleanup on unmount
+}, []);
+
+// Vue
+beforeUnmount() {
+  this.instance.destroy();
+}`}
+  language="javascript"
+/>
+
+## Performance Monitoring
+
+### Measure Frame Rate
+
+<CodePreview
+  code={`let frameCount = 0;
+let lastTime = performance.now();
+let fps = 60;
+
+function measureFPS() {
+  frameCount++;
+
+  const currentTime = performance.now();
+  const elapsed = currentTime - lastTime;
+
+  if (elapsed >= 1000) {  // Every second
+    fps = Math.round((frameCount * 1000) / elapsed);
+    console.log(\`FPS: \${fps}\`);
+
+    frameCount = 0;
+    lastTime = currentTime;
+  }
+
+  requestAnimationFrame(measureFPS);
+}
+
+measureFPS();
+
+// Targets:
+// 60 FPS: Excellent
+// 30-60 FPS: Good
+// < 30 FPS: Needs optimization`}
+  language="javascript"
+/>
+
+### Performance Profiling
+
+<CodePreview
+  code={`const instance = initParticleJS('#canvas', {
+  text: 'PROFILE',
+  colors: ['#695aa6']
+});
+
+// Track slow browser detection
+let slowBrowserDetected = false;
+
+const instance2 = initParticleJS('#canvas2', {
+  text: 'MONITORED',
+  colors: ['#695aa6'],
+  slowBrowserDetected: function() {
+    slowBrowserDetected = true;
+    console.warn('Slow device detected - optimizations applied');
+  }
+});
+
+// Monitor particle count
+console.log('Particle count:', instance.particleList.length);
+
+// Monitor animation state
+setInterval(() => {
+  console.log({
+    isAnimating: instance.isAnimating,
+    particleCount: instance.particleList.length,
+    slowMode: slowBrowserDetected
+  });
+}, 5000);`}
+  language="javascript"
+/>
+
+## Advanced Optimizations
+
+### Reduce Motion for Accessibility
+
+<CodePreview
+  code={`const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if (prefersReducedMotion) {
+  // Don't initialize animation
+  console.log('User prefers reduced motion - showing static text');
+
+  // Show static alternative
+  document.getElementById('canvas').style.display = 'none';
+  document.getElementById('static-text').style.display = 'block';
+} else {
+  const instance = initParticleJS('#canvas', {
+    text: 'ANIMATED',
+    colors: ['#695aa6']
+  });
+}
+
+// Respects user preferences and saves battery`}
+  language="javascript"
+/>
+
+### Connection-Aware Loading
+
+<CodePreview
+  code={`const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+const saveData = connection?.saveData || false;
+const effectiveType = connection?.effectiveType || '4g';
+
+let maxParticles = 3000;  // Default
+
+if (saveData) {
+  maxParticles = 800;  // User wants to save data
+  console.log('Save Data enabled - reduced particles');
+} else if (effectiveType === 'slow-2g' || effectiveType === '2g') {
+  maxParticles = 1000;
+  console.log('Slow connection - reduced particles');
+} else if (effectiveType === '3g') {
+  maxParticles = 1500;
+}
+
+const instance = initParticleJS('#canvas', {
+  text: 'ADAPTIVE',
+  colors: ['#695aa6'],
+  maxParticles: maxParticles
+});`}
+  language="javascript"
+/>
+
+### Battery-Aware Optimization
+
+<CodePreview
+  code={`if ('getBattery' in navigator) {
+  navigator.getBattery().then(battery => {
+    function updatePerformanceMode() {
+      const isLowBattery = battery.level < 0.2;
+      const isCharging = battery.charging;
+
+      if (isLowBattery && !isCharging) {
+        // Low battery, not charging: aggressive optimization
+        instance.destroy();  // Stop animation
+        console.log('Low battery - animation paused');
+      } else {
+        // Battery OK or charging: normal operation
+        if (!instance.isAnimating) {
+          instance.startAnimation();
+          console.log('Battery OK - animation resumed');
+        }
+      }
+    }
+
+    battery.addEventListener('levelchange', updatePerformanceMode);
+    battery.addEventListener('chargingchange', updatePerformanceMode);
+
+    updatePerformanceMode();
+  });
+}`}
+  language="javascript"
+/>
+
+## Performance Checklist
+
+<CodePreview
+  code={`// Performance Optimization Checklist
+
+✅ Set maxParticles appropriately (1000-3000 for most cases)
+✅ Use larger particles when possible (base: 2.5-4px)
+✅ Enable trackCursorOnlyInsideCanvas for multiple canvases
+✅ Set appropriate renderTimeThreshold (12-15ms)
+✅ Use higher friction for faster convergence (0.92-0.95)
+✅ Reduce explosion radius on mobile (60-100px)
+✅ Pause animation when tab is hidden
+✅ Use Intersection Observer for lazy loading
+✅ Clean up instances on unmount/navigation
+✅ Consider device capabilities in configuration
+✅ Respect prefers-reduced-motion
+✅ Monitor FPS in development
+✅ Test on real devices, not just emulators
+✅ Profile with Chrome DevTools Performance tab
+✅ Check memory usage over time (no leaks)`}
+  language="javascript"
+/>
+
+## Troubleshooting Performance Issues
+
+**Low FPS (&lt;30)?**
+1. Reduce `maxParticles` (try 1500, then 1000)
+2. Increase `particleRadius` (try base: 3-4px)
+3. Reduce `explosionRadius` (try 60-80px)
+4. Lower `renderTimeThreshold` (try 10-12ms)
+5. Enable `trackCursorOnlyInsideCanvas: true`
+6. Check for multiple instances
+7. Profile with browser DevTools
+
+**Animation stuttering?**
+1. Check `renderTimeThreshold` - may be triggering slow mode
+2. Reduce particle count
+3. Check for heavy JavaScript on page
+4. Test with `autoAnimate: false` and manual loop
+5. Monitor CPU usage
+
+**Memory increasing over time?**
+1. Check for proper `destroy()` calls
+2. Verify no duplicate initializations
+3. Clean up event listeners
+4. Use browser Memory Profiler
+5. Check for circular references
+
+**Different performance on mobile vs desktop?**
+1. Use device-specific configuration
+2. Test on actual devices
+3. Check particle count limits
+4. Verify touch event handlers
+5. Monitor frame time on mobile
+
+## Related Documentation
+
+- [Slow Browser Detection](/examples/advanced/slow-browser/) - Automatic optimization
+- [Max Particles](/examples/performance/max-particles/) - Particle count limits
+- [Manual Control](/examples/advanced/manual-control/) - Animation lifecycle
+- [Restricted Tracking](/examples/cursor/restricted-tracking/) - Reduce calculations
+- [Particle Density](/examples/particles/density/) - Particle size optimization
