@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Color - ParticleText.js Examples</title>
+  <title>Multi-Color & Weighted Colors - ParticleText.js Examples</title>
   <!-- ParticleText.js v0.1.0 Example -->
   <!-- Last Updated: 2025-10-22 -->
   <style>
@@ -154,20 +154,25 @@
 </head>
 <body>
   <div class="container">
-    <h1>🌈 Multiple Colors</h1>
+    <h1>🌈 Multiple Colors & Weighted Distribution</h1>
     <p class="description">
-      This example demonstrates the multi-color feature where each particle is randomly assigned
-      one of the specified colors. This creates a vibrant, rainbow-like effect that makes the
-      text more dynamic and eye-catching. Each time the page loads, particles get randomly
-      distributed colors from the palette.
+      This example demonstrates both equal and weighted color distribution. The first canvas shows
+      equal distribution where all colors have the same probability. The second canvas uses weighted
+      colors to create a dominant red theme with accent colors.
     </p>
 
+    <h2 style="color: #333; font-size: 20px; margin: 30px 0 15px 0;">Equal Distribution</h2>
     <div class="canvas-wrapper">
-      <canvas id="canvas" width="1800" height="400" data-text="RAINBOW TEXT"></canvas>
+      <canvas id="canvas1" width="1800" height="350" data-text="RAINBOW TEXT"></canvas>
+    </div>
+
+    <h2 style="color: #333; font-size: 20px; margin: 30px 0 15px 0;">Weighted Distribution (Red Dominant)</h2>
+    <div class="canvas-wrapper">
+      <canvas id="canvas2" width="1800" height="350" data-text="WEIGHTED TEXT"></canvas>
     </div>
 
     <div class="info">
-      <h3>Color Palette (5 Colors):</h3>
+      <h3>Color Palette:</h3>
       <div class="color-palette">
         <div class="color-item">
           <span class="color-swatch" style="background: #FF6B6B;"></span>
@@ -198,8 +203,8 @@
     </div>
 
     <div class="info" style="margin-top: 20px;">
-      <h3>Configuration:</h3>
-      <div class="code-block"><span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas'</span>, {
+      <h3>Configuration - Equal Distribution:</h3>
+      <div class="code-block"><span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas1'</span>, {
   text: <span class="code-string">'RAINBOW TEXT'</span>,
   colors: [
     <span class="code-string">'#FF6B6B'</span>,  <span class="code-comment">// Coral Red</span>
@@ -208,21 +213,43 @@
     <span class="code-string">'#FFA07A'</span>,  <span class="code-comment">// Light Salmon</span>
     <span class="code-string">'#98D8C8'</span>   <span class="code-comment">// Mint Green</span>
   ],
-  fontSize: 100
+  fontSize: 90
+});</div>
+    </div>
+
+    <div class="info" style="margin-top: 20px;">
+      <h3>Configuration - Weighted Distribution:</h3>
+      <div class="code-block"><span class="code-function">initParticleJS</span>(<span class="code-string">'#canvas2'</span>, {
+  text: <span class="code-string">'WEIGHTED TEXT'</span>,
+  colors: [
+    { color: <span class="code-string">'#FF6B6B'</span>, weight: 10 },  <span class="code-comment">// 10x more red (dominant)</span>
+    { color: <span class="code-string">'#4ECDC4'</span>, weight: 2 },   <span class="code-comment">// 2x turquoise (accent)</span>
+    { color: <span class="code-string">'#45B7D1'</span>, weight: 1 },   <span class="code-comment">// 1x blue (subtle)</span>
+    { color: <span class="code-string">'#FFA07A'</span>, weight: 1 },   <span class="code-comment">// 1x salmon (subtle)</span>
+    { color: <span class="code-string">'#98D8C8'</span>, weight: 1 }    <span class="code-comment">// 1x mint (subtle)</span>
+  ],
+  fontSize: 90
 });</div>
     </div>
 
     <div class="info" style="margin-top: 20px; background: #fff3cd; border-left-color: #ffc107;">
       <h3>💡 How It Works:</h3>
       <p style="color: #555; line-height: 1.6; margin-bottom: 10px;">
-        When multiple colors are provided, each particle is assigned a random color from the array
-        during initialization. The color distribution is random, so you'll see a nice mix of all
-        colors throughout the text.
+        <strong>Equal Distribution:</strong> When colors are provided as strings, each particle has an
+        equal chance of getting any color from the array.
+      </p>
+      <p style="color: #555; line-height: 1.6; margin-bottom: 10px;">
+        <strong>Weighted Distribution:</strong> When colors are provided as objects with weights, you control
+        the frequency. A weight of 10 means 10x more particles with that color compared to weight 1.
       </p>
       <p style="color: #555; line-height: 1.6;">
-        <strong>Tip:</strong> Use 3-5 colors for best visual effect. Too many colors can look chaotic,
-        while too few might not create enough variety. Choose colors that complement each other
-        for a professional appearance.
+        <strong>Weight Rules:</strong> Weights must be positive integers (1, 2, 3, etc.). No decimals,
+        zero, or negative values. Invalid weights will show a browser alert.
+      </p>
+      <p style="color: #555; line-height: 1.6; margin-top: 10px;">
+        <strong>Tip:</strong> Use weighted colors to emphasize brand colors while keeping accent colors
+        for visual interest. Weights are relative - weight 10 vs weight 5 gives the same ratio as
+        weight 2 vs weight 1.
       </p>
     </div>
 
@@ -236,7 +263,8 @@
 
   <script src="../../src/particleText.js"></script>
   <script>
-    initParticleJS('#canvas', {
+    // Equal distribution example
+    initParticleJS('#canvas1', {
       text: 'RAINBOW TEXT',
       colors: [
         '#FF6B6B',
@@ -245,7 +273,20 @@
         '#FFA07A',
         '#98D8C8'
       ],
-      fontSize: 100
+      fontSize: 90
+    });
+
+    // Weighted distribution example
+    initParticleJS('#canvas2', {
+      text: 'WEIGHTED TEXT',
+      colors: [
+        { color: '#FF6B6B', weight: 10 },  // 10x more red (dominant)
+        { color: '#4ECDC4', weight: 2 },   // 2x turquoise (accent)
+        { color: '#45B7D1', weight: 1 },   // 1x blue (subtle)
+        { color: '#FFA07A', weight: 1 },   // 1x salmon (subtle)
+        { color: '#98D8C8', weight: 1 }    // 1x mint (subtle)
+      ],
+      fontSize: 90
     });
   </script>
 </body>

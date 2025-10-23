@@ -52,7 +52,7 @@ This is a JSON object, which can contain the following properties:
 | Name | Type | Description |
 | --- | --- | --- |
 | `text` | `String` | This is the text which will be created using particles. If provided, this will override the `data-text` attribute of the canvas element. |
-| `colors` | `String` \| `Array` | This is the color of each particle (Given randomly). The color value needs to be in a valid HEX format |
+| `colors` | `String` \| `Array<String>` \| `Array<Object>` | Color of particles with optional weighted distribution. Accepts hex color strings (e.g., `'#FF0000'` or `['#FF0000', '#00FF00']`) for equal distribution, or objects with `{ color: '#HEX', weight: number }` for weighted distribution. Weight must be a positive integer (default: 1). Higher weights mean more particles with that color. See [Color Weights](#color-weights) section below for examples. |
 | `fontSize` | `Number` | This is the pixel number of the size of the text that will be displayed. Support for function coming soon. |
 | `width` | `Number` | The width of the canvas in pixel values. |
 | `height` | `Number` | The height of the canvas in pixel values. |
@@ -65,6 +65,74 @@ This is a JSON object, which can contain the following properties:
 | `slowBrowserDetected` | `Function` | This is a callback function which will be triggered in the case when a slow browser is detected. One of the usecase is to show some sort of message on the screen or stop the animation completely. |
 | `renderTimeThreshold` | `Number` | This is the threshold for deeciding whether the browser is slow or not. This is the time (in milliseconds) a browser should take to render the first animation frame. If the browser is able to render that, then well and good, otherwise it is considered as a slow browser. For ideal 60pfs, the browser should be able to render each frame within `15` milliseconds. |
 | `trackCursorOnlyInsideCanvas` | `Boolean` | Controls whether particles should only react to cursor movement when it's inside the canvas boundaries. When set to `true`, particles will only explode/react when the cursor is within the canvas area. When the cursor leaves the canvas, particles immediately return to their rest positions. Default is `false`, which allows particles to track cursor position anywhere on the page for a smoother, more fluid experience. Set to `true` when you have multiple canvas instances on the same page or want clear interaction boundaries. See [examples/cursor](examples/cursor) for demonstrations. |
+
+<br />
+
+## Color Weights
+
+The `colors` configuration now supports weighted color distribution, giving you precise control over how colors are distributed among particles.
+
+### Basic Usage (Equal Distribution)
+
+```javascript
+// All colors have equal probability
+initParticleJS('#canvas', {
+  text: 'HELLO',
+  colors: ['#FF0000', '#00FF00', '#0000FF']
+});
+```
+
+### Weighted Distribution
+
+```javascript
+// Red appears 5x more than others
+initParticleJS('#canvas', {
+  text: 'HELLO',
+  colors: [
+    { color: '#FF0000', weight: 5 },  // 5x more red particles
+    { color: '#00FF00', weight: 1 },  // baseline green particles
+    { color: '#0000FF', weight: 1 }   // baseline blue particles
+  ]
+});
+```
+
+### Mixed Format
+
+You can mix string and object formats. Strings automatically get a weight of 1:
+
+```javascript
+colors: [
+  { color: '#FF0000', weight: 10 },  // Weighted
+  '#00FF00',                          // weight: 1 (automatic)
+  '#0000FF'                           // weight: 1 (automatic)
+]
+```
+
+### Weight Rules
+
+- **Must be positive integers**: 1, 2, 3, 100, etc.
+- **No decimals**: ❌ `2.5`, `0.5`, `1.75`
+- **No zero or negatives**: ❌ `0`, `-1`, `-10`
+- **Relative values**: weight 3 = 3x more than weight 1
+- **Validation**: Invalid weights trigger a browser alert and throw an error
+
+### Examples
+
+```javascript
+// Mostly red with some accent colors
+colors: [
+  { color: '#FF0000', weight: 20 },  // 80% red
+  { color: '#FFFF00', weight: 3 },   // 12% yellow
+  { color: '#0000FF', weight: 2 }    // 8% blue
+]
+
+// Gradient effect (middle color emphasized)
+colors: [
+  { color: '#FF0000', weight: 1 },   // Less red
+  { color: '#FF8800', weight: 5 },   // More orange (middle)
+  { color: '#FFFF00', weight: 1 }    // Less yellow
+]
+```
 
 <br />
 

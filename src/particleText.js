@@ -119,6 +119,10 @@ function initParticleJS(elementSelector, customConfigObject) {
   // The default config parameters.
   let getDefaultConfig = function (element) {
     const config = {
+      // Colors can be an array of strings for equal distribution,
+      // or an array of objects with 'color' (hex) and 'weight' (positive integer, default 1)
+      // Example: [{ color: '#FF0000', weight: 3 }, { color: '#0000FF', weight: 1 }]
+      // Higher weight = more particles with that color
       colors: ['#000000'],
       fontWeight: 'bold',
       textAlign: 'center',
@@ -126,52 +130,51 @@ function initParticleJS(elementSelector, customConfigObject) {
       particleRadius: {
         xxxs: {
           base: 1,
-          rand: 2,
+          rand: 1,
         },
         xxs: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         xs: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         sm: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         md: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         lg: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         xl: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         xxl: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
         xxxl: {
-          base: 2,
+          base: 1,
           rand: 1,
         },
       },
-      // TODO: Adjust the Default Values
       explosionRadius: {
-        xxxs: 150,
-        xxs: 150,
-        xs: 150,
-        sm: 150,
-        md: 150,
-        lg: 150,
-        xl: 150,
-        xxl: 150,
-        xxxl: 150,
+        xxxs: 30,
+        xxs: 40,
+        xs: 50,
+        sm: 60,
+        md: 70,
+        lg: 75,
+        xl: 80,
+        xxl: 90,
+        xxxl: 100,
       },
       autoAnimate: true,
       friction: {
@@ -186,7 +189,7 @@ function initParticleJS(elementSelector, customConfigObject) {
     };
 
     if (element !== undefined) {
-      config.fontSize = element.height / 2;
+      config.fontSize = element.height / 4;
     }
 
     return config;
@@ -202,20 +205,55 @@ function initParticleJS(elementSelector, customConfigObject) {
     }
 
     // Validate colors
-    if (configObject.colors !== undefined) {
+    if (configObject.colors !== undefined && configObject.colors !== null) {
+      // Ensure colors is an array
       if (!Array.isArray(configObject.colors)) {
+        // Convert single value to array
         configObject.colors = [configObject.colors];
       }
       if (configObject.colors.length === 0) {
         errors.push("'colors' array must contain at least one color");
       }
-      configObject.colors.forEach(function (color, index) {
-        if (typeof color !== 'string' || !/^#[0-9A-F]{6}$/i.test(color)) {
+      // Validate each color
+      for (let index = 0; index < configObject.colors.length; index++) {
+        const colorItem = configObject.colors[index];
+        // Support both old format (string) and new format (object)
+        if (typeof colorItem === 'string') {
+          if (!/^#[0-9A-F]{6}$/i.test(colorItem)) {
+            errors.push(
+              `Color at index ${index} ('${colorItem}') is not a valid hex color (format: #RRGGBB)`,
+            );
+          }
+        } else if (typeof colorItem === 'object' && colorItem !== null) {
+          // Validate color property
+          if (!colorItem.color) {
+            errors.push(`Color object at index ${index} is missing 'color' property`);
+          } else if (typeof colorItem.color !== 'string') {
+            errors.push(
+              `Color object at index ${index} has invalid 'color' property (must be a hex string like '#FF0000', got ${typeof colorItem.color})`,
+            );
+          } else if (!/^#[0-9A-F]{6}$/i.test(colorItem.color)) {
+            errors.push(
+              `Color at index ${index} ('${colorItem.color}') is not a valid hex color (format: #RRGGBB)`,
+            );
+          }
+
+          // Validate weight property
+          if (colorItem.weight !== undefined) {
+            if (typeof colorItem.weight !== 'number') {
+              errors.push(`Weight at index ${index} must be a number`);
+            } else if (colorItem.weight <= 0) {
+              errors.push(`Weight at index ${index} must be greater than 0`);
+            } else if (!Number.isInteger(colorItem.weight)) {
+              errors.push(`Weight at index ${index} must be an integer (no decimals)`);
+            }
+          }
+        } else {
           errors.push(
-            `Color at index ${index} ('${color}') is not a valid hex color (format: #RRGGBB)`,
+            `Color at index ${index} must be either a string (hex color) or an object with 'color' and optional 'weight' properties`,
           );
         }
-      });
+      }
     }
 
     // Validate particleRadius
@@ -318,6 +356,7 @@ function initParticleJS(elementSelector, customConfigObject) {
           return `  ${i + 1}. ${e}`;
         })
         .join('\n')}`;
+      alert(errorMessage);
       throw new Error(errorMessage);
     }
   };
@@ -335,6 +374,37 @@ function initParticleJS(elementSelector, customConfigObject) {
 
   // Validate configuration
   validateConfig(configObject);
+
+  // Normalize colors to always be in object format with weights
+  configObject.colors = configObject.colors.map(function (colorItem) {
+    if (typeof colorItem === 'string') {
+      return { color: colorItem, weight: 1 };
+    } else {
+      return {
+        color: colorItem.color,
+        weight: colorItem.weight !== undefined ? colorItem.weight : 1,
+      };
+    }
+  });
+
+  // Helper function to select a random color based on weights
+  const getWeightedRandomColor = function () {
+    const totalWeight = configObject.colors.reduce(function (sum, item) {
+      return sum + item.weight;
+    }, 0);
+
+    let random = Math.random() * totalWeight;
+
+    for (let i = 0; i < configObject.colors.length; i++) {
+      random -= configObject.colors[i].weight;
+      if (random <= 0) {
+        return configObject.colors[i].color;
+      }
+    }
+
+    // Fallback (should never reach here)
+    return configObject.colors[0].color;
+  };
 
   // Add accessibility attributes
   element.setAttribute('role', 'img');
@@ -355,15 +425,6 @@ function initParticleJS(elementSelector, customConfigObject) {
   // Sanitize text to prevent potential XSS issues
   // Convert to string and remove any HTML tags
   text = String(text).replace(/[<>]/g, '');
-
-  if (!Array.isArray(configObject.colors)) {
-    configObject.colors = [configObject.colors];
-  }
-
-  assertStop(configObject.colors.length != 0, 'Atleast 1 color should be present');
-  configObject.colors.forEach(function validateHex(element) {
-    assertStop(/^#[0-9A-F]{6}$/i.test(element), `The color ${element} is not valid.`);
-  });
 
   let slowBrowser = false;
   let isTested = false;
@@ -407,7 +468,7 @@ function initParticleJS(elementSelector, customConfigObject) {
         this.friction /= 1.1;
       }
 
-      this.color = configObject.colors[Math.floor(Math.random() * configObject.colors.length)];
+      this.color = getWeightedRandomColor();
     }
 
     // Rended method
@@ -537,6 +598,7 @@ function initParticleJS(elementSelector, customConfigObject) {
       }
     }
     amount = particles.length; // For easy tracking and looping
+    particleJS.particleList = particles; // Expose particles to the returned object
   }
 
   // Event Looooooooooooop
@@ -691,6 +753,7 @@ function initParticleJS(elementSelector, customConfigObject) {
     // Clear particles array
     particles = [];
     amount = 0;
+    particleJS.particleList = [];
   };
 
   return particleJS;
