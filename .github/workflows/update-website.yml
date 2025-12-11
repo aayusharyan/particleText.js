@@ -1,8 +1,10 @@
-# Coordinates website updates for docs/examples pushes, releases, or manual runs.
-# Delegates execution to sub-workflows so future website tasks stay modular.
+# Coordinates website updates when docs/examples change, releases publish, or runs are triggered manually.
+# Keeps deployment logic in a sub-workflow so website automation stays modular and maintainable.
+# Uses a planning job to decide whether to trigger the docs deployment workflow.
 
-name: Update website
+name: Update Website
 
+# Triggers on docs/examples commits, published releases, or manual dispatches.
 on:
   push:
     paths:
@@ -13,17 +15,26 @@ on:
       - published
   workflow_dispatch:
 
-permissions:
-  contents: read
-
+# Defines orchestration and deployment jobs for website updates.
 jobs:
   # Plans which website tasks should run for this trigger.
   orchestrate:
-    name: Orchestrate website update
+    name: Orchestrate website updates
     runs-on: ubuntu-latest
     outputs:
       deploy: ${{ steps.plan.outputs.deploy }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Prints version information for each sub-workflow from their package.json files.
+      - name: Print sub-workflow versions
+        run: |
+          echo "Sub-workflow versions:"
+          DOCS_VERSION=$(node -p "require('./docs/package.json').version")
+          echo "  - Documentation site: v$DOCS_VERSION"
+
+      # Sets a flag to tell downstream jobs to deploy the docs site.
       - name: Decide deployment plan
         id: plan
         run: echo "deploy=true" >> "$GITHUB_OUTPUT"
