@@ -1,0 +1,37 @@
+# Coordinates website updates for docs/examples pushes, releases, or manual runs.
+# Delegates execution to sub-workflows so future website tasks stay modular.
+
+name: Update website
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'examples/**'
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Plans which website tasks should run for this trigger.
+  orchestrate:
+    name: Orchestrate website update
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.plan.outputs.deploy }}
+    steps:
+      - name: Decide deployment plan
+        id: plan
+        run: echo "deploy=true" >> "$GITHUB_OUTPUT"
+
+  # Invokes the documentation deployment workflow when deployment is planned.
+  deploy_documentation_site:
+    name: Deploy documentation site
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-docs-site.yml
+    secrets: inherit

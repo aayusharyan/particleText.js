@@ -1,0 +1,44 @@
+# Builds the documentation site and deploys it to Firebase Hosting when invoked.
+# Intended to be called by orchestrator workflows for website updates.
+
+name: Deploy documentation site to Firebase Hosting
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  # Handles build and deploy for the documentation site.
+  deploy_docs:
+    name: Build and deploy documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        run: pnpm build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PARTICLE_TEXT }}
+          projectId: particle-text
