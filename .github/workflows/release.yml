@@ -1,0 +1,129 @@
+# GitHub Actions workflow for creating new releases
+# Handles version bumping and automated release creation
+name: Release
+
+# Trigger this workflow manually with release type selection
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        type: choice
+        default: 'minor'
+        options:
+          - major
+          - minor
+
+jobs:
+  # Main release job that handles version management and deployment
+  release:
+    runs-on: ubuntu-latest
+    # Required permissions for pushing commits, tags, and creating releases
+    permissions:
+      contents: write
+
+    steps:
+      # Get the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Set up Node.js environment for version management
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Configure Git user for automated commits
+      - name: Configure Git
+        run: |
+          git config --local user.email "hello@yush.dev"
+          git config --local user.name "Aayush Sinha"
+
+      # Extract current version from package.json
+      - name: Extract current version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Parse version components (semantic versioning: major.minor.patch)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
+          echo "patch=${PATCH:-0}" >> $GITHUB_OUTPUT
+
+      # Calculate new version based on release type
+      - name: Calculate new version
+        id: new_version
+        run: |
+          CURRENT_MAJOR="${{ steps.current_version.outputs.major }}"
+          CURRENT_MINOR="${{ steps.current_version.outputs.minor }}"
+          CURRENT_PATCH="${{ steps.current_version.outputs.patch }}"
+          RELEASE_TYPE="${{ inputs.release_type }}"
+
+          if [ "$RELEASE_TYPE" == "major" ]; then
+            NEW_MAJOR=$((CURRENT_MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          else
+            NEW_MAJOR=$CURRENT_MAJOR
+            NEW_MINOR=$((CURRENT_MINOR + 1))
+            NEW_PATCH=0
+          fi
+
+          NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
+          NEW_VERSION_TAG="v${NEW_VERSION}"
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new_version_tag=$NEW_VERSION_TAG" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION (tag: $NEW_VERSION_TAG)"
+
+      # Update version in package.json
+      - name: Update version in package.json
+        run: |
+          npm version ${{ steps.new_version.outputs.new_version }} --no-git-tag-version
+          echo "Updated package.json to version ${{ steps.new_version.outputs.new_version }}"
+
+      # Update version in docs/package.json
+      - name: Update version in docs/package.json
+        run: |
+          cd docs
+          npm version ${{ steps.new_version.outputs.new_version }} --no-git-tag-version
+          echo "Updated docs/package.json to version ${{ steps.new_version.outputs.new_version }}"
+
+      # Commit the version bump
+      - name: Commit version bump
+        run: |
+          git add package.json docs/package.json
+          git commit -m "chore: bump version to ${{ steps.new_version.outputs.new_version }}" || echo "No changes to commit"
+          git push || echo "No changes to push"
+
+      # Create and push git tag
+      - name: Create and push git tag
+        run: |
+          TAG="${{ steps.new_version.outputs.new_version_tag }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping tag creation"
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+            echo "Created and pushed tag $TAG"
+          fi
+
+      # Create GitHub release with auto-generated release notes
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.new_version.outputs.new_version_tag }}
+          name: Release ${{ steps.new_version.outputs.new_version_tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
