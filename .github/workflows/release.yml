@@ -19,8 +19,9 @@ jobs:
   # Main release job that handles version management and deployment
   release:
     runs-on: ubuntu-latest
-    # Required permissions for pushing commits, tags, and creating releases
+    # Required permissions for pushing commits, tags, and creating releases on GitHub and npm
     permissions:
+      id-token: write
       contents: write
 
     steps:
@@ -127,3 +128,19 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Prepare and publish package to npm with provenance
+      - name: Update npm to latest version
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
