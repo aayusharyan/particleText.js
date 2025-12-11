@@ -1,7 +1,7 @@
 {
   "name": "particletext-docs",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Documentation for ParticleText.js - A vanilla JavaScript particle text animation library",
   "scripts": {
     "dev": "astro dev",
