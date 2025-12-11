@@ -1,11 +1,15 @@
 # Builds the documentation site and deploys it to Firebase Hosting when invoked.
 # Intended to be called by orchestrator workflows for website updates.
+# Requires Firebase service account credentials to be configured in repository secrets.
 
 name: Deploy documentation site to Firebase Hosting
 
+# Allows this workflow to be called by other workflows or triggered manually.
 on:
   workflow_call:
+  workflow_dispatch:
 
+# Grants read access to repository contents for checkout and build steps.
 permissions:
   contents: read
 
@@ -14,28 +18,37 @@ jobs:
   deploy_docs:
     name: Build and deploy documentation
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Configures pnpm without running install yet to leverage caching.
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
           run_install: false
 
+      # Configures Node.js with pnpm cache enabled for faster dependency resolution.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
 
+      # Installs dependencies using frozen lockfile to ensure reproducible builds.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Builds the static documentation site into the dist directory.
       - name: Build site
         run: pnpm build
 
+      # Deploys the built site to Firebase Hosting using service account credentials.
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
