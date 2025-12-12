@@ -41,7 +41,8 @@ This specification outlines the complete documentation site for ParticleText.js,
 docs/
 ├── public/                          # Static assets
 │   ├── particleText.js             # Library file (copied from src/)
-│   └── favicon.svg                 # Site favicon
+│   ├── favicon.png                 # Dark background favicon derived from logo
+│   └── logo.png                    # Shared logo asset
 ├── src/
 │   ├── content/
 │   │   ├── docs/                   # Documentation pages (MDX)
@@ -136,6 +137,7 @@ interface Props {
 ```
 
 Features:
+
 - Accepts configuration object
 - Handles canvas initialization
 - Client-side hydration for interactivity
@@ -171,7 +173,7 @@ Each of the 18 HTML examples will be converted to MDX pages with:
 
 ### 3.2 Example Page Template
 
-```mdx
+````mdx
 ---
 title: Example Title
 description: Brief description of what this example demonstrates
@@ -190,7 +192,7 @@ Description paragraph explaining what this example shows and when to use it.
   config={{
     text: 'ParticleText',
     colors: ['#695aa6'],
-    fontSize: 100
+    fontSize: 100,
   }}
 />
 
@@ -200,11 +202,12 @@ Description paragraph explaining what this example shows and when to use it.
 const config = {
   text: 'ParticleText',
   colors: ['#695aa6'],
-  fontSize: 100
+  fontSize: 100,
 };
 
 initParticleJS('#canvas', config);
 ```
+````
 
 ## Key Features
 
@@ -220,7 +223,8 @@ Experiment with this configuration in the [Playground](/playground?preset=exampl
 
 - [Related Example 1](/examples/category/example)
 - [Related Example 2](/examples/category/example)
-```
+
+````
 
 ---
 
@@ -270,7 +274,7 @@ export default defineConfig({
     svelte()
   ]
 });
-```
+````
 
 ---
 
