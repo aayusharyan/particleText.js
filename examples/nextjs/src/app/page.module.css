@@ -1,0 +1,65 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  width: 100%;
+  text-align: center;
+}
+
+.container h1 {
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.canvasWrapper {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  margin-bottom: 2rem;
+}
+
+.particleCanvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 100%;
+}
+
+.info {
+  color: white;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.info p {
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+  .container h1 {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .canvasWrapper {
+    padding: 15px;
+  }
+}

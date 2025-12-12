@@ -1,0 +1,20 @@
+{
+  "name": "particletext-nuxt-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3005",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "nuxt": "latest",
+    "vue": "latest",
+    "particletext.js": "file:../../"
+  },
+  "devDependencies": {
+    "@nuxt/types": "latest"
+  }
+}
