@@ -3,4 +3,888 @@ title: Nuxt
 description: Integrating ParticleText.js with Nuxt.js
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js integrates smoothly with Nuxt.js, handling both Nuxt 3 and Nuxt 2 architectures. This guide covers server-side rendering (SSR) considerations and best practices for Nuxt applications.
+
+<DemoIframe title="ParticleText.js Nuxt Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the Nuxt example is deployed, it will show a live, interactive Nuxt 3 implementation running in real-time!
+:::
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## Nuxt 3
+
+The recommended approach for Nuxt 3 using Composition API and client-only rendering.
+
+### Basic Client-Only Component
+
+```vue
+<!-- components/ParticleText.vue -->
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="800"
+    :height="300"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const canvasRef = ref(null);
+let particleInstance = null;
+
+onMounted(async () => {
+  // Dynamic import for client-side only
+  if (process.client) {
+    const { default: initParticleJS } = await import('particletext.js');
+
+    if (canvasRef.value) {
+      particleInstance = initParticleJS(canvasRef.value, {
+        text: 'NUXT.JS',
+        colors: ['#00DC82', '#00C470', '#003C3C'],
+        fontSize: 120,
+        particleRadius: {
+          xxxs: { base: 1, rand: 1 },
+          sm: { base: 1.5, rand: 1 },
+          md: { base: 2, rand: 1 },
+        },
+      });
+    }
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+### Using Client-Only Wrapper
+
+```vue
+<!-- pages/index.vue -->
+<template>
+  <div>
+    <h1>Welcome to Nuxt 3</h1>
+    <ClientOnly>
+      <ParticleText text="HELLO" :colors="['#00DC82', '#00C470']" />
+    </ClientOnly>
+  </div>
+</template>
+
+<script setup>
+import ParticleText from '~/components/ParticleText.vue';
+</script>
+```
+
+### Reusable Component with Props
+
+```vue
+<!-- components/ParticleText.vue -->
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+
+const props = defineProps({
+  text: {
+    type: String,
+    required: true,
+  },
+  colors: {
+    type: Array,
+    default: () => ['#000000'],
+  },
+  width: {
+    type: Number,
+    default: 800,
+  },
+  height: {
+    type: Number,
+    default: 300,
+  },
+  fontSize: {
+    type: Number,
+    default: undefined,
+  },
+  config: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const canvasRef = ref(null);
+let particleInstance = null;
+let initParticleJS = null;
+
+const initParticles = () => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value && initParticleJS) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: props.text,
+      colors: props.colors,
+      fontSize: props.fontSize,
+      ...props.config,
+    });
+  }
+};
+
+onMounted(async () => {
+  if (process.client) {
+    const module = await import('particletext.js');
+    initParticleJS = module.default;
+    initParticles();
+  }
+});
+
+watch(
+  () => [props.text, props.colors, props.fontSize],
+  () => {
+    if (process.client) {
+      initParticles();
+    }
+  },
+  { deep: true }
+);
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+### Creating a Nuxt Plugin
+
+```javascript
+// plugins/particletext.client.js
+export default defineNuxtPlugin(async () => {
+  const { default: initParticleJS } = await import('particletext.js');
+
+  return {
+    provide: {
+      particleText: initParticleJS,
+    },
+  };
+});
+```
+
+Usage with plugin:
+
+```vue
+<template>
+  <canvas ref="canvasRef" :width="800" :height="300" />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const { $particleText } = useNuxtApp();
+const canvasRef = ref(null);
+let particleInstance = null;
+
+onMounted(() => {
+  if (canvasRef.value && $particleText) {
+    particleInstance = $particleText(canvasRef.value, {
+      text: 'NUXT PLUGIN',
+      colors: ['#00DC82', '#00C470'],
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+## Nuxt 2
+
+For Nuxt 2 projects:
+
+### Basic Usage
+
+```vue
+<!-- components/ParticleText.vue -->
+<template>
+  <canvas
+    ref="canvas"
+    :width="800"
+    :height="300"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script>
+export default {
+  name: 'ParticleText',
+  data() {
+    return {
+      particleInstance: null,
+    };
+  },
+  mounted() {
+    // Dynamic import for client-side only
+    if (process.client) {
+      import('particletext.js').then((module) => {
+        const initParticleJS = module.default;
+
+        if (this.$refs.canvas) {
+          this.particleInstance = initParticleJS(this.$refs.canvas, {
+            text: 'NUXT.JS',
+            colors: ['#00DC82', '#00C470', '#003C3C'],
+            fontSize: 120,
+          });
+        }
+      });
+    }
+  },
+  beforeDestroy() {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  },
+};
+</script>
+```
+
+### With Props (Nuxt 2)
+
+```vue
+<template>
+  <canvas
+    ref="canvas"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script>
+export default {
+  name: 'ParticleText',
+  props: {
+    text: {
+      type: String,
+      required: true,
+    },
+    colors: {
+      type: Array,
+      default: () => ['#000000'],
+    },
+    width: {
+      type: Number,
+      default: 800,
+    },
+    height: {
+      type: Number,
+      default: 300,
+    },
+    fontSize: {
+      type: Number,
+      default: undefined,
+    },
+  },
+  data() {
+    return {
+      particleInstance: null,
+      initParticleJS: null,
+    };
+  },
+  watch: {
+    text() {
+      this.initParticles();
+    },
+    colors: {
+      handler() {
+        this.initParticles();
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    if (process.client) {
+      import('particletext.js').then((module) => {
+        this.initParticleJS = module.default;
+        this.initParticles();
+      });
+    }
+  },
+  methods: {
+    initParticles() {
+      if (this.particleInstance && this.particleInstance.destroy) {
+        this.particleInstance.destroy();
+      }
+
+      if (this.$refs.canvas && this.initParticleJS) {
+        this.particleInstance = this.initParticleJS(this.$refs.canvas, {
+          text: this.text,
+          colors: this.colors,
+          fontSize: this.fontSize,
+        });
+      }
+    },
+  },
+  beforeDestroy() {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  },
+};
+</script>
+```
+
+### Client-Only Component (Nuxt 2)
+
+```vue
+<!-- pages/index.vue -->
+<template>
+  <div>
+    <h1>Welcome to Nuxt</h1>
+    <client-only>
+      <particle-text text="HELLO" :colors="['#00DC82', '#00C470']" />
+    </client-only>
+  </div>
+</template>
+
+<script>
+export default {
+  components: {
+    ParticleText: () => import('~/components/ParticleText.vue'),
+  },
+};
+</script>
+```
+
+## TypeScript Support (Nuxt 3)
+
+```vue
+<!-- components/ParticleText.vue -->
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
+
+interface ParticleInstance {
+  destroy: () => void;
+  startAnimation: () => void;
+  isAnimating: boolean;
+  particleList: any[];
+}
+
+interface Props {
+  text: string;
+  colors?: string[];
+  width?: number;
+  height?: number;
+  fontSize?: number;
+  config?: Record<string, any>;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  colors: () => ['#000000'],
+  width: 800,
+  height: 300,
+  config: () => ({}),
+});
+
+const canvasRef: Ref<HTMLCanvasElement | null> = ref(null);
+let particleInstance: ParticleInstance | null = null;
+let initParticleJS: any = null;
+
+const initParticles = () => {
+  if (particleInstance?.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value && initParticleJS) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: props.text,
+      colors: props.colors,
+      fontSize: props.fontSize,
+      ...props.config,
+    }) as ParticleInstance;
+  }
+};
+
+onMounted(async () => {
+  if (process.client) {
+    const module = await import('particletext.js');
+    initParticleJS = module.default;
+    initParticles();
+  }
+});
+
+watch(
+  () => [props.text, props.colors, props.fontSize],
+  () => {
+    if (process.client) {
+      initParticles();
+    }
+  },
+  { deep: true }
+);
+
+onBeforeUnmount(() => {
+  if (particleInstance?.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+## Common Patterns
+
+### Responsive Canvas
+
+```vue
+<template>
+  <div ref="containerRef" style="width: 100%;">
+    <canvas
+      ref="canvasRef"
+      :width="dimensions.width"
+      :height="dimensions.height"
+      style="width: 100%; height: auto;"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue';
+
+const canvasRef = ref(null);
+const containerRef = ref(null);
+const dimensions = reactive({ width: 800, height: 300 });
+let particleInstance = null;
+let initParticleJS = null;
+
+const updateDimensions = () => {
+  if (containerRef.value) {
+    const width = containerRef.value.offsetWidth;
+    dimensions.width = width;
+    dimensions.height = Math.floor(width * 0.375); // 16:6 aspect ratio
+  }
+};
+
+const initParticles = () => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value && initParticleJS) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: 'RESPONSIVE',
+      colors: ['#00DC82'],
+    });
+  }
+};
+
+onMounted(async () => {
+  if (process.client) {
+    const module = await import('particletext.js');
+    initParticleJS = module.default;
+
+    updateDimensions();
+    initParticles();
+    window.addEventListener('resize', updateDimensions);
+  }
+});
+
+watch(
+  () => [dimensions.width, dimensions.height],
+  () => {
+    initParticles();
+  }
+);
+
+onBeforeUnmount(() => {
+  if (process.client) {
+    window.removeEventListener('resize', updateDimensions);
+  }
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+### With Nuxt Composables
+
+Create a reusable composable:
+
+```javascript
+// composables/useParticleText.js
+export const useParticleText = (config = {}) => {
+  const canvasRef = ref(null);
+  const particleInstance = ref(null);
+  const isAnimating = ref(false);
+  let initParticleJS = null;
+
+  const init = async (customConfig = {}) => {
+    if (process.client) {
+      if (!initParticleJS) {
+        const module = await import('particletext.js');
+        initParticleJS = module.default;
+      }
+
+      if (particleInstance.value && particleInstance.value.destroy) {
+        particleInstance.value.destroy();
+      }
+
+      if (canvasRef.value) {
+        particleInstance.value = initParticleJS(canvasRef.value, {
+          ...config,
+          ...customConfig,
+        });
+        isAnimating.value = particleInstance.value.isAnimating;
+      }
+    }
+  };
+
+  const startAnimation = () => {
+    if (particleInstance.value && particleInstance.value.startAnimation) {
+      particleInstance.value.startAnimation();
+      isAnimating.value = true;
+    }
+  };
+
+  const destroy = () => {
+    if (particleInstance.value && particleInstance.value.destroy) {
+      particleInstance.value.destroy();
+      isAnimating.value = false;
+    }
+  };
+
+  onMounted(() => {
+    init();
+  });
+
+  onBeforeUnmount(() => {
+    destroy();
+  });
+
+  return {
+    canvasRef,
+    particleInstance,
+    isAnimating,
+    init,
+    startAnimation,
+    destroy,
+  };
+};
+```
+
+Usage:
+
+```vue
+<template>
+  <canvas ref="canvasRef" :width="800" :height="300" />
+</template>
+
+<script setup>
+const { canvasRef } = useParticleText({
+  text: 'COMPOSABLE',
+  colors: ['#00DC82', '#00C470'],
+});
+</script>
+```
+
+### Multiple Instances
+
+```vue
+<template>
+  <div>
+    <canvas ref="canvas1" :width="800" :height="200" />
+    <canvas ref="canvas2" :width="800" :height="200" />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const canvas1 = ref(null);
+const canvas2 = ref(null);
+let particle1 = null;
+let particle2 = null;
+
+onMounted(async () => {
+  if (process.client) {
+    const { default: initParticleJS } = await import('particletext.js');
+
+    if (canvas1.value) {
+      particle1 = initParticleJS(canvas1.value, {
+        text: 'FIRST',
+        colors: ['#00DC82'],
+        trackCursorOnlyInsideCanvas: true,
+      });
+    }
+
+    if (canvas2.value) {
+      particle2 = initParticleJS(canvas2.value, {
+        text: 'SECOND',
+        colors: ['#00C470'],
+        trackCursorOnlyInsideCanvas: true,
+      });
+    }
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particle1) particle1.destroy();
+  if (particle2) particle2.destroy();
+});
+</script>
+```
+
+### With Vuex Store (Nuxt 2)
+
+```javascript
+// store/particle.js
+export const state = () => ({
+  text: 'HELLO',
+  colors: ['#00DC82', '#00C470'],
+});
+
+export const mutations = {
+  setText(state, text) {
+    state.text = text;
+  },
+  setColors(state, colors) {
+    state.colors = colors;
+  },
+};
+```
+
+```vue
+<template>
+  <canvas ref="canvas" :width="800" :height="300" />
+</template>
+
+<script>
+import { mapState } from 'vuex';
+
+export default {
+  data() {
+    return {
+      particleInstance: null,
+      initParticleJS: null,
+    };
+  },
+  computed: {
+    ...mapState('particle', ['text', 'colors']),
+  },
+  watch: {
+    text() {
+      this.initParticles();
+    },
+    colors: {
+      handler() {
+        this.initParticles();
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    if (process.client) {
+      import('particletext.js').then((module) => {
+        this.initParticleJS = module.default;
+        this.initParticles();
+      });
+    }
+  },
+  methods: {
+    initParticles() {
+      if (this.particleInstance && this.particleInstance.destroy) {
+        this.particleInstance.destroy();
+      }
+
+      if (this.$refs.canvas && this.initParticleJS) {
+        this.particleInstance = this.initParticleJS(this.$refs.canvas, {
+          text: this.text,
+          colors: this.colors,
+        });
+      }
+    },
+  },
+  beforeDestroy() {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  },
+};
+</script>
+```
+
+### With Pinia Store (Nuxt 3)
+
+```javascript
+// stores/particle.js
+import { defineStore } from 'pinia';
+
+export const useParticleStore = defineStore('particle', {
+  state: () => ({
+    text: 'HELLO',
+    colors: ['#00DC82', '#00C470'],
+  }),
+  actions: {
+    setText(text) {
+      this.text = text;
+    },
+    setColors(colors) {
+      this.colors = colors;
+    },
+  },
+});
+```
+
+```vue
+<template>
+  <canvas ref="canvasRef" :width="800" :height="300" />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useParticleStore } from '~/stores/particle';
+
+const store = useParticleStore();
+const canvasRef = ref(null);
+let particleInstance = null;
+let initParticleJS = null;
+
+const initParticles = () => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value && initParticleJS) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: store.text,
+      colors: store.colors,
+    });
+  }
+};
+
+onMounted(async () => {
+  if (process.client) {
+    const module = await import('particletext.js');
+    initParticleJS = module.default;
+    initParticles();
+  }
+});
+
+watch(
+  () => [store.text, store.colors],
+  () => {
+    if (process.client) {
+      initParticles();
+    }
+  },
+  { deep: true }
+);
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+## Best Practices
+
+1. **Client-Only Rendering**: Always use `process.client` checks or `<ClientOnly>` wrapper
+2. **Dynamic Imports**: Use dynamic imports to prevent SSR issues
+3. **Cleanup**: Always call `destroy()` in `onBeforeUnmount` or `beforeDestroy`
+4. **Plugins**: Consider creating a Nuxt plugin for global access
+5. **Composables**: Use composables for reusable logic (Nuxt 3)
+6. **Multiple Instances**: Set `trackCursorOnlyInsideCanvas: true` for multiple canvases
+7. **Type Safety**: Use TypeScript for better developer experience
+
+## Common Issues
+
+### Window is not defined error
+This occurs during SSR. Solutions:
+- Use `process.client` checks
+- Use `<ClientOnly>` or `<client-only>` wrapper
+- Use dynamic imports in `mounted` or `onMounted`
+
+### Canvas appears blurry
+Set `:width` and `:height` as attributes using Vue bindings, not CSS.
+
+### Animation doesn't reinitialize on navigation
+Use route watchers or page lifecycle hooks to reinitialize the animation.
+
+### Memory leaks between page transitions
+Always call `destroy()` in the appropriate cleanup lifecycle hook.
+
+## Configuration
+
+### Nuxt 3 Config
+
+```javascript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  // If you need to transpile the library
+  build: {
+    transpile: ['particletext.js'],
+  },
+});
+```
+
+### Nuxt 2 Config
+
+```javascript
+// nuxt.config.js
+export default {
+  // If you need to transpile the library
+  build: {
+    transpile: ['particletext.js'],
+  },
+};
+```
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)
+- Check out [Vue integration](/frameworks/vue) for more patterns

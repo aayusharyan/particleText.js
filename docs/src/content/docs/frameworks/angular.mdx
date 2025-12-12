@@ -3,4 +3,598 @@ title: Angular
 description: Integrating ParticleText.js with Angular
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js integrates smoothly with Angular using ViewChild, ElementRef, and lifecycle hooks. This guide covers everything you need to create stunning particle text animations in your Angular applications.
+
+<DemoIframe title="ParticleText.js Angular Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the Angular example is deployed, it will show a live, interactive Angular implementation running in real-time!
+:::
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## Basic Usage
+
+### Component Implementation
+
+```typescript
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-particle-text',
+  template: `
+    <canvas
+      #particleCanvas
+      [width]="800"
+      [height]="300"
+      style="width: 100%; height: auto;"
+    ></canvas>
+  `,
+})
+export class ParticleTextComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private particleInstance: any = null;
+
+  ngAfterViewInit(): void {
+    if (this.canvasRef && this.canvasRef.nativeElement) {
+      this.particleInstance = initParticleJS(this.canvasRef.nativeElement, {
+        text: 'ANGULAR',
+        colors: ['#DD0031', '#C3002F', '#FFFFFF'],
+        fontSize: 120,
+        particleRadius: {
+          xxxs: { base: 1, rand: 1 },
+          sm: { base: 1.5, rand: 1 },
+          md: { base: 2, rand: 1 },
+        },
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+}
+```
+
+## Reusable Component with Inputs
+
+Create a flexible, reusable component that accepts inputs:
+
+```typescript
+import { Component, ElementRef, Input, OnInit, OnDestroy, ViewChild, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-particle-text',
+  template: `
+    <canvas
+      #particleCanvas
+      [width]="width"
+      [height]="height"
+      style="width: 100%; height: auto;"
+    ></canvas>
+  `,
+})
+export class ParticleTextComponent implements AfterViewInit, OnDestroy, OnChanges {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  @Input() text: string = '';
+  @Input() colors: string[] = ['#000000'];
+  @Input() width: number = 800;
+  @Input() height: number = 300;
+  @Input() fontSize?: number;
+  @Input() config: any = {};
+
+  private particleInstance: any = null;
+  private isViewInitialized = false;
+
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
+    this.initParticles();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Reinitialize if inputs change after view init
+    if (this.isViewInitialized && (changes['text'] || changes['colors'] || changes['fontSize'])) {
+      this.initParticles();
+    }
+  }
+
+  private initParticles(): void {
+    // Destroy previous instance
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+
+    // Create new instance
+    if (this.canvasRef && this.canvasRef.nativeElement) {
+      this.particleInstance = initParticleJS(this.canvasRef.nativeElement, {
+        text: this.text,
+        colors: this.colors,
+        fontSize: this.fontSize,
+        ...this.config,
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+}
+
+// Usage in parent component:
+// <app-particle-text
+//   text="HELLO"
+//   [colors]="['#DD0031', '#C3002F']"
+//   [width]="1000"
+// ></app-particle-text>
+```
+
+## Dynamic Text Updates
+
+```typescript
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <div>
+      <input
+        [(ngModel)]="dynamicText"
+        type="text"
+        placeholder="Enter text"
+        class="text-input"
+      />
+      <app-particle-text
+        [text]="dynamicText"
+        [colors]="['#DD0031', '#C3002F']"
+      ></app-particle-text>
+    </div>
+  `,
+  styles: [`
+    .text-input {
+      padding: 8px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+  `]
+})
+export class AppComponent {
+  dynamicText = 'HELLO';
+}
+```
+
+## Manual Animation Control
+
+```typescript
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-controlled-particle',
+  template: `
+    <div>
+      <button (click)="startAnimation()">Start Animation</button>
+      <canvas
+        #particleCanvas
+        [width]="800"
+        [height]="300"
+        style="width: 100%; height: auto;"
+      ></canvas>
+    </div>
+  `,
+})
+export class ControlledParticleComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private particleInstance: any = null;
+
+  ngAfterViewInit(): void {
+    if (this.canvasRef && this.canvasRef.nativeElement) {
+      this.particleInstance = initParticleJS(this.canvasRef.nativeElement, {
+        text: 'CLICK TO START',
+        colors: ['#DD0031'],
+        autoAnimate: false, // Don't start automatically
+      });
+    }
+  }
+
+  startAnimation(): void {
+    if (this.particleInstance && this.particleInstance.startAnimation) {
+      this.particleInstance.startAnimation();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+}
+```
+
+## TypeScript Interfaces
+
+Define proper types for better type safety:
+
+```typescript
+// particle-text.interface.ts
+export interface ParticleTextConfig {
+  text: string;
+  colors?: string[];
+  fontSize?: number;
+  width?: number;
+  height?: number;
+  fontWeight?: string;
+  textAlign?: string;
+  autoAnimate?: boolean;
+  particleRadius?: Record<string, { base: number; rand: number }>;
+  explosionRadius?: Record<string, number>;
+  friction?: { base: number; rand: number };
+  supportSlowBrowsers?: boolean;
+  slowBrowserDetected?: () => void;
+  renderTimeThreshold?: number;
+  maxParticles?: number;
+  trackCursorOnlyInsideCanvas?: boolean;
+  onError?: (error: Error) => void;
+}
+
+export interface ParticleInstance {
+  destroy: () => void;
+  startAnimation: () => void;
+  forceRequestAnimationFrame: () => void;
+  isAnimating: boolean;
+  particleList: any[];
+  getCurrentBreakpoint: () => string;
+}
+
+// Usage in component:
+import { ParticleTextConfig, ParticleInstance } from './particle-text.interface';
+
+@Component({
+  // ...
+})
+export class ParticleTextComponent implements AfterViewInit, OnDestroy {
+  private particleInstance: ParticleInstance | null = null;
+
+  ngAfterViewInit(): void {
+    const config: ParticleTextConfig = {
+      text: 'ANGULAR',
+      colors: ['#DD0031', '#C3002F'],
+      fontSize: 120,
+    };
+
+    this.particleInstance = initParticleJS(
+      this.canvasRef.nativeElement,
+      config
+    ) as ParticleInstance;
+  }
+}
+```
+
+## Common Patterns
+
+### Responsive Canvas
+
+```typescript
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-responsive-particle',
+  template: `
+    <div #container style="width: 100%;">
+      <canvas
+        #particleCanvas
+        [width]="canvasWidth"
+        [height]="canvasHeight"
+        style="width: 100%; height: auto;"
+      ></canvas>
+    </div>
+  `,
+})
+export class ResponsiveParticleComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('container', { static: false }) containerRef!: ElementRef<HTMLDivElement>;
+
+  canvasWidth = 800;
+  canvasHeight = 300;
+  private particleInstance: any = null;
+
+  ngAfterViewInit(): void {
+    this.updateDimensions();
+    this.initParticles();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateDimensions();
+    this.initParticles();
+  }
+
+  private updateDimensions(): void {
+    if (this.containerRef && this.containerRef.nativeElement) {
+      const width = this.containerRef.nativeElement.offsetWidth;
+      this.canvasWidth = width;
+      this.canvasHeight = Math.floor(width * 0.375); // 16:6 aspect ratio
+    }
+  }
+
+  private initParticles(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+
+    if (this.canvasRef && this.canvasRef.nativeElement) {
+      this.particleInstance = initParticleJS(this.canvasRef.nativeElement, {
+        text: 'RESPONSIVE',
+        colors: ['#DD0031'],
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+}
+```
+
+### Multiple Instances
+
+```typescript
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-multiple-particles',
+  template: `
+    <div>
+      <canvas #canvas1 [width]="800" [height]="200"></canvas>
+      <canvas #canvas2 [width]="800" [height]="200"></canvas>
+    </div>
+  `,
+})
+export class MultipleParticlesComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('canvas1', { static: false }) canvas1Ref!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvas2', { static: false }) canvas2Ref!: ElementRef<HTMLCanvasElement>;
+
+  private particle1: any = null;
+  private particle2: any = null;
+
+  ngAfterViewInit(): void {
+    if (this.canvas1Ref && this.canvas1Ref.nativeElement) {
+      this.particle1 = initParticleJS(this.canvas1Ref.nativeElement, {
+        text: 'FIRST',
+        colors: ['#DD0031'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+
+    if (this.canvas2Ref && this.canvas2Ref.nativeElement) {
+      this.particle2 = initParticleJS(this.canvas2Ref.nativeElement, {
+        text: 'SECOND',
+        colors: ['#1976D2'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particle1 && this.particle1.destroy) {
+      this.particle1.destroy();
+    }
+    if (this.particle2 && this.particle2.destroy) {
+      this.particle2.destroy();
+    }
+  }
+}
+```
+
+### Service-Based Approach
+
+Create a service for managing particle instances:
+
+```typescript
+// particle-text.service.ts
+import { Injectable } from '@angular/core';
+import initParticleJS from 'particletext.js';
+import { ParticleTextConfig, ParticleInstance } from './particle-text.interface';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ParticleTextService {
+  private instances: Map<string, ParticleInstance> = new Map();
+
+  initialize(id: string, canvas: HTMLCanvasElement, config: ParticleTextConfig): ParticleInstance {
+    // Destroy existing instance if it exists
+    this.destroy(id);
+
+    const instance = initParticleJS(canvas, config) as ParticleInstance;
+    this.instances.set(id, instance);
+    return instance;
+  }
+
+  getInstance(id: string): ParticleInstance | undefined {
+    return this.instances.get(id);
+  }
+
+  destroy(id: string): void {
+    const instance = this.instances.get(id);
+    if (instance && instance.destroy) {
+      instance.destroy();
+      this.instances.delete(id);
+    }
+  }
+
+  destroyAll(): void {
+    this.instances.forEach((instance) => {
+      if (instance && instance.destroy) {
+        instance.destroy();
+      }
+    });
+    this.instances.clear();
+  }
+}
+
+// Usage in component:
+@Component({
+  selector: 'app-particle-with-service',
+  template: `<canvas #particleCanvas [width]="800" [height]="300"></canvas>`,
+})
+export class ParticleWithServiceComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private instanceId = 'particle-1';
+
+  constructor(private particleService: ParticleTextService) {}
+
+  ngAfterViewInit(): void {
+    this.particleService.initialize(
+      this.instanceId,
+      this.canvasRef.nativeElement,
+      {
+        text: 'SERVICE',
+        colors: ['#DD0031'],
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.particleService.destroy(this.instanceId);
+  }
+}
+```
+
+## Standalone Component (Angular 14+)
+
+For modern Angular applications using standalone components:
+
+```typescript
+import { Component, ElementRef, Input, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import initParticleJS from 'particletext.js';
+
+@Component({
+  selector: 'app-particle-text',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <canvas
+      #particleCanvas
+      [width]="width"
+      [height]="height"
+      style="width: 100%; height: auto;"
+    ></canvas>
+  `,
+})
+export class ParticleTextComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('particleCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  @Input() text: string = '';
+  @Input() colors: string[] = ['#000000'];
+  @Input() width: number = 800;
+  @Input() height: number = 300;
+
+  private particleInstance: any = null;
+
+  ngAfterViewInit(): void {
+    if (this.canvasRef && this.canvasRef.nativeElement) {
+      this.particleInstance = initParticleJS(this.canvasRef.nativeElement, {
+        text: this.text,
+        colors: this.colors,
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+}
+```
+
+## Module Configuration
+
+Don't forget to add FormsModule if using ngModel:
+
+```typescript
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
+
+import { AppComponent } from './app.component';
+import { ParticleTextComponent } from './components/particle-text/particle-text.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    ParticleTextComponent,
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule, // Required for ngModel
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
+## Best Practices
+
+1. **Always Clean Up**: Call `destroy()` in `ngOnDestroy()` to prevent memory leaks
+2. **Use ViewChild**: Reference canvas elements with `@ViewChild` and `ElementRef`
+3. **Type Safety**: Define proper TypeScript interfaces for configuration and instances
+4. **Lifecycle Hooks**: Initialize in `ngAfterViewInit()`, not in `ngOnInit()`
+5. **Change Detection**: Use `OnChanges` to respond to input property changes
+6. **Multiple Instances**: Set `trackCursorOnlyInsideCanvas: true` for multiple canvases
+7. **Services**: Consider using a service for managing multiple instances across components
+
+## Common Issues
+
+### Canvas not found error
+Make sure you're initializing in `ngAfterViewInit()`, not `ngOnInit()`, as the canvas needs to be rendered first.
+
+### Canvas appears blurry
+Set `width` and `height` using property binding `[width]` and `[height]`, not CSS.
+
+### Changes not detected
+If using `OnChanges`, make sure to check `isViewInitialized` before reinitializing.
+
+### Memory leaks
+Always call `destroy()` in `ngOnDestroy()` lifecycle hook.
+
+### ExpressionChangedAfterItHasBeenCheckedError
+If you encounter this error, wrap your initialization in `setTimeout()` or use `ChangeDetectorRef.detectChanges()`.
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)

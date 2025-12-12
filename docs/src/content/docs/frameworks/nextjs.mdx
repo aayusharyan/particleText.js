@@ -3,4 +3,693 @@ title: Next.js
 description: Integrating ParticleText.js with Next.js
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js integrates smoothly with Next.js, handling both App Router and Pages Router architectures. This guide covers server-side rendering (SSR) considerations and best practices for Next.js applications.
+
+<DemoIframe title="ParticleText.js Next.js Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the Next.js example is deployed, it will show a live, interactive Next.js implementation running in real-time!
+:::
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## App Router (Next.js 13+)
+
+The recommended approach for Next.js 13+ using the App Router with client components.
+
+### Basic Client Component
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+export default function ParticleText() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'NEXT.JS',
+        colors: ['#000000', '#FFFFFF'],
+        fontSize: 120,
+        particleRadius: {
+          xxxs: { base: 1, rand: 1 },
+          sm: { base: 1.5, rand: 1 },
+          md: { base: 2, rand: 1 },
+        },
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={300}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+```
+
+### Reusable Client Component with Props
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+interface ParticleTextProps {
+  text: string;
+  colors?: string[];
+  width?: number;
+  height?: number;
+  fontSize?: number;
+}
+
+export default function ParticleText({
+  text,
+  colors = ['#000000'],
+  width = 800,
+  height = 300,
+  fontSize,
+}: ParticleTextProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text,
+        colors,
+        fontSize,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [text, colors, fontSize]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+```
+
+### Using in Server Components
+
+Import the client component in your server component:
+
+```tsx
+// app/page.tsx (Server Component)
+import ParticleText from '@/components/ParticleText';
+
+export default function Home() {
+  return (
+    <main>
+      <h1>Welcome to Next.js</h1>
+      <ParticleText text="HELLO" colors={['#000000', '#FFFFFF']} />
+    </main>
+  );
+}
+```
+
+## Pages Router (Next.js 12 and earlier)
+
+For projects using the Pages Router:
+
+### Basic Usage
+
+```tsx
+import { useEffect, useRef } from 'react';
+import type { NextPage } from 'next';
+import initParticleJS from 'particletext.js';
+
+const Home: NextPage = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'NEXT.JS',
+        colors: ['#000000', '#FFFFFF'],
+        fontSize: 120,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <div>
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={300}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    </div>
+  );
+};
+
+export default Home;
+```
+
+### Dynamic Import (Recommended for Pages Router)
+
+Use dynamic imports to prevent SSR issues:
+
+```tsx
+import { useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import type { NextPage } from 'next';
+
+const Home: NextPage = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    // Dynamic import to avoid SSR issues
+    import('particletext.js').then((module) => {
+      const initParticleJS = module.default;
+
+      if (canvasRef.current) {
+        particleRef.current = initParticleJS(canvasRef.current, {
+          text: 'NEXT.JS',
+          colors: ['#000000', '#FFFFFF'],
+          fontSize: 120,
+        });
+      }
+    });
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={300}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+};
+
+export default Home;
+```
+
+### Component with Dynamic Import
+
+```tsx
+'use client'; // Use this for App Router
+import { useEffect, useRef } from 'react';
+
+interface ParticleTextProps {
+  text: string;
+  colors?: string[];
+  width?: number;
+  height?: number;
+}
+
+export default function ParticleText({
+  text,
+  colors = ['#000000'],
+  width = 800,
+  height = 300,
+}: ParticleTextProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initParticles = async () => {
+      try {
+        const { default: initParticleJS } = await import('particletext.js');
+
+        if (mounted && canvasRef.current) {
+          particleRef.current = initParticleJS(canvasRef.current, {
+            text,
+            colors,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load ParticleText.js:', error);
+      }
+    };
+
+    initParticles();
+
+    return () => {
+      mounted = false;
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [text, colors]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+
+// Dynamically import with no SSR
+import dynamic from 'next/dynamic';
+
+export const ParticleTextNoSSR = dynamic(() => Promise.resolve(ParticleText), {
+  ssr: false,
+});
+```
+
+## TypeScript Configuration
+
+Create type definitions for better type safety:
+
+```typescript
+// types/particletext.d.ts
+declare module 'particletext.js' {
+  interface ParticleTextConfig {
+    text: string;
+    colors?: string[];
+    fontSize?: number;
+    width?: number;
+    height?: number;
+    fontWeight?: string;
+    textAlign?: string;
+    autoAnimate?: boolean;
+    particleRadius?: Record<string, { base: number; rand: number }>;
+    explosionRadius?: Record<string, number>;
+    friction?: { base: number; rand: number };
+    supportSlowBrowsers?: boolean;
+    slowBrowserDetected?: () => void;
+    renderTimeThreshold?: number;
+    maxParticles?: number;
+    trackCursorOnlyInsideCanvas?: boolean;
+    onError?: (error: Error) => void;
+  }
+
+  interface ParticleInstance {
+    destroy: () => void;
+    startAnimation: () => void;
+    forceRequestAnimationFrame: () => void;
+    isAnimating: boolean;
+    particleList: any[];
+    getCurrentBreakpoint: () => string;
+  }
+
+  export default function initParticleJS(
+    element: HTMLCanvasElement,
+    config: ParticleTextConfig
+  ): ParticleInstance;
+}
+```
+
+## Common Patterns
+
+### Responsive Canvas with Next.js
+
+```tsx
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import initParticleJS from 'particletext.js';
+
+export default function ResponsiveParticleText() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const particleRef = useRef<any>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 300 });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        setDimensions({
+          width,
+          height: Math.floor(width * 0.375), // 16:6 aspect ratio
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  useEffect(() => {
+    if (particleRef.current && particleRef.current.destroy) {
+      particleRef.current.destroy();
+    }
+
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'RESPONSIVE',
+        colors: ['#000000', '#FFFFFF'],
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [dimensions]);
+
+  return (
+    <div ref={containerRef} style={{ width: '100%' }}>
+      <canvas
+        ref={canvasRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    </div>
+  );
+}
+```
+
+### With Next.js Image Optimization
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import Image from 'next/image';
+import initParticleJS from 'particletext.js';
+
+export default function HeroSection() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'WELCOME',
+        colors: ['#000000', '#FFFFFF'],
+        fontSize: 150,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <section className="hero">
+      <div className="background">
+        <Image
+          src="/hero-bg.jpg"
+          alt="Hero background"
+          fill
+          style={{ objectFit: 'cover' }}
+          priority
+        />
+      </div>
+      <canvas
+        ref={canvasRef}
+        width={1200}
+        height={400}
+        style={{ width: '100%', height: 'auto', position: 'relative', zIndex: 1 }}
+      />
+    </section>
+  );
+}
+```
+
+### Multiple Instances
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+export default function MultipleParticles() {
+  const canvas1Ref = useRef<HTMLCanvasElement>(null);
+  const canvas2Ref = useRef<HTMLCanvasElement>(null);
+  const particle1Ref = useRef<any>(null);
+  const particle2Ref = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvas1Ref.current) {
+      particle1Ref.current = initParticleJS(canvas1Ref.current, {
+        text: 'FIRST',
+        colors: ['#000000'],
+        trackCursorOnlyInsideCanvas: true,
+      });
+    }
+
+    if (canvas2Ref.current) {
+      particle2Ref.current = initParticleJS(canvas2Ref.current, {
+        text: 'SECOND',
+        colors: ['#FFFFFF'],
+        trackCursorOnlyInsideCanvas: true,
+      });
+    }
+
+    return () => {
+      if (particle1Ref.current) particle1Ref.current.destroy();
+      if (particle2Ref.current) particle2Ref.current.destroy();
+    };
+  }, []);
+
+  return (
+    <div>
+      <canvas ref={canvas1Ref} width={800} height={200} />
+      <canvas ref={canvas2Ref} width={800} height={200} />
+    </div>
+  );
+}
+```
+
+### With Route Transitions
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+import initParticleJS from 'particletext.js';
+
+export default function AnimatedHeader() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Reinitialize on route change
+    if (particleRef.current && particleRef.current.destroy) {
+      particleRef.current.destroy();
+    }
+
+    if (canvasRef.current) {
+      const text = pathname === '/' ? 'HOME' : pathname.slice(1).toUpperCase();
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text,
+        colors: ['#000000', '#FFFFFF'],
+        fontSize: 100,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [pathname]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={200}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+```
+
+## Best Practices
+
+1. **Client Components**: Always mark components using ParticleText.js with `'use client'` in App Router
+2. **Dynamic Imports**: Use dynamic imports in Pages Router to avoid SSR issues
+3. **Cleanup**: Always call `destroy()` in the cleanup function
+4. **Type Safety**: Define proper TypeScript types for better developer experience
+5. **Performance**: Consider lazy loading particle components for better initial page load
+6. **Multiple Instances**: Use `trackCursorOnlyInsideCanvas: true` for multiple canvases
+7. **Responsive Design**: Handle window resizing properly with useEffect
+
+## Common Issues
+
+### Window is not defined error
+This occurs when the library tries to access `window` during SSR. Solutions:
+- Use `'use client'` directive in App Router
+- Use dynamic imports with `ssr: false` in Pages Router
+- Use `useEffect` to ensure code runs only on client
+
+### Canvas appears blurry
+Set `width` and `height` as attributes on the canvas element, not via CSS.
+
+### Animation doesn't reinitialize on route change
+Use the `usePathname` hook to detect route changes and reinitialize the animation.
+
+### Memory leaks between routes
+Always call `destroy()` in the useEffect cleanup function.
+
+### Hydration mismatch
+Ensure the component is marked as client-only with `'use client'` or dynamic import with `ssr: false`.
+
+## Performance Optimization
+
+### Code Splitting
+
+```tsx
+// Use dynamic import to split code
+import dynamic from 'next/dynamic';
+
+const ParticleText = dynamic(() => import('@/components/ParticleText'), {
+  ssr: false,
+  loading: () => <div>Loading...</div>,
+});
+
+export default function Page() {
+  return <ParticleText text="HELLO" />;
+}
+```
+
+### Lazy Loading
+
+```tsx
+'use client';
+
+import { Suspense, lazy } from 'react';
+
+const ParticleText = lazy(() => import('@/components/ParticleText'));
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading animation...</div>}>
+      <ParticleText text="HELLO" />
+    </Suspense>
+  );
+}
+```
+
+## Integration with Next.js Features
+
+### With Metadata API (App Router)
+
+```tsx
+// app/page.tsx
+import { Metadata } from 'next';
+import ParticleText from '@/components/ParticleText';
+
+export const metadata: Metadata = {
+  title: 'ParticleText Demo',
+  description: 'Stunning particle text animations in Next.js',
+};
+
+export default function Home() {
+  return (
+    <main>
+      <ParticleText text="NEXT.JS" colors={['#000000', '#FFFFFF']} />
+    </main>
+  );
+}
+```
+
+### With Tailwind CSS
+
+```tsx
+'use client';
+
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+export default function ParticleText() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'TAILWIND',
+        colors: ['#06B6D4', '#3B82F6'],
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <div className="w-full max-w-4xl mx-auto p-4">
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={300}
+        className="w-full h-auto rounded-lg shadow-lg"
+      />
+    </div>
+  );
+}
+```
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)
+- Check out [React integration](/frameworks/react) for more patterns

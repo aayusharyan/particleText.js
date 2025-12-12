@@ -3,4 +3,675 @@ title: Svelte
 description: Integrating ParticleText.js with Svelte
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js integrates elegantly with Svelte using reactive bindings and lifecycle functions. This guide covers everything you need to create stunning particle text animations in your Svelte applications.
+
+<DemoIframe title="ParticleText.js Svelte Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the Svelte example is deployed, it will show a live, interactive Svelte implementation running in real-time!
+:::
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## Basic Usage
+
+The key to using ParticleText.js in Svelte is using `bind:this` to reference the canvas element and `onMount`/`onDestroy` for lifecycle management.
+
+### Basic Component
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas;
+  let particleInstance;
+
+  onMount(() => {
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text: 'SVELTE',
+        colors: ['#FF3E00', '#40B3FF', '#676778'],
+        fontSize: 120,
+        particleRadius: {
+          xxxs: { base: 1, rand: 1 },
+          sm: { base: 1.5, rand: 1 },
+          md: { base: 2, rand: 1 },
+        },
+      });
+    }
+  });
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+```
+
+## Reusable Component with Props
+
+Create a flexible, reusable component:
+
+```svelte
+<!-- ParticleText.svelte -->
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  export let text = '';
+  export let colors = ['#000000'];
+  export let width = 800;
+  export let height = 300;
+  export let fontSize = undefined;
+  export let config = {};
+
+  let canvas;
+  let particleInstance;
+
+  function initParticles() {
+    // Destroy existing instance
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+
+    // Create new instance
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text,
+        colors,
+        fontSize,
+        ...config,
+      });
+    }
+  }
+
+  onMount(() => {
+    initParticles();
+  });
+
+  // Reinitialize when props change
+  $: if (canvas && (text || colors || fontSize)) {
+    initParticles();
+  }
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<canvas
+  bind:this={canvas}
+  {width}
+  {height}
+  style="width: 100%; height: auto;"
+/>
+
+<!-- Usage: -->
+<!-- <ParticleText text="HELLO" colors={['#FF3E00', '#40B3FF']} width={1000} /> -->
+```
+
+## Reactive Text Updates
+
+Svelte's reactivity makes it easy to update text dynamically:
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas;
+  let particleInstance;
+  let text = 'HELLO';
+
+  function initParticles() {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text,
+        colors: ['#FF3E00', '#40B3FF'],
+        fontSize: 100,
+      });
+    }
+  }
+
+  onMount(() => {
+    initParticles();
+  });
+
+  // Reactive statement: automatically reinitialize when text changes
+  $: if (canvas && text) {
+    initParticles();
+  }
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<input
+  bind:value={text}
+  type="text"
+  placeholder="Enter text"
+  class="text-input"
+/>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+
+<style>
+  .text-input {
+    padding: 8px;
+    margin-bottom: 16px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 400px;
+  }
+</style>
+```
+
+## Manual Animation Control
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas;
+  let particleInstance;
+
+  function startAnimation() {
+    if (particleInstance && particleInstance.startAnimation) {
+      particleInstance.startAnimation();
+    }
+  }
+
+  onMount(() => {
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text: 'CLICK TO START',
+        colors: ['#FF3E00'],
+        autoAnimate: false,
+      });
+    }
+  });
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<button on:click={startAnimation}>Start Animation</button>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+```
+
+## TypeScript Support (SvelteKit)
+
+For TypeScript projects:
+
+```svelte
+<!-- ParticleText.svelte -->
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  interface ParticleInstance {
+    destroy: () => void;
+    startAnimation: () => void;
+    isAnimating: boolean;
+    particleList: any[];
+  }
+
+  export let text: string;
+  export let colors: string[] = ['#000000'];
+  export let width: number = 800;
+  export let height: number = 300;
+  export let fontSize: number | undefined = undefined;
+  export let config: Record<string, any> = {};
+
+  let canvas: HTMLCanvasElement;
+  let particleInstance: ParticleInstance | null = null;
+
+  function initParticles(): void {
+    if (particleInstance?.destroy) {
+      particleInstance.destroy();
+    }
+
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text,
+        colors,
+        fontSize,
+        ...config,
+      }) as ParticleInstance;
+    }
+  }
+
+  onMount(() => {
+    initParticles();
+  });
+
+  $: if (canvas && (text || colors || fontSize)) {
+    initParticles();
+  }
+
+  onDestroy(() => {
+    if (particleInstance?.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<canvas
+  bind:this={canvas}
+  {width}
+  {height}
+  style="width: 100%; height: auto;"
+/>
+```
+
+## Common Patterns
+
+### Responsive Canvas
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas;
+  let container;
+  let particleInstance;
+  let canvasWidth = 800;
+  let canvasHeight = 300;
+
+  function updateDimensions() {
+    if (container) {
+      canvasWidth = container.offsetWidth;
+      canvasHeight = Math.floor(canvasWidth * 0.375); // 16:6 aspect ratio
+    }
+  }
+
+  function initParticles() {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text: 'RESPONSIVE',
+        colors: ['#FF3E00'],
+      });
+    }
+  }
+
+  onMount(() => {
+    updateDimensions();
+    initParticles();
+    window.addEventListener('resize', handleResize);
+  });
+
+  function handleResize() {
+    updateDimensions();
+    initParticles();
+  }
+
+  onDestroy(() => {
+    window.removeEventListener('resize', handleResize);
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<div bind:this={container} style="width: 100%;">
+  <canvas
+    bind:this={canvas}
+    width={canvasWidth}
+    height={canvasHeight}
+    style="width: 100%; height: auto;"
+  />
+</div>
+```
+
+### Multiple Instances
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas1;
+  let canvas2;
+  let particle1;
+  let particle2;
+
+  onMount(() => {
+    if (canvas1) {
+      particle1 = initParticleJS(canvas1, {
+        text: 'FIRST',
+        colors: ['#FF3E00'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+
+    if (canvas2) {
+      particle2 = initParticleJS(canvas2, {
+        text: 'SECOND',
+        colors: ['#40B3FF'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+  });
+
+  onDestroy(() => {
+    if (particle1) particle1.destroy();
+    if (particle2) particle2.destroy();
+  });
+</script>
+
+<canvas bind:this={canvas1} width={800} height={200} />
+<canvas bind:this={canvas2} width={800} height={200} />
+```
+
+### Store-Based State Management
+
+Use Svelte stores for advanced state management:
+
+```javascript
+// particleStore.js
+import { writable } from 'svelte/store';
+
+export const particleText = writable('HELLO');
+export const particleColors = writable(['#FF3E00', '#40B3FF']);
+```
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+  import { particleText, particleColors } from './particleStore';
+
+  let canvas;
+  let particleInstance;
+
+  function initParticles() {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text: $particleText,
+        colors: $particleColors,
+      });
+    }
+  }
+
+  onMount(() => {
+    initParticles();
+  });
+
+  // Reactive statement with stores
+  $: if (canvas && ($particleText || $particleColors)) {
+    initParticles();
+  }
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+```
+
+### Action-Based Approach
+
+Create a Svelte action for cleaner code:
+
+```javascript
+// particleTextAction.js
+import initParticleJS from 'particletext.js';
+
+export function particleText(node, config) {
+  let instance = initParticleJS(node, config);
+
+  return {
+    update(newConfig) {
+      if (instance && instance.destroy) {
+        instance.destroy();
+      }
+      instance = initParticleJS(node, newConfig);
+    },
+    destroy() {
+      if (instance && instance.destroy) {
+        instance.destroy();
+      }
+    }
+  };
+}
+```
+
+Usage:
+
+```svelte
+<script>
+  import { particleText } from './particleTextAction';
+
+  let config = {
+    text: 'ACTION',
+    colors: ['#FF3E00', '#40B3FF'],
+    fontSize: 120,
+  };
+</script>
+
+<canvas
+  use:particleText={config}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+```
+
+## SvelteKit Integration
+
+For SvelteKit applications, ensure client-side only rendering:
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
+
+  let canvas;
+  let particleInstance;
+  let initParticleJS;
+
+  onMount(async () => {
+    if (browser) {
+      // Dynamic import for client-side only
+      const module = await import('particletext.js');
+      initParticleJS = module.default;
+
+      if (canvas && initParticleJS) {
+        particleInstance = initParticleJS(canvas, {
+          text: 'SVELTEKIT',
+          colors: ['#FF3E00', '#40B3FF'],
+          fontSize: 120,
+        });
+      }
+    }
+  });
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+```
+
+## Reactive Color Picker Example
+
+```svelte
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import initParticleJS from 'particletext.js';
+
+  let canvas;
+  let particleInstance;
+  let color1 = '#FF3E00';
+  let color2 = '#40B3FF';
+  let text = 'SVELTE';
+
+  function initParticles() {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+
+    if (canvas) {
+      particleInstance = initParticleJS(canvas, {
+        text,
+        colors: [color1, color2],
+        fontSize: 100,
+      });
+    }
+  }
+
+  onMount(() => {
+    initParticles();
+  });
+
+  $: if (canvas && (color1 || color2 || text)) {
+    initParticles();
+  }
+
+  onDestroy(() => {
+    if (particleInstance && particleInstance.destroy) {
+      particleInstance.destroy();
+    }
+  });
+</script>
+
+<div class="controls">
+  <label>
+    Color 1:
+    <input type="color" bind:value={color1} />
+  </label>
+  <label>
+    Color 2:
+    <input type="color" bind:value={color2} />
+  </label>
+  <label>
+    Text:
+    <input type="text" bind:value={text} />
+  </label>
+</div>
+
+<canvas
+  bind:this={canvas}
+  width={800}
+  height={300}
+  style="width: 100%; height: auto;"
+/>
+
+<style>
+  .controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+</style>
+```
+
+## Best Practices
+
+1. **Always Clean Up**: Call `destroy()` in `onDestroy()` to prevent memory leaks
+2. **Use bind:this**: Bind canvas elements using `bind:this={canvas}`
+3. **Reactive Statements**: Use `$:` for automatic reinitialization on prop changes
+4. **Canvas Sizing**: Set `width` and `height` as attributes, not CSS properties
+5. **Multiple Instances**: Set `trackCursorOnlyInsideCanvas: true` for multiple canvases
+6. **Actions**: Consider using Svelte actions for cleaner, reusable code
+7. **SvelteKit**: Use dynamic imports for client-side only rendering
+
+## Common Issues
+
+### Canvas appears blurry
+Make sure you're setting `width` and `height` as attributes on the canvas element, not via CSS.
+
+### Animation doesn't start
+Check that `autoAnimate` is not set to `false`, or manually call `startAnimation()`.
+
+### Reactive updates not working
+Ensure your reactive statement (`$:`) checks for the canvas element being defined.
+
+### Memory leaks
+Always call `destroy()` in the `onDestroy()` lifecycle function.
+
+### SvelteKit SSR errors
+Use dynamic imports with the `browser` check to ensure client-side only execution.
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)

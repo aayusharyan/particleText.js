@@ -1,30 +1,51 @@
 // @ts-check
+// Configures the Astro docs site with Starlight, theme plugins, and assets.
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import starlightThemeObsidian from 'starlight-theme-obsidian';
-import starlightSiteGraph from 'starlight-site-graph';
 
 // https://astro.build/config
+// Builds the docs site configuration, wiring theme integrations, navigation, and assets.
 export default defineConfig({
 	site: 'https://particletext.js.org', // Update with your actual domain
 	prefetch: true,
+	vite: {
+		resolve: {
+			alias: {
+				path: 'path-browserify',
+			},
+		},
+		optimizeDeps: {
+			include: ['micromatch'],
+			// Polyfill minimal process vars so micromatch can run in the browser bundle.
+			esbuildOptions: {
+				define: {
+					'process.env.NODE_ENV': JSON.stringify('development'),
+					'process.platform': JSON.stringify('browser'),
+					'process.env': JSON.stringify({}),
+				},
+			},
+		},
+	},
 	integrations: [
 		starlight({
 			plugins: [
-				starlightSiteGraph({
-					backlinks: true,
-					graph: true,
-					trackVisitedPages: 'session',
-				}),
-				starlightThemeObsidian()
+				starlightThemeObsidian({
+					graphConfig: {
+						backlinks: true,
+						graph: true,
+						trackVisitedPages: 'session',
+						actions: ['fullscreen', 'depth', 'reset-zoom', 'render-arrows'],
+					}
+				})
 			],
 			title: 'ParticleText.js',
 			description: 'A vanilla JavaScript particle text animation library',
 			logo: {
-				src: './public/favicon.svg',
+				src: './public/logo.png',
 			},
 			social: [
 				{
@@ -34,6 +55,15 @@ export default defineConfig({
 				},
 			],
 			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon.png',
+						type: 'image/png',
+						sizes: '512x512',
+					},
+				},
 				{
 					tag: 'script',
 					attrs: {

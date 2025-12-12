@@ -3,4 +3,483 @@ title: React
 description: Integrating ParticleText.js with React
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js integrates seamlessly with React using refs and lifecycle hooks. This guide covers everything you need to create stunning particle text animations in your React applications.
+
+<DemoIframe title="ParticleText.js React Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the React example is deployed, it will show a live, interactive React implementation running in real-time!
+:::
+
+## Installation
+
+First, install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## Basic Usage
+
+The key to using ParticleText.js in React is using `useRef` to reference the canvas element and `useEffect` to initialize and clean up the animation.
+
+### Function Component (Recommended)
+
+```jsx
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+function ParticleText() {
+  const canvasRef = useRef(null);
+  const particleRef = useRef(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      // Initialize ParticleText
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'REACT',
+        colors: ['#61DAFB', '#282C34', '#20232A'],
+        fontSize: 120,
+        particleRadius: {
+          xxxs: { base: 1, rand: 1 },
+          sm: { base: 1.5, rand: 1 },
+          md: { base: 2, rand: 1 },
+        },
+      });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={300}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+
+export default ParticleText;
+```
+
+### Class Component
+
+```jsx
+import React from 'react';
+import initParticleJS from 'particletext.js';
+
+class ParticleText extends React.Component {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+    this.particleInstance = null;
+  }
+
+  componentDidMount() {
+    if (this.canvasRef.current) {
+      this.particleInstance = initParticleJS(this.canvasRef.current, {
+        text: 'REACT',
+        colors: ['#61DAFB', '#282C34', '#20232A'],
+        fontSize: 120,
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  }
+
+  render() {
+    return (
+      <canvas
+        ref={this.canvasRef}
+        width={800}
+        height={300}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    );
+  }
+}
+
+export default ParticleText;
+```
+
+## Reusable Component
+
+Create a flexible, reusable component that accepts props:
+
+```jsx
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+function ParticleText({
+  text,
+  colors = ['#000000'],
+  width = 800,
+  height = 300,
+  fontSize,
+  ...config
+}) {
+  const canvasRef = useRef(null);
+  const particleRef = useRef(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text,
+        colors,
+        fontSize,
+        ...config,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [text, colors, fontSize, config]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+
+export default ParticleText;
+
+// Usage:
+// <ParticleText text="HELLO" colors={['#FF0000', '#00FF00']} width={1000} />
+```
+
+## Dynamic Text Updates
+
+To update the text dynamically, reinitialize the particle effect:
+
+```jsx
+import { useEffect, useRef, useState } from 'react';
+import initParticleJS from 'particletext.js';
+
+function DynamicParticleText() {
+  const canvasRef = useRef(null);
+  const particleRef = useRef(null);
+  const [text, setText] = useState('HELLO');
+
+  useEffect(() => {
+    // Destroy previous instance
+    if (particleRef.current && particleRef.current.destroy) {
+      particleRef.current.destroy();
+    }
+
+    // Create new instance with updated text
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text,
+        colors: ['#61DAFB', '#282C34'],
+        fontSize: 100,
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [text]); // Re-run when text changes
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Enter text"
+      />
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={300}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    </div>
+  );
+}
+
+export default DynamicParticleText;
+```
+
+## Manual Animation Control
+
+Control when the animation starts:
+
+```jsx
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+function ControlledParticleText() {
+  const canvasRef = useRef(null);
+  const particleRef = useRef(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'CLICK TO START',
+        colors: ['#61DAFB'],
+        autoAnimate: false, // Don't start automatically
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, []);
+
+  const startAnimation = () => {
+    if (particleRef.current) {
+      particleRef.current.startAnimation();
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={startAnimation}>Start Animation</button>
+      <canvas
+        ref={canvasRef}
+        width={800}
+        height={300}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    </div>
+  );
+}
+
+export default ControlledParticleText;
+```
+
+## TypeScript Support
+
+Create a TypeScript component with proper types:
+
+```tsx
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+interface ParticleTextProps {
+  text: string;
+  colors?: string[];
+  width?: number;
+  height?: number;
+  fontSize?: number;
+  autoAnimate?: boolean;
+  particleRadius?: Record<string, { base: number; rand: number }>;
+  explosionRadius?: Record<string, number>;
+  friction?: { base: number; rand: number };
+  trackCursorOnlyInsideCanvas?: boolean;
+}
+
+interface ParticleInstance {
+  destroy: () => void;
+  startAnimation: () => void;
+  isAnimating: boolean;
+  particleList: any[];
+}
+
+function ParticleText({
+  text,
+  colors = ['#000000'],
+  width = 800,
+  height = 300,
+  fontSize,
+  ...config
+}: ParticleTextProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particleRef = useRef<ParticleInstance | null>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text,
+        colors,
+        fontSize,
+        ...config,
+      }) as ParticleInstance;
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [text, colors, fontSize, config]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  );
+}
+
+export default ParticleText;
+```
+
+## Common Patterns
+
+### Responsive Canvas
+
+```jsx
+import { useEffect, useRef, useState } from 'react';
+import initParticleJS from 'particletext.js';
+
+function ResponsiveParticleText() {
+  const canvasRef = useRef(null);
+  const particleRef = useRef(null);
+  const containerRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 300 });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { offsetWidth } = containerRef.current;
+        setDimensions({
+          width: offsetWidth,
+          height: Math.floor(offsetWidth * 0.375), // 16:6 aspect ratio
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  useEffect(() => {
+    if (particleRef.current && particleRef.current.destroy) {
+      particleRef.current.destroy();
+    }
+
+    if (canvasRef.current) {
+      particleRef.current = initParticleJS(canvasRef.current, {
+        text: 'RESPONSIVE',
+        colors: ['#61DAFB'],
+      });
+    }
+
+    return () => {
+      if (particleRef.current && particleRef.current.destroy) {
+        particleRef.current.destroy();
+      }
+    };
+  }, [dimensions]);
+
+  return (
+    <div ref={containerRef} style={{ width: '100%' }}>
+      <canvas
+        ref={canvasRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        style={{ width: '100%', height: 'auto' }}
+      />
+    </div>
+  );
+}
+
+export default ResponsiveParticleText;
+```
+
+### Multiple Instances
+
+```jsx
+import { useEffect, useRef } from 'react';
+import initParticleJS from 'particletext.js';
+
+function MultipleParticles() {
+  const canvas1Ref = useRef(null);
+  const canvas2Ref = useRef(null);
+  const particle1Ref = useRef(null);
+  const particle2Ref = useRef(null);
+
+  useEffect(() => {
+    if (canvas1Ref.current) {
+      particle1Ref.current = initParticleJS(canvas1Ref.current, {
+        text: 'FIRST',
+        colors: ['#61DAFB'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+
+    if (canvas2Ref.current) {
+      particle2Ref.current = initParticleJS(canvas2Ref.current, {
+        text: 'SECOND',
+        colors: ['#FF6B6B'],
+        trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+      });
+    }
+
+    return () => {
+      if (particle1Ref.current) particle1Ref.current.destroy();
+      if (particle2Ref.current) particle2Ref.current.destroy();
+    };
+  }, []);
+
+  return (
+    <div>
+      <canvas ref={canvas1Ref} width={800} height={200} />
+      <canvas ref={canvas2Ref} width={800} height={200} />
+    </div>
+  );
+}
+
+export default MultipleParticles;
+```
+
+## Best Practices
+
+1. **Always Clean Up**: Use the `destroy()` method in cleanup functions to prevent memory leaks
+2. **Use Refs**: Store the particle instance in a ref to access methods like `startAnimation()`
+3. **Canvas Sizing**: Set `width` and `height` as attributes, not CSS properties
+4. **Multiple Instances**: Set `trackCursorOnlyInsideCanvas: true` when using multiple canvases
+5. **Performance**: Use `maxParticles` and `renderTimeThreshold` configs for performance optimization
+6. **Accessibility**: The library automatically adds ARIA labels for screen readers
+
+## Common Issues
+
+### Canvas appears blurry
+Make sure you're setting `width` and `height` as attributes on the canvas element, not via CSS.
+
+### Animation doesn't start
+Check that `autoAnimate` is not set to `false`, or manually call `startAnimation()`.
+
+### Memory leaks
+Always call `destroy()` in the cleanup function of your `useEffect` hook.
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)

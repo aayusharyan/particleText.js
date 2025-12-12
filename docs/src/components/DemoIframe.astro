@@ -1,0 +1,110 @@
+---
+/**
+ * DemoIframe Component
+ *
+ * Embeds an iframe to show live demos in the documentation.
+ * For now, shows https://yush.dev as placeholder.
+ * In the future, will show actual framework-specific examples.
+ *
+ * Props:
+ * - src: URL to embed (default: https://yush.dev)
+ * - title: Title for accessibility (default: "Live Demo")
+ * - height: Height of iframe (default: "500px")
+ */
+
+interface Props {
+  src?: string;
+  title?: string;
+  height?: string;
+}
+
+const {
+  src = 'https://yush.dev',
+  title = 'Live Demo',
+  height = '500px'
+} = Astro.props;
+---
+
+<div class="demo-iframe-container">
+  <div class="demo-header">
+    <span class="demo-badge">🎬 Live Demo</span>
+    <span class="demo-note">
+      {src === 'https://yush.dev'
+        ? '(Placeholder - Framework-specific demo coming soon!)'
+        : ''}
+    </span>
+  </div>
+  <iframe
+    src={src}
+    title={title}
+    loading="lazy"
+    sandbox="allow-scripts allow-same-origin allow-forms"
+    referrerpolicy="no-referrer-when-downgrade"
+  />
+</div>
+
+<style>
+  .demo-iframe-container {
+    margin: 2rem 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--sl-color-gray-5);
+    background: var(--sl-color-gray-6);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--sl-color-bg-nav);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .demo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sl-color-white);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+  }
+
+  .demo-note {
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    font-style: italic;
+  }
+
+  iframe {
+    width: 100%;
+    height: 500px;
+    border: none;
+    display: block;
+    background: white;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    iframe {
+      height: 400px;
+    }
+
+    .demo-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  /* Dark mode support */
+  :root[data-theme='dark'] .demo-iframe-container {
+    border-color: var(--sl-color-gray-4);
+    background: var(--sl-color-gray-7);
+  }
+</style>

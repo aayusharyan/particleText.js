@@ -3,4 +3,702 @@ title: Vue
 description: Integrating ParticleText.js with Vue.js
 ---
 
-Documentation coming soon.
+import DemoIframe from '../../../components/DemoIframe.astro';
+
+ParticleText.js works beautifully with Vue.js using template refs and lifecycle hooks. This guide covers integration patterns for both Vue 3 (Composition API) and Vue 2 (Options API).
+
+<DemoIframe title="ParticleText.js Vue Demo" />
+
+:::note[Future Enhancement]
+The iframe above currently shows a placeholder demo. Once the Vue example is deployed, it will show a live, interactive Vue 3 implementation running in real-time!
+:::
+
+## Installation
+
+Install the package via npm:
+
+```bash
+npm install particletext.js
+```
+
+Or using yarn:
+
+```bash
+yarn add particletext.js
+```
+
+## Vue 3 (Composition API)
+
+The recommended approach for Vue 3 uses the Composition API with `ref` and lifecycle hooks.
+
+### Basic Usage
+
+```vue
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="800"
+    :height="300"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const canvasRef = ref(null);
+let particleInstance = null;
+
+onMounted(() => {
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: 'VUE.JS',
+      colors: ['#42B883', '#35495E', '#41B883'],
+      fontSize: 120,
+      particleRadius: {
+        xxxs: { base: 1, rand: 1 },
+        sm: { base: 1.5, rand: 1 },
+        md: { base: 2, rand: 1 },
+      },
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+### Reusable Component with Props
+
+Create a flexible component that accepts props:
+
+```vue
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const props = defineProps({
+  text: {
+    type: String,
+    required: true,
+  },
+  colors: {
+    type: Array,
+    default: () => ['#000000'],
+  },
+  width: {
+    type: Number,
+    default: 800,
+  },
+  height: {
+    type: Number,
+    default: 300,
+  },
+  fontSize: {
+    type: Number,
+    default: undefined,
+  },
+  config: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const canvasRef = ref(null);
+let particleInstance = null;
+
+const initParticles = () => {
+  // Destroy existing instance
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  // Create new instance
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: props.text,
+      colors: props.colors,
+      fontSize: props.fontSize,
+      ...props.config,
+    });
+  }
+};
+
+onMounted(() => {
+  initParticles();
+});
+
+// Watch for prop changes and reinitialize
+watch(
+  () => [props.text, props.colors, props.fontSize],
+  () => {
+    initParticles();
+  },
+  { deep: true }
+);
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+
+<!-- Usage: -->
+<!-- <ParticleText text="HELLO" :colors="['#42B883', '#35495E']" :width="1000" /> -->
+```
+
+### Dynamic Text with v-model
+
+```vue
+<template>
+  <div>
+    <input
+      v-model="text"
+      type="text"
+      placeholder="Enter text"
+      class="text-input"
+    />
+    <canvas
+      ref="canvasRef"
+      :width="800"
+      :height="300"
+      style="width: 100%; height: auto;"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const canvasRef = ref(null);
+const text = ref('HELLO');
+let particleInstance = null;
+
+const initParticles = () => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: text.value,
+      colors: ['#42B883', '#35495E'],
+      fontSize: 100,
+    });
+  }
+};
+
+onMounted(() => {
+  initParticles();
+});
+
+watch(text, () => {
+  initParticles();
+});
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+
+<style scoped>
+.text-input {
+  padding: 8px;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+</style>
+```
+
+### Manual Animation Control
+
+```vue
+<template>
+  <div>
+    <button @click="startAnimation">Start Animation</button>
+    <canvas
+      ref="canvasRef"
+      :width="800"
+      :height="300"
+      style="width: 100%; height: auto;"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const canvasRef = ref(null);
+let particleInstance = null;
+
+const startAnimation = () => {
+  if (particleInstance && particleInstance.startAnimation) {
+    particleInstance.startAnimation();
+  }
+};
+
+onMounted(() => {
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: 'CLICK TO START',
+      colors: ['#42B883'],
+      autoAnimate: false,
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+## Vue 2 (Options API)
+
+For Vue 2 or Vue 3 with Options API:
+
+### Basic Usage
+
+```vue
+<template>
+  <canvas
+    ref="canvas"
+    :width="800"
+    :height="300"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script>
+import initParticleJS from 'particletext.js';
+
+export default {
+  name: 'ParticleText',
+  data() {
+    return {
+      particleInstance: null,
+    };
+  },
+  mounted() {
+    if (this.$refs.canvas) {
+      this.particleInstance = initParticleJS(this.$refs.canvas, {
+        text: 'VUE.JS',
+        colors: ['#42B883', '#35495E', '#41B883'],
+        fontSize: 120,
+      });
+    }
+  },
+  beforeDestroy() { // Use beforeUnmount in Vue 3
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  },
+};
+</script>
+```
+
+### With Props
+
+```vue
+<template>
+  <canvas
+    ref="canvas"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script>
+import initParticleJS from 'particletext.js';
+
+export default {
+  name: 'ParticleText',
+  props: {
+    text: {
+      type: String,
+      required: true,
+    },
+    colors: {
+      type: Array,
+      default: () => ['#000000'],
+    },
+    width: {
+      type: Number,
+      default: 800,
+    },
+    height: {
+      type: Number,
+      default: 300,
+    },
+    fontSize: {
+      type: Number,
+      default: undefined,
+    },
+    config: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+  data() {
+    return {
+      particleInstance: null,
+    };
+  },
+  mounted() {
+    this.initParticles();
+  },
+  watch: {
+    text() {
+      this.initParticles();
+    },
+    colors: {
+      handler() {
+        this.initParticles();
+      },
+      deep: true,
+    },
+  },
+  methods: {
+    initParticles() {
+      if (this.particleInstance && this.particleInstance.destroy) {
+        this.particleInstance.destroy();
+      }
+
+      if (this.$refs.canvas) {
+        this.particleInstance = initParticleJS(this.$refs.canvas, {
+          text: this.text,
+          colors: this.colors,
+          fontSize: this.fontSize,
+          ...this.config,
+        });
+      }
+    },
+  },
+  beforeDestroy() { // Use beforeUnmount in Vue 3
+    if (this.particleInstance && this.particleInstance.destroy) {
+      this.particleInstance.destroy();
+    }
+  },
+};
+</script>
+```
+
+## TypeScript Support (Vue 3)
+
+For TypeScript projects:
+
+```vue
+<template>
+  <canvas
+    ref="canvasRef"
+    :width="width"
+    :height="height"
+    style="width: 100%; height: auto;"
+  />
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount, watch, type Ref } from 'vue';
+import initParticleJS from 'particletext.js';
+
+interface ParticleInstance {
+  destroy: () => void;
+  startAnimation: () => void;
+  isAnimating: boolean;
+  particleList: any[];
+}
+
+interface Props {
+  text: string;
+  colors?: string[];
+  width?: number;
+  height?: number;
+  fontSize?: number;
+  config?: Record<string, any>;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  colors: () => ['#000000'],
+  width: 800,
+  height: 300,
+  config: () => ({}),
+});
+
+const canvasRef: Ref<HTMLCanvasElement | null> = ref(null);
+let particleInstance: ParticleInstance | null = null;
+
+const initParticles = () => {
+  if (particleInstance?.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: props.text,
+      colors: props.colors,
+      fontSize: props.fontSize,
+      ...props.config,
+    }) as ParticleInstance;
+  }
+};
+
+onMounted(() => {
+  initParticles();
+});
+
+watch(
+  () => [props.text, props.colors, props.fontSize],
+  () => {
+    initParticles();
+  },
+  { deep: true }
+);
+
+onBeforeUnmount(() => {
+  if (particleInstance?.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+## Common Patterns
+
+### Responsive Canvas
+
+```vue
+<template>
+  <div ref="containerRef" style="width: 100%;">
+    <canvas
+      ref="canvasRef"
+      :width="dimensions.width"
+      :height="dimensions.height"
+      style="width: 100%; height: auto;"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const canvasRef = ref(null);
+const containerRef = ref(null);
+const dimensions = reactive({ width: 800, height: 300 });
+let particleInstance = null;
+
+const updateDimensions = () => {
+  if (containerRef.value) {
+    const width = containerRef.value.offsetWidth;
+    dimensions.width = width;
+    dimensions.height = Math.floor(width * 0.375); // 16:6 aspect ratio
+  }
+};
+
+const initParticles = () => {
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+
+  if (canvasRef.value) {
+    particleInstance = initParticleJS(canvasRef.value, {
+      text: 'RESPONSIVE',
+      colors: ['#42B883'],
+    });
+  }
+};
+
+onMounted(() => {
+  updateDimensions();
+  window.addEventListener('resize', updateDimensions);
+  initParticles();
+});
+
+watch(
+  () => [dimensions.width, dimensions.height],
+  () => {
+    initParticles();
+  }
+);
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateDimensions);
+  if (particleInstance && particleInstance.destroy) {
+    particleInstance.destroy();
+  }
+});
+</script>
+```
+
+### Multiple Instances
+
+```vue
+<template>
+  <div>
+    <canvas ref="canvas1" :width="800" :height="200" />
+    <canvas ref="canvas2" :width="800" :height="200" />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import initParticleJS from 'particletext.js';
+
+const canvas1 = ref(null);
+const canvas2 = ref(null);
+let particle1 = null;
+let particle2 = null;
+
+onMounted(() => {
+  if (canvas1.value) {
+    particle1 = initParticleJS(canvas1.value, {
+      text: 'FIRST',
+      colors: ['#42B883'],
+      trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+    });
+  }
+
+  if (canvas2.value) {
+    particle2 = initParticleJS(canvas2.value, {
+      text: 'SECOND',
+      colors: ['#FF6B6B'],
+      trackCursorOnlyInsideCanvas: true, // Important for multiple instances
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  if (particle1) particle1.destroy();
+  if (particle2) particle2.destroy();
+});
+</script>
+```
+
+### Composable (Advanced)
+
+Create a reusable composable for ParticleText:
+
+```js
+// composables/useParticleText.js
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import initParticleJS from 'particletext.js';
+
+export function useParticleText(config = {}) {
+  const canvasRef = ref(null);
+  const particleInstance = ref(null);
+  const isAnimating = ref(false);
+
+  const init = (customConfig = {}) => {
+    if (particleInstance.value && particleInstance.value.destroy) {
+      particleInstance.value.destroy();
+    }
+
+    if (canvasRef.value) {
+      particleInstance.value = initParticleJS(canvasRef.value, {
+        ...config,
+        ...customConfig,
+      });
+      isAnimating.value = particleInstance.value.isAnimating;
+    }
+  };
+
+  const startAnimation = () => {
+    if (particleInstance.value && particleInstance.value.startAnimation) {
+      particleInstance.value.startAnimation();
+      isAnimating.value = true;
+    }
+  };
+
+  const destroy = () => {
+    if (particleInstance.value && particleInstance.value.destroy) {
+      particleInstance.value.destroy();
+      isAnimating.value = false;
+    }
+  };
+
+  onMounted(() => {
+    init();
+  });
+
+  onBeforeUnmount(() => {
+    destroy();
+  });
+
+  return {
+    canvasRef,
+    particleInstance,
+    isAnimating,
+    init,
+    startAnimation,
+    destroy,
+  };
+}
+```
+
+Usage:
+
+```vue
+<template>
+  <canvas ref="canvasRef" :width="800" :height="300" />
+</template>
+
+<script setup>
+import { useParticleText } from '@/composables/useParticleText';
+
+const { canvasRef } = useParticleText({
+  text: 'COMPOSABLE',
+  colors: ['#42B883', '#35495E'],
+});
+</script>
+```
+
+## Best Practices
+
+1. **Always Clean Up**: Call `destroy()` in `onBeforeUnmount` (Vue 3) or `beforeDestroy` (Vue 2)
+2. **Use Template Refs**: Use `ref` attribute to access the canvas element
+3. **Watch Props**: Use `watch` to reinitialize when props change
+4. **Canvas Sizing**: Use `:width` and `:height` as attributes, not CSS
+5. **Multiple Instances**: Set `trackCursorOnlyInsideCanvas: true` for multiple canvases
+6. **Composables**: Create reusable composables for complex logic (Vue 3)
+
+## Common Issues
+
+### Canvas appears blurry
+Ensure you're setting `width` and `height` as attributes using `:width` and `:height`, not via CSS.
+
+### Animation doesn't restart on prop change
+Make sure to call `destroy()` before reinitializing with new props.
+
+### Memory leaks
+Always destroy the instance in `onBeforeUnmount` or `beforeDestroy`.
+
+### TypeScript errors
+Add proper type definitions for the particle instance and props.
+
+## Next Steps
+
+- Explore [configuration options](/api-reference/configuration)
+- See [interactive examples](/examples)
+- Learn about [performance optimization](/guides/performance-optimization)
