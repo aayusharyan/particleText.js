@@ -32,7 +32,19 @@ jobs:
         run: |
           echo "Sub-workflow versions:"
           DOCS_VERSION=$(node -p "require('./docs/package.json').version")
+          REACT_VERSION=$(node -p "require('./examples/react/package.json').version")
+          VUE_VERSION=$(node -p "require('./examples/vue/package.json').version")
+          SVELTE_VERSION=$(node -p "require('./examples/svelte/package.json').version")
+          ANGULAR_VERSION=$(node -p "require('./examples/angular/package.json').version")
+          NEXTJS_VERSION=$(node -p "require('./examples/nextjs/package.json').version")
+          NUXT_VERSION=$(node -p "require('./examples/nuxt/package.json').version")
           echo "  - Documentation site: v$DOCS_VERSION"
+          echo "  - React example: v$REACT_VERSION"
+          echo "  - Vue example: v$VUE_VERSION"
+          echo "  - Svelte example: v$SVELTE_VERSION"
+          echo "  - Angular example: v$ANGULAR_VERSION"
+          echo "  - Next.js example: v$NEXTJS_VERSION"
+          echo "  - Nuxt example: v$NUXT_VERSION"
 
       # Sets a flag to tell downstream jobs to deploy the docs site.
       - name: Decide deployment plan
@@ -45,4 +57,52 @@ jobs:
     needs: orchestrate
     if: needs.orchestrate.outputs.deploy == 'true'
     uses: ./.github/workflows/deploy-docs-site.yml
+    secrets: inherit
+
+  # Invokes the React example deployment workflow when deployment is planned.
+  deploy_react_example:
+    name: Deploy React example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-react-site.yml
+    secrets: inherit
+
+  # Invokes the Vue example deployment workflow when deployment is planned.
+  deploy_vue_example:
+    name: Deploy Vue example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-vue-site.yml
+    secrets: inherit
+
+  # Invokes the Svelte example deployment workflow when deployment is planned.
+  deploy_svelte_example:
+    name: Deploy Svelte example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-svelte-site.yml
+    secrets: inherit
+
+  # Invokes the Angular example deployment workflow when deployment is planned.
+  deploy_angular_example:
+    name: Deploy Angular example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-angular-site.yml
+    secrets: inherit
+
+  # Invokes the Next.js example deployment workflow when deployment is planned.
+  deploy_nextjs_example:
+    name: Deploy Next.js example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-nextjs-site.yml
+    secrets: inherit
+
+  # Invokes the Nuxt example deployment workflow when deployment is planned.
+  deploy_nuxt_example:
+    name: Deploy Nuxt example
+    needs: orchestrate
+    if: needs.orchestrate.outputs.deploy == 'true'
+    uses: ./.github/workflows/deploy-nuxt-site.yml
     secrets: inherit
