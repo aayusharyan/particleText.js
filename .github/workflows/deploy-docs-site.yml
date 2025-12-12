@@ -55,3 +55,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PARTICLE_TEXT }}
           projectId: particle-text
+          channelId: live
+          target: docs
