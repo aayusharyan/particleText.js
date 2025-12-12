@@ -1,0 +1,32 @@
+{
+  "projects": {
+    "default": "particle-text"
+  },
+  "targets": {
+    "particle-text": {
+      "hosting": {
+        "docs": [
+          "particle-text"
+        ],
+        "react": [
+          "particle-text-react"
+        ],
+        "vue": [
+          "particle-text-vue"
+        ],
+        "svelte": [
+          "particle-text-svelte"
+        ],
+        "angular": [
+          "particle-text-angular"
+        ],
+        "nextjs": [
+          "particle-text-next"
+        ],
+        "nuxt": [
+          "particle-text-nuxt"
+        ]
+      }
+    }
+  }
+}
